@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import './LoginSignup.css';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
+import { Link as RouterLink } from "react-router-dom";
 
 import {
   Box,
@@ -20,7 +20,7 @@ import {
 
 
 
-export const LoginSignup = () => {
+export const Login = () => {
 
     const MotionBox = motion(Box);
 
@@ -146,7 +146,7 @@ export const LoginSignup = () => {
 
                         <Text textAlign="center">
                                 Don’t have an account?{" "}
-                            <Link color="purple.600" >
+                            <Link as={RouterLink} to="/signup" color="purple.600" >
                                 Sign up
                             </Link>
                         </Text>
@@ -161,3 +161,5 @@ export const LoginSignup = () => {
         </Flex>
     );
 };
+
+export default Login
