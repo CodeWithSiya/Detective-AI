@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
 import './LoginSignup.css';
+import { FormControl, FormLabel } from '@chakra-ui/form-control';
+
+import {
+  Box,
+  Flex,
+  Heading,
+  Image,
+  Input,
+  Button,
+  Text,
+  Link,
+  VStack,
+} from "@chakra-ui/react";
 
 export const LoginSignup = () => {
 
@@ -33,81 +46,50 @@ export const LoginSignup = () => {
     }
 
     return (
-        <section className="container">
-            <div className="form-wrapper">
+        
+        //Container for background
+        <Flex
+            minH={'100vh'} //take full height
+            align={'center'} //vertically center
+            justify={'center'} //horizontal center
+            bgGradient={"linear(to-r, purple.600, purple.400)"} //Purple Gradient
+        >
+            <VStack 
+                spacing={8} //space between stacked children
+                mx={'auto'} //Centre stack horizontally
+                maxW={'lg'} //Max width
+                py={12} // p-top and p-bottonm
+                px={6} // p-left and p-right
+            ></VStack>
 
-                {/* Left side: Image */}
-                <div className="image-side">
-                    <img src="/path-to-your-image.jpg" alt="Login illustration" />
-                </div>
+            <VStack align={'center'}>
+                <Heading fontSize={'4x1'}>Welcome back ☺️</Heading>
+                <Text fontSize={'lg'} color={'gray.600'}>
+                    Log in to your account to continue
+                </Text>
+            </VStack>
 
-                <form id="my-form" onSubmit={handleSubmit}>
+            {/*Card */}
+            <Box
+                rounded={'lg'} //rounded corners
+                bg={"white"}
+                boxShadow={'lg'} //Shadow-effect behind card
+                p={8} //padding
+            >
+                <VStack spacing={4}>
 
-                    
+                    <FormControl id="email">
+                        <FormLabel>Email address</FormLabel>
+                        <Input type="email" />
+                    </FormControl>
 
-                    {/* Header */}
-                    <h1>Welcome back</h1>
-                    <h2>Sign in to continue</h2>
-                    <div className="msg"></div>
-
-                    {/* Email field */}
-                    <div>
-                    <label>Email:</label>
-                    <input 
-                        type="email" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    </div>
-
-                    {/* Password field*/}
-                    <div>
-                    <label>Password:</label>
-                    <input 
-                        type="password" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    </div>
-                    {/* Remember me checkbox and forgot password*/}
-                    <div>
-                        <label>
-                            <input 
-                                type="checkbox" 
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                            />
-                            Remember me
-                        </label>
-
-                        <a href="/forgot-password">Forgot password?</a>
-                    </div>
+                </VStack>
+                
+            </Box>
 
 
 
-                    <button type='button'>Login</button>
 
-                    {/* Divider */}
-                    <div>
-                        <span>or sign in with</span>
-                    </div>
-
-                    {/* Third-party sign in buttons*/}
-                    <div>
-                        <button type="button" onClick={handleGoogleLogin}>Google</button>
-                        <button type="button" onClick={handleGithubLogin}>GitHub</button>
-                        <button type="button" onClick={handleFacebookLogin}>Facebook</button>
-                    </div>
-
-                    {/* Sign up link */}
-                    <div>
-                        <p>
-                            Don't have an account? <a href="/signup">Sign up</a>
-                        </p>
-                    </div>
-
-                </form>
-            </div>
-        </section>
+        </Flex>
     );
 };
