@@ -19,13 +19,6 @@ export const LoginSignup = () => {
         console.log("Password:", password);
     };
 
-    const handleForgotPassword = () => {
-
-    }
-
-    const handlesSignup = () => {
-
-    }
 
     const handleGoogleLogin = () => {
 
@@ -41,77 +34,80 @@ export const LoginSignup = () => {
 
     return (
         <section className="container">
-        <form id="my-form" onSubmit={handleSubmit}>
+            <div className="form-wrapper">
 
-            {/* Header */}
-            <h1>Welcome back</h1>
-            <h2>Sign in to continue</h2>
-            <div className="msg"></div>
+                {/* Left side: Image */}
+                <div className="image-side">
+                    <img src="/path-to-your-image.jpg" alt="Login illustration" />
+                </div>
 
-            {/* Email field */}
-            <div>
-            <label>Email:</label>
-            <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            </div>
+                <form id="my-form" onSubmit={handleSubmit}>
 
-            {/* Password field*/}
-            <div>
-            <label>Password:</label>
-            <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            </div>
+                    
 
-            {/* Remember me checkbox and forgot password*/}
-            <div>
-                <label>
+                    {/* Header */}
+                    <h1>Welcome back</h1>
+                    <h2>Sign in to continue</h2>
+                    <div className="msg"></div>
+
+                    {/* Email field */}
+                    <div>
+                    <label>Email:</label>
                     <input 
-                        type="checkbox" 
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
-                    Remember me
-                </label>
+                    </div>
+
+                    {/* Password field*/}
+                    <div>
+                    <label>Password:</label>
+                    <input 
+                        type="password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    </div>
+                    {/* Remember me checkbox and forgot password*/}
+                    <div>
+                        <label>
+                            <input 
+                                type="checkbox" 
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            Remember me
+                        </label>
+
+                        <a href="/forgot-password">Forgot password?</a>
+                    </div>
 
 
-                <button type='button' onClick={handleForgotPassword}>
-                    Forgot password?
-                </button>
+
+                    <button type='button'>Login</button>
+
+                    {/* Divider */}
+                    <div>
+                        <span>or sign in with</span>
+                    </div>
+
+                    {/* Third-party sign in buttons*/}
+                    <div>
+                        <button type="button" onClick={handleGoogleLogin}>Google</button>
+                        <button type="button" onClick={handleGithubLogin}>GitHub</button>
+                        <button type="button" onClick={handleFacebookLogin}>Facebook</button>
+                    </div>
+
+                    {/* Sign up link */}
+                    <div>
+                        <p>
+                            Don't have an account? <a href="/signup">Sign up</a>
+                        </p>
+                    </div>
+
+                </form>
             </div>
-
-            
-
-            <button type='button'>Login</button>
-
-            {/* Divider */}
-            <div>
-                <span>or sign in with</span>
-            </div>
-
-            {/* Third-party sign in buttons*/}
-            <div>
-                <button type="button" onClick={handleGoogleLogin}>Google</button>
-                <button type="button" onClick={handleGithubLogin}>GitHub</button>
-                <button type="button" onClick={handleFacebookLogin}>Facebook</button>
-            </div>
-
-            {/* Sign up link */}
-            <div>
-                <p>
-                    Don't have an account
-                    <button type="button" onClick={handlesSignup}>
-                        Sign up
-                    </button>    
-                </p>
-            </div>
-
-        </form>
         </section>
     );
 };
