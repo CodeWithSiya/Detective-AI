@@ -13,8 +13,8 @@ class User(AbstractUser):
     """
     # Configuring user types as constants.
     USER_TYPE_CHOICES = (
-        ('ADMIN', 'Admin'),
-        ('REGISTERED', 'Registered User')
+        ("ADMIN", "Admin"),
+        ("REGISTERED", "Registered User")
     )
 
     # Overriding the default id with a uuid.
@@ -56,13 +56,14 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
+    # Defining metadata for the user table.
     class Meta:
         db_table = 'users'
         indexes = [
-            models.Index(fields=['username']),
-            models.Index(fields=['email', 'user_type']),
-            models.Index(fields=['first_name', 'last_name']),
-            models.Index(fields=['user_type'])
+            models.Index(fields=["username"]),
+            models.Index(fields=["email", "user_type"]),
+            models.Index(fields=["first_name", "last_name"]),
+            models.Index(fields=["user_type"])
         ]
 
     def __str__(self) -> str:
