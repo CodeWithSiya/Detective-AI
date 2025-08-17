@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './LoginSignup.css';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
+import { motion } from 'framer-motion'
+import { Typewriter } from 'react-simple-typewriter';
 
 import {
   Box,
@@ -15,9 +17,12 @@ import {
   Checkbox,
   Stack,
 } from "@chakra-ui/react";
-import { LuTypeOutline } from 'react-icons/lu';
+
+
 
 export const LoginSignup = () => {
+
+    const MotionBox = motion(Box);
 
     //Update state as user inputs
     const [email, setEmail] = useState('');
@@ -66,19 +71,34 @@ export const LoginSignup = () => {
             >
 
                 <Stack align={'center'}>
-                    <Heading fontSize={'4xl'}>Welcome back ☺️</Heading>
+                    <Heading fontSize={'4xl'}>
+                        <Typewriter
+                            words={['Welcome back ☺️', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.', 'Detective, the mystery won’t solve itself.']}
+                            loop={true}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
+                    </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Log in to your account to continue
                     </Text>
                 </Stack>
 
                 {/*Card */}
-                <Box
+                <MotionBox
                     rounded={'lg'} //rounded corners
                     bg={"white"}
                     boxShadow={'lg'} //Shadow-effect behind card
                     p={8} //padding
                     w="500px"
+
+                    //Animate box
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
                 >
                     <Stack spacing={4}>
                     
@@ -133,7 +153,7 @@ export const LoginSignup = () => {
 
                     </Stack>
                     
-                </Box>
+                </MotionBox>
             </Stack>
 
 
