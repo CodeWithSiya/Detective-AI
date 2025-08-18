@@ -13,7 +13,6 @@ class Feedback(models.Model):
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 22/08/2025
     """
-
     # Feedback Rating Choices.
     class FeedbackRating(models.TextChoices):
         THUMBS_UP = "THUMBS_UP", "Thumbs Up"
@@ -32,12 +31,6 @@ class Feedback(models.Model):
         related_name='feedback',
         help_text="User who provided the feedback."
     )
-
-    # Generic relation to any submission type.
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
-    submission = GenericForeignKey('content_type', 'object_id')
-
     rating = models.CharField(
         max_length=15,
         choices=FeedbackRating.choices,
@@ -57,6 +50,11 @@ class Feedback(models.Model):
         help_text="Timestamp when the submission was last updated."
     )
 
+    # Generic relation to any submission type.
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    submission = GenericForeignKey('content_type', 'object_id')
+
     # Defining metadata for the feedback table.
     class Meta:
         db_table = 'feedback'
@@ -67,11 +65,11 @@ class Feedback(models.Model):
         ]
         # Ensure one feedback per user per submission.
         constraints = [
-        models.UniqueConstraint(
-            fields=["user", "content_type", "object_id"],
-            name="unique_feedback_per_user_submission"
-        )
-    ]
+            models.UniqueConstraint(
+                fields=["user", "content_type", "object_id"],
+                name="unique_feedback_per_user_submission"
+            )
+        ]
 
     def __str__(self) -> str:
         """
