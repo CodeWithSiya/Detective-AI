@@ -31,7 +31,7 @@ class Submission(models.Model):
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text="Timestamp when the submission was "
+        help_text="Timestamp when the submission was created."
     )
     
     class Meta:
