@@ -28,7 +28,17 @@ const ForgotPassword = () => {
             align={'center'} //vertically center
             justify={'center'} //horizontal center
         >
-            <MotionBox
+            <Stack 
+                align={'center'}
+                spacing={4} //space between stacked children
+                mx={'auto'} //Centre stack horizontally
+                maxW={'lg'} //Max width
+                py={10} // p-top and p-bottonm
+                px={6} // p-left and p-right
+            >
+                <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+
+                <MotionBox
                 w='500px'
                 p={6}
                 my={12}
@@ -75,6 +85,10 @@ const ForgotPassword = () => {
 
             </Stack>
             </MotionBox>
+
+            </Stack>
+
+        
 
             
 
