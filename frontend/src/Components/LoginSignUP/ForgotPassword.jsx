@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
@@ -21,6 +21,15 @@ import {
 const ForgotPassword = () => {
 
     const MotionBox = motion(Box);
+
+    const emailRef = useRef();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        console.log("Email:", emailRef.current.value);
+
+    }
 
     return (
         <Flex
@@ -69,6 +78,7 @@ const ForgotPassword = () => {
                     placeholder="your-email@example.com"
                     _placeholder={{ color: 'gray.500' }}
                     type="email"
+                    ref={emailRef}
                     />
                 </FormControl>
 
@@ -77,8 +87,9 @@ const ForgotPassword = () => {
                         bg={'black'}
                         color={'white'}
                         _hover={{
-                        bg: 'blackAlpha.800',
-                    }}>
+                        bg: 'blackAlpha.800',}}
+                        onClick={handleSubmit}
+                    >
                         Request Reset
                     </Button>
                 </Stack>

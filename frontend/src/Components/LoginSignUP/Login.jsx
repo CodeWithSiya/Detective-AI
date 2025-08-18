@@ -23,13 +23,11 @@ import {
 export const Login = () => {
     const MotionBox = motion(Box);
 
-    // Use refs instead of state
     const emailRef = useRef();
     const passwordRef = useRef();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Access values directly from refs
         console.log("Email:", emailRef.current.value);
         console.log("Password:", passwordRef.current.value);
     };
