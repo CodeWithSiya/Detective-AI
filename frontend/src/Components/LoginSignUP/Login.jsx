@@ -47,7 +47,6 @@ export const Login = () => {
             minH={'100vh'} //take full height
             align={'center'} //vertically center
             justify={'center'} //horizontal center
-            bgGradient={"linear(to-r, purple.600, purple.400)"} //Purple Gradient
         >
             <Stack 
                 spacing={8} //space between stacked children
@@ -60,7 +59,7 @@ export const Login = () => {
                 <Stack align={'center'}>
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
 
-                    <Heading fontSize={'4xl'}>
+                    <Heading color={'black'} fontSize={'4xl'}>
                         <Typewriter
                             words={['Welcome back', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.',]}
                             loop={true}
@@ -116,7 +115,10 @@ export const Login = () => {
                                 <Checkbox.Label>Remember me</Checkbox.Label>
                             </Checkbox.Root>
                             
-                            <Link color="black" fontSize="sm">
+                            <Link 
+                            color="black" 
+                            fontSize="sm"
+                            _hover={{ color: "gray.500" }}>
                                 Forgot password?
                             </Link>
 
@@ -135,7 +137,11 @@ export const Login = () => {
 
                         <Text textAlign="center">
                                 Don’t have an account?{" "}
-                            <Link as={RouterLink} to="/signup" color="black" >
+                            <Link 
+                                as={RouterLink} 
+                                to="/signup" 
+                                color="black" 
+                                _hover={{ color: "gray.500" }}>
                                 Sign up
                             </Link>
                         </Text>

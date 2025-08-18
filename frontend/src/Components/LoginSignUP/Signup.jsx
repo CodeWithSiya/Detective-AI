@@ -42,8 +42,9 @@ const Signup = () => {
             >
 
                 <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
                     <Heading fontSize={'4xl'}>
-                        Join the Squad! 🕵🏽
+                        Become a Detective!
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Create an account to continue
@@ -51,6 +52,7 @@ const Signup = () => {
                 </Stack>
 
                 <MotionBox
+
                     rounded={'lg'} //rounded corners
                     bg={"white"}
                     boxShadow={'lg'} //Shadow-effect behind card
@@ -90,11 +92,11 @@ const Signup = () => {
                         </FormControl>
 
                         <Button
-                            bg={'purple.400'}
-                            variant={'subtle'}
+                            bg={'black'}
+                            variant={'solid'}
                             color={'white'}
                             _hover={{
-                            bg: 'purple.500',
+                            bg: 'blackAlpha.800',
                             }}
                         >
                             Sign up
@@ -102,7 +104,11 @@ const Signup = () => {
 
                         <Text textAlign="center">
                                 Already a user?{" "}
-                            <Link as={RouterLink} to="/" color="purple.600" >
+                            <Link 
+                                as={RouterLink} 
+                                _hover={{ color: "gray.500" }} 
+                                to="/" color="black" 
+                            >
                                 Log in
                             </Link>
                         </Text>
