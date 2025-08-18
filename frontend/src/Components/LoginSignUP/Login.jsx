@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
@@ -21,23 +21,17 @@ import {
 
 
 export const Login = () => {
-
     const MotionBox = motion(Box);
 
-    //Update state as user inputs
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState('');
-
-
+    // Use refs instead of state
+    const emailRef = useRef();
+    const passwordRef = useRef();
 
     const handleSubmit = (e) => {
-        //Prevent default submit behaviour
         e.preventDefault();
-
-        //Log values to console
-        console.log("Email:", email);
-        console.log("Password:", password);
+        // Access values directly from refs
+        console.log("Email:", emailRef.current.value);
+        console.log("Password:", passwordRef.current.value);
     };
 
     return (
@@ -96,13 +90,18 @@ export const Login = () => {
                                 type="email" 
                                 placeholder="your-email@example.com"
                                 _placeholder={{ color: 'gray.500' }}
+                                ref={emailRef}
                             />
                         </FormControl>
 
                         <FormControl id="password">
                             <FormLabel>Password</FormLabel>
-                            <Input type="password" />
+                            <Input 
+                            type="password" 
+                            ref={passwordRef}
+                            />
                         </FormControl>
+
 
                         <Stack
                             direction={{ base: 'column', sm: 'row' }}
@@ -137,6 +136,7 @@ export const Login = () => {
                             _hover={{
                             bg: 'blackAlpha.800',
                             }}
+                            onClick={handleSubmit}
                         >
                             Log in
                         </Button>
