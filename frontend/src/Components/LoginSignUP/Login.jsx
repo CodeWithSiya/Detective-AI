@@ -92,7 +92,11 @@ export const Login = () => {
                     
                         <FormControl id="email">
                             <FormLabel>Email address</FormLabel>
-                            <Input type="email" />
+                            <Input 
+                                type="email" 
+                                placeholder="your-email@example.com"
+                                _placeholder={{ color: 'gray.500' }}
+                            />
                         </FormControl>
 
                         <FormControl id="password">
@@ -116,6 +120,8 @@ export const Login = () => {
                             </Checkbox.Root>
                             
                             <Link 
+                            as={RouterLink}
+                            to="/forgot-password"
                             color="black" 
                             fontSize="sm"
                             _hover={{ color: "gray.500" }}>

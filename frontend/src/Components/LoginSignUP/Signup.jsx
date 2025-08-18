@@ -83,7 +83,11 @@ const Signup = () => {
 
                         <FormControl id="email" isRequired>
                             <FormLabel>Email address</FormLabel>
-                            <Input type="email" />
+                            <Input 
+                                type="email" 
+                                placeholder="your-email@example.com"
+                                _placeholder={{ color: 'gray.500' }}
+                            />
                         </FormControl>
 
                         <FormControl id="password" isRequired>
