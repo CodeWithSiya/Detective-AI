@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
@@ -24,6 +24,19 @@ import {
 const Signup = () => {
 
     const MotionBox = motion(Box);
+
+    const nameRef = useRef();
+    const emailRef = useRef();
+    const passwordRef = useRef();
+    const lastNameRef = useRef();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("First Name:", nameRef.current.value);
+        console.log("Last Name:", lastNameRef.current.value);
+        console.log("Email:", emailRef.current.value);
+        console.log("Password:", passwordRef.current.value);
+    }
 
     return (
         //Container for background
@@ -70,13 +83,13 @@ const Signup = () => {
                             <Box flex={1}>
                                 <FormControl id="firstName" isRequired>
                                     <FormLabel>First Name</FormLabel>
-                                    <Input type="text" />
+                                    <Input type="text" ref={nameRef}/>
                                 </FormControl>
                             </Box>
                             <Box flex={1}> 
                                 <FormControl id="lastName">
                                     <FormLabel>Last Name</FormLabel>
-                                    <Input type="text" />
+                                    <Input type="text" ref={lastNameRef}/>
                                 </FormControl>
                             </Box>
                         </HStack>
@@ -87,12 +100,13 @@ const Signup = () => {
                                 type="email" 
                                 placeholder="your-email@example.com"
                                 _placeholder={{ color: 'gray.500' }}
+                                ref={emailRef}
                             />
                         </FormControl>
 
                         <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>
-                            <Input type="password" />
+                            <Input type="password" ref={passwordRef}/>
                         </FormControl>
 
                         <Button
@@ -102,6 +116,7 @@ const Signup = () => {
                             _hover={{
                             bg: 'blackAlpha.800',
                             }}
+                            onClick={handleSubmit}
                         >
                             Sign up
                         </Button>
