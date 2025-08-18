@@ -40,19 +40,6 @@ export const Login = () => {
         console.log("Password:", password);
     };
 
-
-    const handleGoogleLogin = () => {
-
-    }
-
-    const handleGithubLogin = () => {
-
-    }
-
-    const handleFacebookLogin = () => {
-        
-    }
-
     return (
         
         //Container for background
@@ -71,9 +58,11 @@ export const Login = () => {
             >
 
                 <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+
                     <Heading fontSize={'4xl'}>
                         <Typewriter
-                            words={['Welcome back ☺️', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.', 'Detective, the mystery won’t solve itself.']}
+                            words={['Welcome back', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.',]}
                             loop={true}
                             cursor
                             cursorStyle="_"
@@ -120,25 +109,25 @@ export const Login = () => {
                             {/*Checkbox*/}
                             <Checkbox.Root
                                 variant={'subtle'}
-                                colorPalette={'purple'}
+                                colorPalette={'black'}
                             >
                                 <Checkbox.HiddenInput />
                                 <Checkbox.Control />
                                 <Checkbox.Label>Remember me</Checkbox.Label>
                             </Checkbox.Root>
                             
-                            <Link color="purple.500" fontSize="sm">
+                            <Link color="black" fontSize="sm">
                                 Forgot password?
                             </Link>
 
                         </Stack>
 
                         <Button
-                            bg={'purple.400'}
-                            variant={'subtle'}
+                            bg={'black'}
+                            variant={'solid'}
                             color={'white'}
                             _hover={{
-                            bg: 'purple.500',
+                            bg: 'blackAlpha.800',
                             }}
                         >
                             Log in
@@ -146,7 +135,7 @@ export const Login = () => {
 
                         <Text textAlign="center">
                                 Don’t have an account?{" "}
-                            <Link as={RouterLink} to="/signup" color="purple.600" >
+                            <Link as={RouterLink} to="/signup" color="black" >
                                 Sign up
                             </Link>
                         </Text>
