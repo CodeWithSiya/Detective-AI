@@ -148,4 +148,12 @@ const DetectivePage = () => {
         });
         return {isAI, confidence, highlightedText};
     };
+
+    const performImageAnalysis = (filename) => {
+        //mock logic based on filename
+        const isAI = filename.toLowerCase().includes('ai') || filename.toLowerCase().includes('generated');
+        const confidence = isAI ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 20) + 75;
+
+        return {isAI, confidence};
+    };
 }
