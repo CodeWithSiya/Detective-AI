@@ -258,4 +258,14 @@ const DetectivePage = () => {
         setCurrentView('history-detail');
     };
 
+    const exportResults = (format) => {
+        if (format === 'pdf'){
+            alert('PDF export functionality would be implemented here.');
+        }
+        else{
+            alert('Email export functionality would be implemented here.');
+        }
+    };
+
+    
 }
