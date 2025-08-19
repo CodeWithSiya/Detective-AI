@@ -278,4 +278,19 @@ const DetectivePage = () => {
             imageInputRef.current.value = '';
         }
     };
+
+    const detectionOptions = [
+        {
+            id: 'text',
+            title: 'Text Detection',
+            description: 'Analyze text content for AI-generated patterns and signatures.',
+            icon: <FileText className="icon-lg"/>
+        },
+        {
+            id: 'image',
+            title: 'Image Detection',
+            description: 'Detect AI-generated images using advanced visual analysis',
+            icon: <ImageIcon className="icon-lg"/>
+        }
+    ];
 }
