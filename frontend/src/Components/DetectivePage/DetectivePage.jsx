@@ -381,6 +381,12 @@ const DetectivePage = () => {
                 </nav>
             </div>
 
+            {/*sidebar overlay */}
+            <div
+                className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+                onClick={toggleSidebar}
+            />
+
             
         </div>
     );
