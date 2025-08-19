@@ -31,6 +31,7 @@ import {
     ArrowLeft,
     Loader,
 } from 'lucide-react';
+import { Link as RouterLink } from "react-router-dom";
 
 const DetectivePage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -119,7 +120,7 @@ const DetectivePage = () => {
 
     //mock ai detection logic
     const performTextAnalysis = (text) => {
-        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'furthermore', 'moreover', 'additionally'];
+        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'furthermore', 'moreover', 'additionally', 'leverage', 'optimize', 'facilitate', 'furthermore', 'moreover', 'additionally', 'consequently'];
         const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
 
         let isAI = false;

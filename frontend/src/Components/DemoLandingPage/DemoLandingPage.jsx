@@ -209,11 +209,13 @@ const DemoLandingPage = () => {
                     </p>
                 
                     <div className="cta-buttons">
-                        <button className="btn-primary">
-                            <Search className="icon-sm" />
-                            <span>Start Detection</span>
-                            <ChevronRight className="icon-sm" />
-                        </button>
+                        <RouterLink to="/detective">
+                            <button className="btn-primary">
+                                <Search className="icon-sm" />
+                                <span>Start Detection</span>
+                                <ChevronRight className="icon-sm" />
+                            </button>
+                        </RouterLink>
                         
                         <div className="header-buttons">
                             <RouterLink to="/signup">
