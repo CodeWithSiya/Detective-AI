@@ -293,4 +293,11 @@ const DetectivePage = () => {
             icon: <ImageIcon className="icon-lg"/>
         }
     ];
+
+    const navigationItems = [
+        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
+        {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
+        {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
+        {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
+    ];
 }
