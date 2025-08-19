@@ -8,6 +8,7 @@ from .user import User
 from .submission import Submission
 from .text_submission import TextSubmission
 from .image_submission import ImageSubmission
+from .file_submission import FileSubmission
 
 # Intialising Analysis model packages.
 from .analysis_result import AnalysisResult

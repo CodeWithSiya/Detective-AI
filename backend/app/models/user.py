@@ -54,7 +54,7 @@ class User(AbstractUser):
 
     # Use email instead of username for authentication.
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     # Defining metadata for the user table.
     class Meta:
