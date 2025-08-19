@@ -56,7 +56,7 @@ const DetectivePage = () => {
             title: 'Academic Essay Analysis',
             date: '2 hours ago',
             content: 'The rapid evolution of AI has revolutionized various industries...',
-            result: {isAI: true, confidence: 87, highlightedText: 'The rapid advancements of AI has <span class="hightlight">revolutionized<span class="tooltip">AI-typical word choice</span></span>various industries and <span class="highlight">transformed<span class="tooltip">Overused transition word</span></span> the way we approach complex problems.'}
+            result: {isAI: true, confidence: 87, highlightedText: 'The rapid advancements of AI has <span class="highlight">revolutionized<span class="tooltip">AI-typical word choice</span></span>various industries and <span class="highlight">transformed<span class="tooltip">Overused transition word</span></span> the way we approach complex problems.'}
         },
         {
             id: 2,
@@ -226,6 +226,10 @@ const DetectivePage = () => {
     };
 
     const handleThumbsDown = () => {
+        setShowFeedback(true);
+    };
+
+    const submitFeedback = () =>{
         if (!feedbackText.trim()) return;
 
         const newFeedback = {
@@ -409,7 +413,7 @@ const DetectivePage = () => {
                         </div>
                     </div>
                     {/*Sign in button*/}
-                    <button className="btn-sigin">
+                    <button className="btn-signin">
                         <span>Sign In</span>
                         <ChevronRight className="icon-sm"/>
                     </button>
