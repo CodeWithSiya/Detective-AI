@@ -259,6 +259,10 @@ const DetectivePage = () => {
         setCurrentView('history-detail');
     };
 
+    const deleteHistoryItem = (id) => {
+        setHistoryItems(prev => prev.filter(item => item.id !== id));
+    };
+
     const exportResults = (format) => {
         if (format === 'pdf'){
             alert('PDF export functionality would be implemented here.');
