@@ -97,4 +97,19 @@ const DetectivePage = () => {
             type: 'text'
         }
     ]);
+
+    const [feedbackList, setFeedbackList] = useState([
+        {
+            id: 1,
+            query: 'Academic Essay Analysis',
+            feedback: 'The detection seemed inaccurate. The highlighted words appear to be normal academic language.',
+            date: '2 hours ago'
+        },
+        {
+            id: 2,
+            query: 'Blog Post Detection',
+            feedback: 'Great accuracy! The AI detection was spot on and helped me verify the content.',
+            date: '1 day ago'
+        }
+    ]);
 }
