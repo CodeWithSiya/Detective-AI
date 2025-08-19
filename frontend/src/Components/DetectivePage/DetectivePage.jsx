@@ -169,4 +169,30 @@ const DetectivePage = () => {
             setIsAnalyzing(false);
         }, 2000);
     };
+
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileType = file.type;
+        const fileName = file.name.toLowerCase();
+
+        if (activeDetectionType === 'text'){
+            if (!fileType.includes('pdf') && !fileType.includes('document') && !fileName.endsWith('docx')){
+                alert('Please upload only PDF or DOCX files for text analysis.');
+                return;
+            }
+
+            //mock file reading
+            setIsAnalyzing(true);
+            setTimeout(() => {
+                const mockText = `This is a sample text extracted from ${file.name}. The document contains various paragraphs with potentially AI-generated content that needs to be analyzed for authenticity.`;
+                const result = performTextAnalysis(mockText);
+                setAnalysisResult({...result, filename: file.name});
+                setIsAnalyzing(false);
+            }, 3000);
+        }
+    };
+
+    
 }
