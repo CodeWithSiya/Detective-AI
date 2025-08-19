@@ -46,7 +46,7 @@ const DetectivePage = () => {
     const [uploadedImage, setUploadedImage] = useState(null);
 
     const fileInputRef = useRef(null);
-    const imageInputReff = useRef(null);
+    const imageInputRef = useRef(null);
 
     const [historyItems, setHistoryItems] = useState([
         {
@@ -267,5 +267,15 @@ const DetectivePage = () => {
         }
     };
 
-    
+    const resetAnalysis = () => {
+        setAnalysisResult(null);
+        setTextContent('');
+        setUploadedImage(null);
+        if (fileInputRef.current){
+            fileInputRef.current.value = '';
+        }
+        if (imageInputRef.current){
+            imageInputRef.current.value = '';
+        }
+    };
 }
