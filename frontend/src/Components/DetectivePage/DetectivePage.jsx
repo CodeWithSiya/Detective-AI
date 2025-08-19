@@ -31,3 +31,22 @@ import {
     ArrowLeft,
     Loader
 } from 'lucide-react';
+
+const DetectivePage = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [activeDetectionType, setActiveDetectionType] = useState('text');
+    const [inputMode, setInputMode] = useState('type'); //type or upload
+    const [textContent, setTextContent] = useState('');
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [currentView, setCurrentView] = useState('main'); // 'main' or 'history-detail'
+    const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+    const [uploadedImage, setUploadedImage] = useState(null);
+
+    const fileInputRef = useRef(null);
+    const imageInputReff = useRef(null);
+
+    
+}
