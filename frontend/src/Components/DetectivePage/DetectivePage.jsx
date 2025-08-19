@@ -137,5 +137,15 @@ const DetectivePage = () => {
         else{
             confidence = Math.max(75, 90 - (foundKeywords.length * 5));
         }
-    }
+
+        //generate highlighted text
+        let highlightedText = text;
+        [...aiKeywords, ...suspiciousPatterns].forEach(keyword => {
+            const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+            highlightedText = highlightedText.replace(regex,
+                `<span class="hightlight">${keyword}<span class="tooltip">AI-typical phrase detected</span></span>`
+            );
+        });
+        return {isAI, confidence, highlightedText};
+    };
 }
