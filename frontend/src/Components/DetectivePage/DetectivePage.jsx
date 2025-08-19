@@ -224,5 +224,19 @@ const DetectivePage = () => {
         reader.readAsDataURL(file);
     };
 
+    const handleThumbsDown = () => {
+        if (!feedbackText.trim()) return;
+
+        const newFeedback = {
+            id: Date.now(),
+            query: analysisResult?.filename || 'Text Analysis',
+            feedback: feedbackText,
+            date: 'Just now'
+        };
+
+        setFeedbackList(prev => [newFeedback, ...prev]);
+        setFeedbackText('');
+        setShowFeedback(false);
+    };
 
 }
