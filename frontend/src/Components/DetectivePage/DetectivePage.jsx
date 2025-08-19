@@ -73,4 +73,28 @@ const DetectivePage = () => {
         {label: 'Accuracy', value: '94.2%', change: '+2.1%'},
         {label: 'Avg Time', value: '8.3s', change: '-1.2s%'},
     ]);
+
+    const [recentActivity] = useState([
+        {
+            id: 1,
+            title: 'Text analysis completed',
+            time: '2 minutes ago',
+            status: 'success',
+            type: 'text'
+        },
+        {
+            id: 2,
+            title: 'Image Processing in progress',
+            time: '5 minutes ago',
+            status: 'processing',
+            type: 'image'
+        },
+        {
+            id: 3,
+            title: 'Batch analysis completed',
+            time: '1 hour ago',
+            status: 'success',
+            type: 'text'
+        }
+    ]);
 }
