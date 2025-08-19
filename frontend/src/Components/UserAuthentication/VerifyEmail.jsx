@@ -2,8 +2,9 @@ import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { PinInput } from "@chakra-ui/react"
+import { Navigate } from 'react-router-dom';
 
 
 import {
@@ -29,6 +30,14 @@ const handleSubmit = (e) => {
 const VerifyEmail = () => {
 
     const MotionBox = motion(Box);
+
+    const navigate = useNavigate();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        navigate('/change-password');
+    }
 
     return (
         <Flex

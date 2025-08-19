@@ -6,6 +6,7 @@ import Login from './Components/UserAuthentication/Login'
 import Signup from './Components/UserAuthentication/Signup';
 import ForgotPassword from './Components/UserAuthentication/ForgotPassword';
 import VerifyEmail from './Components/UserAuthentication/VerifyEmail';
+import ChangePassword from './Components/UserAuthentication/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-email" element={<VerifyEmail />}/>
+        <Route path="/change-password" element={<ChangePassword/>}/>
       </Routes>
     </Router>
   )
