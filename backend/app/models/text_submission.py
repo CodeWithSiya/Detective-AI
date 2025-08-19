@@ -1,5 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from .submission import Submission
+
+User = get_user_model()
 
 class TextSubmission(Submission):
     """
@@ -12,6 +15,11 @@ class TextSubmission(Submission):
     content = models.TextField(
         max_length=5000,
         help_text="The text content submitted for AI detection analysis."
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='text_submissions'
     )
     character_count = models.PositiveIntegerField(
         null = True,

@@ -1,9 +1,12 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.contrib.auth import get_user_model
 from typing import Optional
 from PIL import Image
 from .submission import Submission
 import os
+
+User = get_user_model()
 
 def image_upload_path(instance: models.Model, filename: str) -> str:
     """
@@ -38,6 +41,12 @@ class ImageSubmission(Submission):
         null=True,
         blank=True,
         help_text="File size in bytes."
+    )
+    user = models.ForeignKey(
+       User,
+       on_delete=models.CASCADE,
+       related_name="image_submissions",
+       help_text="User who made this submission."
     )
     width = models.PositiveIntegerField(
         null=True,
