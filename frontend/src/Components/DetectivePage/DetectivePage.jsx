@@ -30,7 +30,6 @@ import {
     AlertCircle,
     ArrowLeft,
     Loader,
-    Menu
 } from 'lucide-react';
 
 const DetectivePage = () => {
@@ -317,7 +316,7 @@ const DetectivePage = () => {
                 className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
                 onClick={toggleSidebar}
             >
-                <Menu className="icon-md"/>
+                <X className="icon-md"/>
             </button>
 
             {/*sidebar*/}
