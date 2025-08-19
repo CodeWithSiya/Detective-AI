@@ -239,4 +239,18 @@ const DetectivePage = () => {
         setShowFeedback(false);
     };
 
+    const saveToHistory = () => {
+        if (!analysisResult || analysisResult.isImage) return;
+
+        const newHistoryItem = {
+            id: Date.now(),
+            type: 'text',
+            title: analysisResult.filename || `Analysis ${new Date().toLocaleTimeString()}`,
+            date: 'Just now',
+            content: textContent,
+            result: analysisResult
+        };
+        setHistoryItems(prev => [newHistoryItem, ...prev]);
+    };
+
 }
