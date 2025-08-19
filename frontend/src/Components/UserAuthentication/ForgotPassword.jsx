@@ -49,7 +49,16 @@ const ForgotPassword = () => {
                 py={10} // p-top and p-bottonm
                 px={6} // p-left and p-right
             >
-                <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                    <Heading fontSize={'4xl'} color={"black"}>
+                        Forgot Password?
+                    </Heading>
+                    <Text fontSize={'lg'} color={'gray.600'}>
+                        You&apos;ll get an email with a reset link
+                    </Text>
+                </Stack>
+               
 
                 <MotionBox
                 w='500px'
@@ -67,17 +76,9 @@ const ForgotPassword = () => {
                 <Stack
                 spacing={4}
             >
-                <Heading color={'black'} lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
-                    Forgot your password?
-                </Heading>
-
-                <Text
-                    fontSize={{ base: 'sm', sm: 'md' }}
-                    color={'gray.600'}>
-                    You&apos;ll get an email with a reset link
-                </Text>
 
                 <FormControl id="email">
+                    <FormLabel>Email address</FormLabel>
                     <Input
                     placeholder="your-email@example.com"
                     _placeholder={{ color: 'gray.500' }}
@@ -86,7 +87,7 @@ const ForgotPassword = () => {
                     />
                 </FormControl>
 
-                <Stack spacing={6}>
+                <Stack spacing={6} pt={6}>
                     <Button
                         bg={'black'}
                         color={'white'}

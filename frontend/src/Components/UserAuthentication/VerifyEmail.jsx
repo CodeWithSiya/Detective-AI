@@ -44,7 +44,16 @@ const VerifyEmail = () => {
                 py={10} // p-top and p-bottonm
                 px={6} // p-left and p-right
             >
-                <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                    <Heading fontSize={'4xl'} color={'black'}>
+                        Verify your Email
+                    </Heading>
+                    <Text fontSize={'lg'} color={'gray.600'}>
+                        We have sent a code to your email!
+                    </Text>
+                </Stack>
+
 
                 <MotionBox
                 w='500px'
@@ -62,23 +71,17 @@ const VerifyEmail = () => {
                 <Stack
                 spacing={12}
                 >
-                <Heading color={'black'} lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
-                    Verify your Email
-                </Heading>
-
-                <Text
-                    fontSize={{ base: 'sm', sm: 'md' }}
-                    color={'gray.600'}>
-                    We have sent a code to your email!
-                </Text>
 
                 <Text
                     fontSize={{ base: 'sm', sm: 'md' }}
                     color={'black'}
                     fontWeight={'bold'}
+                    pb={6}
                 >
                     johndoe@gmail.com
                 </Text>
+
+                
 
                 <PinInput.Root otp>
                     <PinInput.HiddenInput />

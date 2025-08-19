@@ -56,7 +56,7 @@ const Signup = () => {
 
                 <Stack align={'center'}>
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
-                    <Heading fontSize={'4xl'}>
+                    <Heading fontSize={'4xl'} color={"black"}>
                         Become a Detective!
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
