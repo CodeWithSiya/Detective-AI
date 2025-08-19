@@ -112,4 +112,8 @@ const DetectivePage = () => {
             date: '1 day ago'
         }
     ]);
+
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 }
