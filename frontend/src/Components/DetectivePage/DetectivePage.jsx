@@ -300,4 +300,16 @@ const DetectivePage = () => {
         {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
         {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
     ];
+
+    return (
+        <div className="detective-container">
+            {/*Menu toggle button*/}
+            <button
+                className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
+                onClick={toggleSidebar}
+            >
+                <Menu className="icon-md"/>
+            </button>
+        </div>
+    );
 }
