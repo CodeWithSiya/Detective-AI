@@ -331,7 +331,23 @@ const DetectivePage = () => {
                     <span>New Detection</span>
                 </button>
 
-                
+                {/*navigation */}
+                <nav className="sidebar-nav">
+                    <div className="nav-section">
+                        <div className="nav-section-title">Navigation</div>
+                        {navigationItems.map((item) => (
+                            <button
+                                key={item.id}
+                                className={`nav-item ${item.active ? 'active' : ''}`}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                                <ChevronRight className="icon-xs" style={{ marginLeft: 'auto'}}/>
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+
             </div>
         </div>
     );
