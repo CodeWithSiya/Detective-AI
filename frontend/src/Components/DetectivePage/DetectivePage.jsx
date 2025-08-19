@@ -346,9 +346,42 @@ const DetectivePage = () => {
                             </button>
                         ))}
                     </div>
-                </nav>
 
+                    {/*history section*/}
+                    <div className="nav-section history-section">
+                        <div className="nav-section-title">Recent Detections</div>
+                        {historyItems.map((item) => (
+                            <div key={item.id} className="history-item">
+                                <div className="history-content" onClick={() => viewHistoryItem(item)}>
+                                    {item.type === 'text' ?
+                                        <FileText className="icon-xs"/> :
+                                        <ImageIcon className="icon-xs"/>
+                                    }
+                                    <div>
+                                        <div className="history-text">{item.title}</div>
+                                        <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
+                                            {item.date}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="history-actions">
+                                    <button className="history-action">
+                                        <Share className="icon-xs"/>
+                                    </button>
+                                    <button
+                                        className="history-action"
+                                        onClick={() => deleteHistoryItem(item.id)}
+                                    >
+                                        <Trash2 className="icon-xs"/>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </nav>
             </div>
+
+            
         </div>
     );
 }
