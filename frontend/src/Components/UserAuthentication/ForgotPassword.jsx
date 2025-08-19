@@ -51,7 +51,15 @@ const ForgotPassword = () => {
                 <Stack align={'center'}>
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
                     <Heading fontSize={'4xl'} color={"black"}>
-                        Forgot Password?
+                        <Typewriter
+                            words={['Forgot your Password?',]}
+                            loop={1}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         You&apos;ll get an email with a reset link

@@ -63,7 +63,15 @@ const Signup = () => {
                 <Stack align={'center'}>
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
                     <Heading fontSize={'4xl'} color={"black"}>
-                        Become a Detective!
+                        <Typewriter
+                            words={['Become a Detective!',]}
+                            loop={1}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Create an account to continue

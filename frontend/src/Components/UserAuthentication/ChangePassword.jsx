@@ -52,7 +52,15 @@ const ChangePassword = () => {
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
 
                     <Heading color={'black'} fontSize={'4xl'}>
-                        Change your Password
+                        <Typewriter
+                            words={['Change your Password',]}
+                            loop={1}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Don't forget it this time!
