@@ -156,4 +156,17 @@ const DetectivePage = () => {
 
         return {isAI, confidence};
     };
+
+    const handleTextAnalysis = async () => {
+        if (!textContent.trim()) return;
+
+        setIsAnalyzing(true);
+
+        //simulate api delay
+        setTimeout(() => {
+            const result = performTextAnalysis(textContent);
+            setAnalysisResult(result);
+            setIsAnalyzing(false);
+        }, 2000);
+    };
 }
