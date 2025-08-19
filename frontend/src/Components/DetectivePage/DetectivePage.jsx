@@ -48,5 +48,22 @@ const DetectivePage = () => {
     const fileInputRef = useRef(null);
     const imageInputReff = useRef(null);
 
-    
+    const [historyItems, setHistoryItems] = useState([
+        {
+            id: 1,
+            type:'text',
+            title: 'Academic Essay Analysis',
+            date: '2 hours ago',
+            content: 'The rapid evolution of AI has revolutionized various industries...',
+            result: {isAI: true, confidence: 87, highlightedText: 'The rapid advancements of AI has <span class="hightlight">revolutionized<span class="tooltip">AI-typical word choice</span></span>various industries and <span class="highlight">transformed<span class="tooltip">Overused transition word</span></span> the way we approach complex problems.'}
+        },
+        {
+            id: 2,
+            type:'text',
+            title: 'Research Paper Review',
+            date: '2 days ago',
+            content: 'Climate change represents one of the most pressing challenges of our time...',
+            result: {isAI: false, confidence: 92, highlightedText: 'Climate change represents one of the most pressing challenges of our time. The scientific evidence  overwhelmingly supports the conclusion that human activities are the primary driver of recent climate change.'}
+        }
+    ]);
 }
