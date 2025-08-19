@@ -16,6 +16,7 @@ import {
   VStack,
   Checkbox,
   Stack,
+  Field,
 } from "@chakra-ui/react";
 
 const ForgotPassword = () => {
@@ -27,8 +28,6 @@ const ForgotPassword = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        console.log("Email:", emailRef.current.value);
 
         navigate('/verify-email');
 
@@ -78,13 +77,10 @@ const ForgotPassword = () => {
             >
 
                 <FormControl id="email">
-                    <FormLabel>Email address</FormLabel>
-                    <Input
-                    placeholder="your-email@example.com"
-                    _placeholder={{ color: 'gray.500' }}
-                    type="email"
-                    ref={emailRef}
-                    />
+                    <Field.Root>
+                        <Field.Label>Email</Field.Label>
+                        <Input placeholder="johndoe@example.com" />
+                    </Field.Root>
                 </FormControl>
 
                 <Stack spacing={6} pt={6}>
@@ -94,7 +90,6 @@ const ForgotPassword = () => {
                         _hover={{
                         bg: 'blackAlpha.800',}}
                         onClick={handleSubmit}
-
                     >
                         Request Reset
                     </Button>

@@ -21,7 +21,8 @@ import {
   VStack,
   Checkbox,
   Stack,
-  HStack
+  HStack,
+  Field,
 } from "@chakra-ui/react";
 
 
@@ -86,41 +87,46 @@ const Signup = () => {
                     
                         <HStack>
                             <Box flex={1}>
-                                <FormControl id="firstName" isRequired>
-                                    <FormLabel>First Name</FormLabel>
-                                    <Input type="text" ref={nameRef}/>
+                                <FormControl id="firstName">
+                                    <Field.Root required>
+                                        <Field.Label>Name<Field.RequiredIndicator /></Field.Label>
+                                            <Input placeholder="e.g. John" />
+                                    </Field.Root>
                                 </FormControl>
                             </Box>
                             <Box flex={1}> 
                                 <FormControl id="lastName">
-                                    <FormLabel>Last Name</FormLabel>
-                                    <Input type="text" ref={lastNameRef}/>
+                                    <Field.Root>
+                                        <Field.Label>Surname</Field.Label>
+                                            <Input placeholder="e.g. Doe" />
+                                    </Field.Root>
                                 </FormControl>
                             </Box>
                         </HStack>
 
-                        <FormControl id="email" isRequired>
-                            <FormLabel>Email address</FormLabel>
-                            <Input 
-                                type="email" 
-                                placeholder="your-email@example.com"
-                                _placeholder={{ color: 'gray.500' }}
-                                ref={emailRef}
-                            />
+                        <FormControl id="email">
+                            <Field.Root required>
+                                <Field.Label>Email<Field.RequiredIndicator /></Field.Label>
+                                    <Input placeholder="johndoe@example.com" />
+                            </Field.Root>
                         </FormControl>
 
                         <FormControl id="password" isRequired>
-                            <FormLabel>Password</FormLabel>
                             <Stack>
-                                <PasswordInput />
+                                <Field.Root required>
+                                    <Field.Label>Password<Field.RequiredIndicator /></Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
                                 <PasswordStrengthMeter value={2} />
                             </Stack>
                         </FormControl>
 
-                        <FormControl id="confirm-password" isRequired>
-                            <FormLabel>Confirm Password</FormLabel>
+                        <FormControl id="confirm-password">
                             <Stack>
-                                <PasswordInput />
+                                <Field.Root required>
+                                    <Field.Label>Confirm Password<Field.RequiredIndicator /></Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
                             </Stack>
                         </FormControl>
 

@@ -21,6 +21,7 @@ import {
   VStack,
   Checkbox,
   Stack,
+  Field,
 } from "@chakra-ui/react";
 
 const handleSubmit = (e) => {
@@ -74,17 +75,21 @@ const ChangePassword = () => {
                     <Stack spacing={4}>
                     
                         <FormControl id="password" isRequired>
-                            <FormLabel>Password</FormLabel>
                             <Stack>
-                                <PasswordInput />
+                                <Field.Root>
+                                    <Field.Label>Password</Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
                                 <PasswordStrengthMeter value={2} />
                             </Stack>
                         </FormControl>
 
                         <FormControl id="confirm-password" isRequired>
                             <Stack>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <PasswordInput/>
+                                <Field.Root>
+                                    <Field.Label>Confirm Password</Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
                             </Stack>
                         </FormControl>
 

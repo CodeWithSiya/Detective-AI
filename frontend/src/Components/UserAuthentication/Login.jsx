@@ -21,6 +21,7 @@ import {
   VStack,
   Checkbox,
   Stack,
+  Field,
 } from "@chakra-ui/react";
 
 
@@ -88,18 +89,17 @@ export const Login = () => {
                     <Stack spacing={4}>
                     
                         <FormControl id="email">
-                            <FormLabel>Email address</FormLabel>
-                            <Input 
-                                type="email" 
-                                placeholder="your-email@example.com"
-                                _placeholder={{ color: 'gray.500' }}
-                                ref={emailRef}
-                            />
+                            <Field.Root>
+                                <Field.Label>Email</Field.Label>
+                                <Input placeholder="me@example.com" />
+                            </Field.Root>
                         </FormControl>
 
                         <FormControl id="password">
-                            <FormLabel>Password</FormLabel>
-                            <PasswordInput />
+                            <Field.Root>
+                                <Field.Label>Password</Field.Label>
+                                <PasswordInput />
+                            </Field.Root>
                         </FormControl>
 
 
