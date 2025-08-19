@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
@@ -21,37 +21,16 @@ import {
 
 
 export const Login = () => {
-
     const MotionBox = motion(Box);
 
-    //Update state as user inputs
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState('');
-
-
+    const emailRef = useRef();
+    const passwordRef = useRef();
 
     const handleSubmit = (e) => {
-        //Prevent default submit behaviour
         e.preventDefault();
-
-        //Log values to console
-        console.log("Email:", email);
-        console.log("Password:", password);
+        console.log("Email:", emailRef.current.value);
+        console.log("Password:", passwordRef.current.value);
     };
-
-
-    const handleGoogleLogin = () => {
-
-    }
-
-    const handleGithubLogin = () => {
-
-    }
-
-    const handleFacebookLogin = () => {
-        
-    }
 
     return (
         
@@ -60,7 +39,6 @@ export const Login = () => {
             minH={'100vh'} //take full height
             align={'center'} //vertically center
             justify={'center'} //horizontal center
-            bgGradient={"linear(to-r, purple.600, purple.400)"} //Purple Gradient
         >
             <Stack 
                 spacing={8} //space between stacked children
@@ -71,9 +49,11 @@ export const Login = () => {
             >
 
                 <Stack align={'center'}>
-                    <Heading fontSize={'4xl'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+
+                    <Heading color={'black'} fontSize={'4xl'}>
                         <Typewriter
-                            words={['Welcome back ☺️', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.', 'Detective, the mystery won’t solve itself.']}
+                            words={['Welcome back', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.',]}
                             loop={true}
                             cursor
                             cursorStyle="_"
@@ -104,13 +84,22 @@ export const Login = () => {
                     
                         <FormControl id="email">
                             <FormLabel>Email address</FormLabel>
-                            <Input type="email" />
+                            <Input 
+                                type="email" 
+                                placeholder="your-email@example.com"
+                                _placeholder={{ color: 'gray.500' }}
+                                ref={emailRef}
+                            />
                         </FormControl>
 
                         <FormControl id="password">
                             <FormLabel>Password</FormLabel>
-                            <Input type="password" />
+                            <Input 
+                            type="password" 
+                            ref={passwordRef}
+                            />
                         </FormControl>
+
 
                         <Stack
                             direction={{ base: 'column', sm: 'row' }}
@@ -120,33 +109,43 @@ export const Login = () => {
                             {/*Checkbox*/}
                             <Checkbox.Root
                                 variant={'subtle'}
-                                colorPalette={'purple'}
+                                colorPalette={'black'}
                             >
                                 <Checkbox.HiddenInput />
                                 <Checkbox.Control />
                                 <Checkbox.Label>Remember me</Checkbox.Label>
                             </Checkbox.Root>
                             
-                            <Link color="purple.500" fontSize="sm">
+                            <Link 
+                            as={RouterLink}
+                            to="/forgot-password"
+                            color="black" 
+                            fontSize="sm"
+                            _hover={{ color: "gray.500" }}>
                                 Forgot password?
                             </Link>
 
                         </Stack>
 
                         <Button
-                            bg={'purple.400'}
-                            variant={'subtle'}
+                            bg={'black'}
+                            variant={'solid'}
                             color={'white'}
                             _hover={{
-                            bg: 'purple.500',
+                            bg: 'blackAlpha.800',
                             }}
+                            onClick={handleSubmit}
                         >
                             Log in
                         </Button>
 
                         <Text textAlign="center">
                                 Don’t have an account?{" "}
-                            <Link as={RouterLink} to="/signup" color="purple.600" >
+                            <Link 
+                                as={RouterLink} 
+                                to="/signup" 
+                                color="black" 
+                                _hover={{ color: "gray.500" }}>
                                 Sign up
                             </Link>
                         </Text>

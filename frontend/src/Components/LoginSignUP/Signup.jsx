@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
@@ -25,6 +25,19 @@ const Signup = () => {
 
     const MotionBox = motion(Box);
 
+    const nameRef = useRef();
+    const emailRef = useRef();
+    const passwordRef = useRef();
+    const lastNameRef = useRef();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("First Name:", nameRef.current.value);
+        console.log("Last Name:", lastNameRef.current.value);
+        console.log("Email:", emailRef.current.value);
+        console.log("Password:", passwordRef.current.value);
+    }
+
     return (
         //Container for background
         <Flex
@@ -42,8 +55,9 @@ const Signup = () => {
             >
 
                 <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
                     <Heading fontSize={'4xl'}>
-                        Join the Squad! 🕵🏽
+                        Become a Detective!
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Create an account to continue
@@ -51,6 +65,7 @@ const Signup = () => {
                 </Stack>
 
                 <MotionBox
+
                     rounded={'lg'} //rounded corners
                     bg={"white"}
                     boxShadow={'lg'} //Shadow-effect behind card
@@ -68,41 +83,51 @@ const Signup = () => {
                             <Box flex={1}>
                                 <FormControl id="firstName" isRequired>
                                     <FormLabel>First Name</FormLabel>
-                                    <Input type="text" />
+                                    <Input type="text" ref={nameRef}/>
                                 </FormControl>
                             </Box>
                             <Box flex={1}> 
                                 <FormControl id="lastName">
                                     <FormLabel>Last Name</FormLabel>
-                                    <Input type="text" />
+                                    <Input type="text" ref={lastNameRef}/>
                                 </FormControl>
                             </Box>
                         </HStack>
 
                         <FormControl id="email" isRequired>
                             <FormLabel>Email address</FormLabel>
-                            <Input type="email" />
+                            <Input 
+                                type="email" 
+                                placeholder="your-email@example.com"
+                                _placeholder={{ color: 'gray.500' }}
+                                ref={emailRef}
+                            />
                         </FormControl>
 
                         <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>
-                            <Input type="password" />
+                            <Input type="password" ref={passwordRef}/>
                         </FormControl>
 
                         <Button
-                            bg={'purple.400'}
-                            variant={'subtle'}
+                            bg={'black'}
+                            variant={'solid'}
                             color={'white'}
                             _hover={{
-                            bg: 'purple.500',
+                            bg: 'blackAlpha.800',
                             }}
+                            onClick={handleSubmit}
                         >
                             Sign up
                         </Button>
 
                         <Text textAlign="center">
                                 Already a user?{" "}
-                            <Link as={RouterLink} to="/" color="purple.600" >
+                            <Link 
+                                as={RouterLink} 
+                                _hover={{ color: "gray.500" }} 
+                                to="/" color="black" 
+                            >
                                 Log in
                             </Link>
                         </Text>
