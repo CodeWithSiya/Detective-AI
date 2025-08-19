@@ -310,6 +310,22 @@ const DetectivePage = () => {
             >
                 <Menu className="icon-md"/>
             </button>
+
+            {/*sidebar*/}
+            <div clasName={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+                <div className="sidebar-header">
+                    <div className="sidebar-logo">
+                        <div className="sidebar-logo-icon">
+                            <Search className="icon-sm text-white"/>
+                        </div>
+                        <span className="sidebar-title">Detective AI</span>
+                    </div>
+                    <button className="close-sidebar" onClick={toggleSidebar}>
+                        <X className="icon-sm"/>
+                    </button>
+                </div>
+                
+            </div>
         </div>
     );
 }
