@@ -324,6 +324,13 @@ const DetectivePage = () => {
                         <X className="icon-sm"/>
                     </button>
                 </div>
+
+                {/*new detection button*/}
+                <button className="new-detection">
+                    <Plus className="icon-sm"/>
+                    <span>New Detection</span>
+                </button>
+
                 
             </div>
         </div>
