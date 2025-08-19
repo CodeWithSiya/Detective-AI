@@ -3,6 +3,8 @@ import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
+import { PinInput } from "@chakra-ui/react"
+
 
 import {
   Box,
@@ -16,11 +18,103 @@ import {
   VStack,
   Checkbox,
   Stack,
+  HStack
 } from "@chakra-ui/react";
+
+const handleSubmit = (e) => {
+
+}
 
 
 const VerifyEmail = () => {
-    return <h1>Verify Email Page</h1>
+
+    const MotionBox = motion(Box);
+
+    return (
+        <Flex
+            minH={'100vh'} //take full height
+            align={'center'} //vertically center
+            justify={'center'} //horizontal center
+        >
+            <Stack 
+                align={'center'}
+                spacing={4} //space between stacked children
+                mx={'auto'} //Centre stack horizontally
+                maxW={'lg'} //Max width
+                py={10} // p-top and p-bottonm
+                px={6} // p-left and p-right
+            >
+                <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+
+                <MotionBox
+                w='500px'
+                p={6}
+                my={12}
+                rounded={'lg'}
+                bg={"white"}
+                boxShadow={'lg'}
+
+                //Animate box
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                >
+                <Stack
+                spacing={12}
+                >
+                <Heading color={'black'} lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
+                    Verify your Email
+                </Heading>
+
+                <Text
+                    fontSize={{ base: 'sm', sm: 'md' }}
+                    color={'gray.600'}>
+                    We have sent a code to your email!
+                </Text>
+
+                <Text
+                    fontSize={{ base: 'sm', sm: 'md' }}
+                    color={'black'}
+                    fontWeight={'bold'}
+                >
+                    johndoe@gmail.com
+                </Text>
+
+                <PinInput.Root otp>
+                    <PinInput.HiddenInput />
+                    <PinInput.Control>
+                        <PinInput.Input index={0} />
+                        <PinInput.Input index={1} />
+                        <PinInput.Input index={2} />
+                        <PinInput.Input index={3} />
+                    </PinInput.Control>
+                </PinInput.Root>
+
+                <Stack spacing={6} pt={6}>
+                    <Button
+                        bg={'black'}
+                        color={'white'}
+                        _hover={{
+                        bg: 'blackAlpha.800',}}
+                        onClick={handleSubmit}
+                    >
+                        Verify Email
+                    </Button>
+                </Stack>
+
+            </Stack>
+            </MotionBox>
+
+            </Stack>
+
+        
+
+            
+
+
+        </Flex>
+    )
+
 };
 
 export default VerifyEmail
