@@ -194,5 +194,35 @@ const DetectivePage = () => {
         }
     };
 
-    
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileType = file.type;
+
+        if (!fileType.includes('image')){
+            alert('Please upload only PNG or JPEG images.');
+            return;
+        }
+
+        if (!fileType.includes('png') && !fileType.includes('jpeg') && !fileType.includes('jpg')){
+            alert('Please Upload only PNG or JPEG');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setUploadedImage(e.target.result);
+
+            setIsAnalyzing(true);
+            setTimeout(() => {
+                const result = performImageAnalysis(file.name);
+                setAnalysisResult({...result, filename: file.name, isImage: true});
+                setIsAnalyzing(false);
+            }, 2500);
+        };
+        reader.readAsDataURL(file);
+    };
+
+
 }
