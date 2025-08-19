@@ -1,0 +1,33 @@
+import React, {useState, useRef} from 'react';
+import './DetectivePage.css';
+import {
+    Search,
+    Eye,
+    X,
+    ChevronRight,
+    FileText,
+    Imgage as ImageIcon,
+    History,
+    Users,
+    BarChart3,
+    Play,
+    Plus,
+    Trash2,
+    Share,
+    Upload,
+    Clock,
+    Shield,
+    Zap,
+    CheckCircle,
+    AlertTriangle,
+    Activity,
+    Type,
+    FileUp,
+    Download,
+    Mail,
+    ThumbsUp,
+    ThumbsDown,
+    AlertCircle,
+    ArrowLeft,
+    Loader
+} from 'lucide-react';
