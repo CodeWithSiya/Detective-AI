@@ -387,7 +387,32 @@ const DetectivePage = () => {
                 onClick={toggleSidebar}
             />
 
+            {/*header*/}
+            <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
+                <div className="detective-header-inner">
+                    {/*logo*/}
+                    <div className="detective-logo">
+                        <div className="detective-logo-icon">
+                            <Search className="icon-md text-white"/>
+                            <div className="detective-logo-badge">
+                                <Eye className="icon-xs text-white"/>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 className="detective-title">Detective AI</h1>
+                            <p className="detective-subtitle">Content Detection</p>
+                        </div>
+                    </div>
+                    {/*Sign in button*/}
+                    <button className="btn-sigin">
+                        <span>Sign In</span>
+                        <ChevronRight className="icon-sm"/>
+                    </button>
+                </div>
+            </header>
+
             
+
         </div>
     );
 }
