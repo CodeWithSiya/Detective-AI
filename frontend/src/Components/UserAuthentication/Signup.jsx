@@ -5,6 +5,11 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
 
 import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-input"
+
+import {
   Box,
   Flex,
   Heading,
@@ -106,7 +111,17 @@ const Signup = () => {
 
                         <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>
-                            <Input type="password" ref={passwordRef}/>
+                            <Stack>
+                                <PasswordInput />
+                                <PasswordStrengthMeter value={2} />
+                            </Stack>
+                        </FormControl>
+
+                        <FormControl id="confirm-password" isRequired>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <Stack>
+                                <PasswordInput />
+                            </Stack>
                         </FormControl>
 
                         <Button

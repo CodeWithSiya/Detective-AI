@@ -5,6 +5,11 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
 
 import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-input"
+
+import {
   Box,
   Flex,
   Heading,
@@ -46,15 +51,7 @@ const ChangePassword = () => {
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
 
                     <Heading color={'black'} fontSize={'4xl'}>
-                        <Typewriter
-                            words={['Change your Password']}
-                            loop={true}
-                            cursor
-                            cursorStyle="_"
-                            typeSpeed={70}
-                            deleteSpeed={50}
-                            delaySpeed={1000}
-                        />
+                        Change your Password
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Don't forget it this time!
@@ -76,18 +73,19 @@ const ChangePassword = () => {
                 >
                     <Stack spacing={4}>
                     
-                        <FormControl id="password">
+                        <FormControl id="password" isRequired>
                             <FormLabel>Password</FormLabel>
-                            <Input 
-                            type="password" 
-                            />
+                            <Stack>
+                                <PasswordInput />
+                                <PasswordStrengthMeter value={2} />
+                            </Stack>
                         </FormControl>
 
-                        <FormControl id="confirm-password">
+                        <FormControl id="confirm-password" isRequired>
+                            <Stack>
                             <FormLabel>Confirm Password</FormLabel>
-                            <Input 
-                            type="password" 
-                            />
+                            <PasswordInput/>
+                            </Stack>
                         </FormControl>
 
                         <Stack spacing={6} pt={6}>

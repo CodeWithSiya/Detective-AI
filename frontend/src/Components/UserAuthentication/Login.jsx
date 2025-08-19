@@ -5,6 +5,11 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
 
 import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-input"
+
+import {
   Box,
   Flex,
   Heading,
@@ -94,10 +99,7 @@ export const Login = () => {
 
                         <FormControl id="password">
                             <FormLabel>Password</FormLabel>
-                            <Input 
-                            type="password" 
-                            ref={passwordRef}
-                            />
+                            <PasswordInput />
                         </FormControl>
 
 
