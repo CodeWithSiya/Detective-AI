@@ -66,4 +66,11 @@ const DetectivePage = () => {
             result: {isAI: false, confidence: 92, highlightedText: 'Climate change represents one of the most pressing challenges of our time. The scientific evidence  overwhelmingly supports the conclusion that human activities are the primary driver of recent climate change.'}
         }
     ]);
+
+    const [recentStats] = useState([
+        {label: 'Today', value: '24', change: '+12%'},
+        {label: 'This Week', value: '156', change: '+8%'},
+        {label: 'Accuracy', value: '94.2%', change: '+2.1%'},
+        {label: 'Avg Time', value: '8.3s', change: '-1.2s%'},
+    ]);
 }
