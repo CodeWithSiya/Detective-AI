@@ -253,4 +253,9 @@ const DetectivePage = () => {
         setHistoryItems(prev => [newHistoryItem, ...prev]);
     };
 
+    const viewHistoryItem = (item) => {
+        setSelectedHistoryItem(item);
+        setCurrentView('history-detail');
+    };
+
 }
