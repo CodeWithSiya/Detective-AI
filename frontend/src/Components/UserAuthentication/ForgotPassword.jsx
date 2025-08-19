@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
-import { Link as RouterLink } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 import {
   Box,
@@ -21,6 +21,7 @@ import {
 const ForgotPassword = () => {
 
     const MotionBox = motion(Box);
+    const navigate = useNavigate();
 
     const emailRef = useRef();
 
@@ -28,6 +29,9 @@ const ForgotPassword = () => {
         e.preventDefault();
 
         console.log("Email:", emailRef.current.value);
+
+        navigate('/verify-email');
+
 
     }
 
@@ -89,6 +93,7 @@ const ForgotPassword = () => {
                         _hover={{
                         bg: 'blackAlpha.800',}}
                         onClick={handleSubmit}
+
                     >
                         Request Reset
                     </Button>
