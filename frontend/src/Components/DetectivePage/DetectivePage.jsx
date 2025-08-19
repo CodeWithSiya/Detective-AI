@@ -116,4 +116,26 @@ const DetectivePage = () => {
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
+
+    //mock ai detection logic
+    const performTextAnalysis = (text) => {
+        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'furthermore', 'moreover', 'additionally'];
+        const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
+
+        let isAI = false;
+        let confidence = 0;
+
+        //check for ai keywords
+        const lowerText = text.toLowerCase();
+        const foundKeywords = aiKeywords.filter(keyword => lowerText.includes(keyword));
+        const foundPatterns = suspiciousPatterns.filter(pattern => lowerText.includes(pattern.toLowerCase()));
+
+        if (foundKeywords.length > 2 || foundPatterns.length > 0){
+            isAI = true;
+            confidence = Math.min(95, 60 + (foundKeywords.length * 10) + (foundPatterns.length * 15));
+        }
+        else{
+            confidence = Math.max(75, 90 - (foundKeywords.length * 5));
+        }
+    }
 }
