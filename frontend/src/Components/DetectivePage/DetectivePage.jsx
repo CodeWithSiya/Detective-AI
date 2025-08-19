@@ -6,7 +6,7 @@ import {
     X,
     ChevronRight,
     FileText,
-    Imgage as ImageIcon,
+    Image as ImageIcon,
     History,
     Users,
     BarChart3,
@@ -29,7 +29,8 @@ import {
     ThumbsDown,
     AlertCircle,
     ArrowLeft,
-    Loader
+    Loader,
+    Menu
 } from 'lucide-react';
 
 const DetectivePage = () => {
@@ -411,8 +412,8 @@ const DetectivePage = () => {
                 </div>
             </header>
 
-            
 
         </div>
     );
-}
+};
+export default DetectivePage;
