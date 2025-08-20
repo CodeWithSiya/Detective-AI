@@ -8,6 +8,7 @@ import ForgotPassword from './Components/LoginSignUP/ForgotPassword';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DetectivePage from './Components/DetectivePage/DetectivePage';
 import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
+import Team from './Components/Team/Team';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/detective" element={<DetectivePage />} />
+        <Route path="/team" element={<Team />} />
       </Routes>
     </Router>
   )

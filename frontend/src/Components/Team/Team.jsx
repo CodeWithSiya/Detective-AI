@@ -1,0 +1,32 @@
+import React, {useState} from 'react';
+import './Team.css';
+import{
+    Search,
+    Eye,
+    X,
+    ChevronRight,
+    ArrowLeft,
+    Mail,
+    GitHub,
+    Linkedin,
+    Users,
+    Code,
+    Brain,
+    Palette,
+    Coffe,
+    Music,
+    Gamepad2,
+    Book,
+    Camera,
+    Headphones,
+    Dumbbell,
+    Plane,
+    Plus,
+    FileText,
+    Image as ImageIcon,
+    BarChart3,
+    Play,
+    History,
+    Share,
+    Trash2
+} from 'lucide-react';
