@@ -225,10 +225,31 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                 </div>
             </header>
 
-            
+            {/*main content*/}
+            <main className={`team-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
+                <div className="team-content">
+                    {/*back button*/}
+                    <button className="back-button" onClick={onBackToDetective}>
+                        <ArrowLeft className="icon-sm"/>
+                        Back to Detective
+                    </button>
+
+                    {/*page header*/}
+                    <div className="page-header">
+                        <h1 className="page-title">Meet the Deep Detectives</h1>
+                        <p className="page-subtitle">
+                            A talented team of Computer Science students from the University of Cape Town, 
+                            working together to build AI detection technology.
+                        </p>
+                    </div>
+
+
+                </div>
+            </main>
 
 
 
         </div>
     );
-}
+};
+export default Team;
