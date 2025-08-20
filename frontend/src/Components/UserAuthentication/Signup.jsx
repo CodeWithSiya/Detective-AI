@@ -155,7 +155,7 @@ const Signup = () => {
                             <Link 
                                 as={RouterLink} 
                                 _hover={{ color: "gray.500" }} 
-                                to="/" color="black" 
+                                to="/login" color="black" 
                             >
                                 Log in
                             </Link>

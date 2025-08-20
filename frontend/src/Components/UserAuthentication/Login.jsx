@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Navigate } from 'react-router-dom';
 
 import {
   PasswordInput,
@@ -32,10 +33,14 @@ export const Login = () => {
     const emailRef = useRef();
     const passwordRef = useRef();
 
+    const navigate = useNavigate();
+
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Email:", emailRef.current.value);
         console.log("Password:", passwordRef.current.value);
+
+        navigate('/detective')
     };
 
     return (
@@ -92,14 +97,14 @@ export const Login = () => {
                         <FormControl id="email">
                             <Field.Root>
                                 <Field.Label>Email</Field.Label>
-                                <Input placeholder="me@example.com" ref={emailRef}/>
+                                <Input placeholder="me@example.com" ref={emailRef}  w="100%"/>
                             </Field.Root>
                         </FormControl>
 
                         <FormControl id="password">
                             <Field.Root>
                                 <Field.Label>Password</Field.Label>
-                                <PasswordInput ref={passwordRef}/>
+                                <PasswordInput ref={passwordRef}  w="100%"/>
                             </Field.Root>
                         </FormControl>
 
