@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import FileExtensionValidator
 from typing import Optional
 from .submission import Submission
+from app.services.TextExtractor import TextExtractor
 import os
 
 def file_upload_path(instance: 'FileSubmission', filename: str) -> str:
@@ -10,9 +11,9 @@ def file_upload_path(instance: 'FileSubmission', filename: str) -> str:
 
     :param instance: The FileSubmission model instance.
     :param filename: Filename of the uploaded file.
-    :return:
+    :return: The file upload path as a string.
     """
-    return f""
+    return f"submissions/files/{instance.user.pk}/{filename}"
 
 class FileSubmission(Submission):
     """
@@ -105,12 +106,19 @@ class FileSubmission(Submission):
     def extract_text_content(self) -> Optional[str]:
         """
         Extract text content from the uploaded file.
+
+        :returns: Extracted text content from the uploaded file.
         """
-        # Implement text extraction logic here.
-        # For PDF: use PyPDF2 or pdfplumber
-        # For DOCX: use python-docx
-        # For TXT: read directly
-        return None
+        if not self.file or not self.file_type:
+            return None
+        
+        try:
+            file_path = self.file.path
+            file_type = self.file_type
+            return TextExtractor.extract_text(file_path, file_type)
+        
+        except Exception:
+            return None
     
     def __str__(self) -> str:
         """
