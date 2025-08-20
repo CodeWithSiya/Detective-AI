@@ -185,6 +185,48 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                 </nav>
             </div>
 
+            {/*sidebar overlay*/}
+            <div
+                className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+                onClick={toggleSidebar}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.3)',
+                    zIndex: 55,
+                    opacity: sidebarOpen ? 1 : 0,
+                    visibility: sidebarOpen ? 'visible' : 'hidden',
+                    transition: 'all 0.3s ease'
+                }}
+            />
+
+            {/* Header */}
+            <header className={`team-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
+                <div className="team-header-inner">
+                    {/* Logo */}
+                    <div className="team-logo">
+                        <div className="team-logo-icon">
+                            <Search className="icon-md text-white"/>
+                        </div>
+                        <div>
+                            <h1 className="team-title">Detective AI</h1>
+                            <p className="team-subtitle">Meet Our Team</p>
+                        </div>
+                    </div>
+                    
+                    {/* Sign in button */}
+                    <button className="btn-signin">
+                        <span>Sign In</span>
+                        <ChevronRight className="icon-sm"/>
+                    </button>
+                </div>
+            </header>
+
+            
+
 
 
         </div>
