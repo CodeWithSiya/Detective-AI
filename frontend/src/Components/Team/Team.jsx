@@ -80,4 +80,11 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
             linkedin: "ethan-ngwetjana"
         }
     ];
+
+    const teamStats = [
+        {number: "3", label: "Team Members"},
+        {number: "UCT", label: "University"},
+        {number: "CS", label: "Degree Program"},
+        {number: "2026", label: "Graduation Year"}
+    ];
 }
