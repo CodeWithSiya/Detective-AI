@@ -30,3 +30,12 @@ import{
     Share,
     Trash2
 } from 'lucide-react';
+
+const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
+    const [navigationItems] = useState([
+        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>},
+        {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>, active: true},
+        {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
+        {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
+    ]);
+}
