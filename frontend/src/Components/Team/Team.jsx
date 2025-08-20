@@ -245,7 +245,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
 
                     {/*team grid*/}
                     <div className="team-grid">
-                        {teamMembers.map((member) =>{
+                        {teamMembers.map((member) =>(
                             <div key={member.id} className="team-card">
                                 <div className="member-photo">
                                     {member.initials}
@@ -269,8 +269,9 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                                         ))}
                                     </div>
                                 </div>
-
-                                <a 
+                                
+                                <div className="member-links">
+                                    <a 
                                         href={`mailto:${member.email}`} 
                                         className="social-link"
                                         title="Email"
@@ -297,15 +298,23 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                                     </a>
                                 </div>
                             </div>
-                        })}
+                        ))}
                     </div>
 
-
+                    {/*team stats*/}
+                    <div className="team-stats">
+                        <h3 className="stats-title">Team Overview</h3>
+                        <div className="states-grid">
+                            {teamStats.map((stat, index) => (
+                                <div key={index} className="stat-item">
+                                    <div className="stat-number">{stat.number}</div>
+                                    <div className="stat-label">{stat.label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </main>
-
-
-
         </div>
     );
 };
