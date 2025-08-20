@@ -141,6 +141,48 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                     <Plus className="icon-sm"/>
                     <span>New Detection</span>
                 </button>
+
+                {/*navigation*/}
+                <nav className="sidebar-nav">
+                    <div className="nav-section">
+                        <div className="nav-section-title">Navigation</div>
+                        {navigationItems.map((item) => (
+                            <button
+                                key={item.id}
+                                className={`nav-item ${item.active ? 'active' : ''}`}
+                                onClick={() => handleNavigation(item.id)}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                                <ChevronRight className="icon-xs" style={{ marginLeft: 'auto'}}/>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* History Section */}
+                    <div className="nav-section history-section">
+                        <div className="nav-section-title">Recent Detections</div>
+                        <div className="history-item">
+                            <div className="history-content">
+                                <FileText className="icon-xs"/>
+                                <div>
+                                    <div className="history-text">Academic Essay Analysis</div>
+                                    <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
+                                        2 hours ago
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="history-actions">
+                                <button className="history-action">
+                                    <Share className="icon-xs"/>
+                                </button>
+                                <button className="history-action">
+                                    <Trash2 className="icon-xs"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
             </div>
 
 
