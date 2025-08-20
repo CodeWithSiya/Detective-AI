@@ -5,6 +5,11 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
 
 import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-input"
+
+import {
   Box,
   Flex,
   Heading,
@@ -16,6 +21,7 @@ import {
   VStack,
   Checkbox,
   Stack,
+  Field,
 } from "@chakra-ui/react";
 
 
@@ -53,7 +59,8 @@ export const Login = () => {
 
                     <Heading color={'black'} fontSize={'4xl'}>
                         <Typewriter
-                            words={['Welcome back', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.',]}
+                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!', 'Detect your email and password!'
+                            ]}
                             loop={true}
                             cursor
                             cursorStyle="_"
@@ -83,21 +90,17 @@ export const Login = () => {
                     <Stack spacing={4}>
                     
                         <FormControl id="email">
-                            <FormLabel>Email address</FormLabel>
-                            <Input 
-                                type="email" 
-                                placeholder="your-email@example.com"
-                                _placeholder={{ color: 'gray.500' }}
-                                ref={emailRef}
-                            />
+                            <Field.Root>
+                                <Field.Label>Email</Field.Label>
+                                <Input placeholder="me@example.com" ref={emailRef}/>
+                            </Field.Root>
                         </FormControl>
 
                         <FormControl id="password">
-                            <FormLabel>Password</FormLabel>
-                            <Input 
-                            type="password" 
-                            ref={passwordRef}
-                            />
+                            <Field.Root>
+                                <Field.Label>Password</Field.Label>
+                                <PasswordInput ref={passwordRef}/>
+                            </Field.Root>
                         </FormControl>
 
 

@@ -5,6 +5,11 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
 
 import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-input"
+
+import {
   Box,
   Flex,
   Heading,
@@ -16,7 +21,8 @@ import {
   VStack,
   Checkbox,
   Stack,
-  HStack
+  HStack,
+  Field,
 } from "@chakra-ui/react";
 
 
@@ -56,8 +62,16 @@ const Signup = () => {
 
                 <Stack align={'center'}>
                     <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
-                    <Heading fontSize={'4xl'}>
-                        Become a Detective!
+                    <Heading fontSize={'4xl'} color={"black"}>
+                        <Typewriter
+                            words={['Become a Detective!',]}
+                            loop={1}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
                     </Heading>
                     <Text fontSize={'lg'} color={'gray.600'}>
                         Create an account to continue
@@ -81,32 +95,47 @@ const Signup = () => {
                     
                         <HStack>
                             <Box flex={1}>
-                                <FormControl id="firstName" isRequired>
-                                    <FormLabel>First Name</FormLabel>
-                                    <Input type="text" ref={nameRef}/>
+                                <FormControl id="firstName">
+                                    <Field.Root required>
+                                        <Field.Label>Name<Field.RequiredIndicator /></Field.Label>
+                                            <Input placeholder="e.g. John" />
+                                    </Field.Root>
                                 </FormControl>
                             </Box>
                             <Box flex={1}> 
                                 <FormControl id="lastName">
-                                    <FormLabel>Last Name</FormLabel>
-                                    <Input type="text" ref={lastNameRef}/>
+                                    <Field.Root>
+                                        <Field.Label>Surname</Field.Label>
+                                            <Input placeholder="e.g. Doe" />
+                                    </Field.Root>
                                 </FormControl>
                             </Box>
                         </HStack>
 
-                        <FormControl id="email" isRequired>
-                            <FormLabel>Email address</FormLabel>
-                            <Input 
-                                type="email" 
-                                placeholder="your-email@example.com"
-                                _placeholder={{ color: 'gray.500' }}
-                                ref={emailRef}
-                            />
+                        <FormControl id="email">
+                            <Field.Root required>
+                                <Field.Label>Email<Field.RequiredIndicator /></Field.Label>
+                                    <Input placeholder="johndoe@example.com" />
+                            </Field.Root>
                         </FormControl>
 
                         <FormControl id="password" isRequired>
-                            <FormLabel>Password</FormLabel>
-                            <Input type="password" ref={passwordRef}/>
+                            <Stack>
+                                <Field.Root required>
+                                    <Field.Label>Password<Field.RequiredIndicator /></Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
+                                <PasswordStrengthMeter value={2} />
+                            </Stack>
+                        </FormControl>
+
+                        <FormControl id="confirm-password">
+                            <Stack>
+                                <Field.Root required>
+                                    <Field.Label>Confirm Password<Field.RequiredIndicator /></Field.Label>
+                                        <PasswordInput />
+                                </Field.Root>
+                            </Stack>
                         </FormControl>
 
                         <Button

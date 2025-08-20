@@ -2,7 +2,10 @@ import React, { useRef } from 'react';
 import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { PinInput } from "@chakra-ui/react"
+import { Navigate } from 'react-router-dom';
+
 
 import {
   Box,
@@ -16,19 +19,24 @@ import {
   VStack,
   Checkbox,
   Stack,
+  HStack
 } from "@chakra-ui/react";
 
-const ForgotPassword = () => {
+const handleSubmit = (e) => {
+
+}
+
+
+const VerifyEmail = () => {
 
     const MotionBox = motion(Box);
 
-    const emailRef = useRef();
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        console.log("Email:", emailRef.current.value);
-
+        navigate('/change-password');
     }
 
     return (
@@ -45,7 +53,24 @@ const ForgotPassword = () => {
                 py={10} // p-top and p-bottonm
                 px={6} // p-left and p-right
             >
-                <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                <Stack align={'center'}>
+                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                    <Heading fontSize={'4xl'} color={'black'}>
+                        <Typewriter
+                            words={['Verify your Email']}
+                            loop={1}
+                            cursor
+                            cursorStyle="_"
+                            typeSpeed={70}
+                            deleteSpeed={50}
+                            delaySpeed={1000}
+                        />
+                    </Heading>
+                    <Text fontSize={'lg'} color={'gray.600'}>
+                        We have sent a code to your email!
+                    </Text>
+                </Stack>
+
 
                 <MotionBox
                 w='500px'
@@ -59,30 +84,33 @@ const ForgotPassword = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-            >
+                >
                 <Stack
-                spacing={4}
-            >
-                <Heading color={'black'} lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
-                    Forgot your password?
-                </Heading>
+                spacing={12}
+                >
 
                 <Text
                     fontSize={{ base: 'sm', sm: 'md' }}
-                    color={'gray.600'}>
-                    You&apos;ll get an email with a reset link
+                    color={'black'}
+                    fontWeight={'bold'}
+                    pb={6}
+                >
+                    johndoe@gmail.com
                 </Text>
 
-                <FormControl id="email">
-                    <Input
-                    placeholder="your-email@example.com"
-                    _placeholder={{ color: 'gray.500' }}
-                    type="email"
-                    ref={emailRef}
-                    />
-                </FormControl>
+                
 
-                <Stack spacing={6}>
+                <PinInput.Root otp>
+                    <PinInput.HiddenInput />
+                    <PinInput.Control>
+                        <PinInput.Input index={0} />
+                        <PinInput.Input index={1} />
+                        <PinInput.Input index={2} />
+                        <PinInput.Input index={3} />
+                    </PinInput.Control>
+                </PinInput.Root>
+
+                <Stack spacing={6} pt={6}>
                     <Button
                         bg={'black'}
                         color={'white'}
@@ -90,7 +118,7 @@ const ForgotPassword = () => {
                         bg: 'blackAlpha.800',}}
                         onClick={handleSubmit}
                     >
-                        Request Reset
+                        Verify Email
                     </Button>
                 </Stack>
 
@@ -107,7 +135,6 @@ const ForgotPassword = () => {
         </Flex>
     )
 
-}
-export default ForgotPassword;
+};
 
-
+export default VerifyEmail
