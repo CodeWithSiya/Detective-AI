@@ -87,4 +87,46 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
         {number: "CS", label: "Degree Program"},
         {number: "2026", label: "Graduation Year"}
     ];
+
+    const handleNavigation = (itemId) => {
+        if (itemId === 'detector'){
+            onBackToDetective();
+        }
+        //other navigation items
+    };
+
+    return (
+        <div className="team-container">
+            {/*menu toggle button*/}
+            <button
+                className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
+                onClick={toggleSidebar}
+                style={{
+                    position: 'fixed',
+                    top: '1rem',
+                    left: sidebarOpen ? '300px' : '1rem',
+                    zIndex: 70,
+                    background: 'linear-gradient(to-right, #1f2937, #7c3aed)',
+                    border: none,
+                    color: 'white',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                }}
+            >
+                <X className="icon-md"/>
+            </button>
+
+            {/*sidebar*/}
+
+
+
+            
+        </div>
+    );
 }
