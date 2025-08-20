@@ -3,6 +3,7 @@ import './Team.css';
 import siyaImg from '../Assets/ethan.jpg';
 import lindoImg from '../Assets/lindo.jpg';
 import ethanImg from '../Assets/ethan.jpg';
+import { Link as RouterLink } from "react-router-dom";
 import{
     Search,
     Eye,
@@ -221,10 +222,10 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                     </div>
                     
                     {/* Sign in button */}
-                    <button className="btn-signin">
+                    {/*<button className="btn-signin">
                         <span>Sign In</span>
                         <ChevronRight className="icon-sm"/>
-                    </button>
+                    </button>*/}
                 </div>
             </header>
 
