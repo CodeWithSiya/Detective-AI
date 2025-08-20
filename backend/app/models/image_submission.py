@@ -8,15 +8,15 @@ import os
 
 User = get_user_model()
 
-def image_upload_path(instance: models.Model, filename: str) -> str:
+def image_upload_path(instance, filename: str) -> str:
     """
     Generate upload path for image submissions.
 
     :param instance: The ImageSubmission model instance.
     :param filename: Filename of the uploaded file.
-    :return:
+    :return: The image upload path as a string.
     """
-    return f""
+    return f"submissions/images/{instance.user.pk}/{filename}"
 
 class ImageSubmission(Submission):
     """

@@ -5,7 +5,7 @@ from .submission import Submission
 from app.services.TextExtractor import TextExtractor
 import os
 
-def file_upload_path(instance: 'FileSubmission', filename: str) -> str:
+def file_upload_path(instance, filename: str) -> str:
     """
     Generate upload path for file submissions.
 
