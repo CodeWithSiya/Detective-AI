@@ -192,14 +192,14 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto 1rem;
     background: linear-gradient(135deg, #6366f1, #7c3aed, #ec4899);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
+    background: #f3f4f6;
+    display: flex;
+    overflow: hidden;
     border: 3px solid #ffffff;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     transition: all 0.3s ease;
@@ -218,6 +218,12 @@
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
+}
+
+.member-img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .team-card:hover .member-photo::after {
