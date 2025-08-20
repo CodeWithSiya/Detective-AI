@@ -871,7 +871,7 @@ body{
 .detective-logo-icon {
     width: 40px; 
     height: 40px;
-    background: linear-gradient(to bottom right, #1f2937, #6366f1, #7c3aed);
+    /*background: linear-gradient(to bottom right, #1f2937, #c5c6d1ff, #a99ac2ff);*/
     border-radius: 8px;
     display: flex; 
     align-items: center; 
@@ -958,7 +958,7 @@ body{
 .sidebar-logo-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(to bottom right, #1f2937, #7c3aed);
+    /*background: linear-gradient(to bottom right, #1f2937, #c5c6d1ff, #a99ac2ff);*/
     border-radius: 6px;
     display: flex;
     align-items: center;

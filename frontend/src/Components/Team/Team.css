@@ -34,6 +34,12 @@
     margin: auto;
 }
 
+.logo-img{
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
 .team-logo {
     display: flex;
     align-items: center;
@@ -44,7 +50,7 @@
 .team-logo-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(to bottom right, #1f2937, #6366f1, #7c3aed);
+    /*background: linear-gradient(to bottom right, #1f2937, #c5c6d1ff, #a99ac2ff);*/
     border-radius: 8px;
     display: flex;
     align-items: center;

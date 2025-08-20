@@ -3,6 +3,7 @@ import './Team.css';
 import siyaImg from '../Assets/ethan.jpg';
 import lindoImg from '../Assets/lindo.jpg';
 import ethanImg from '../Assets/ethan.jpg';
+import Logo from '../Assets/Logo.svg';
 import { Link as RouterLink } from "react-router-dom";
 import{
     Search,
@@ -131,7 +132,8 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                 <div className="sidebar-header">
                     <div className="sidebar-logo">
                         <div className="sidebar-logo-icon">
-                            <Search className="icon-sm text-white"/>
+                            {/*<Search className="icon-sm text-white"/>*/}
+                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
                         <span className="sidebar-title">Detective AI</span>
                     </div>
@@ -213,7 +215,8 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                     {/* Logo */}
                     <div className="team-logo">
                         <div className="team-logo-icon">
-                            <Search className="icon-md text-white"/>
+                            {/*<Search className="icon-md text-white"/>*/}
+                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
                         <div>
                             <h1 className="team-title">Detective AI</h1>

@@ -1,5 +1,6 @@
 import React, {useState, useRef} from 'react';
 import './DetectivePage.css';
+import Logo from '../Assets/Logo.svg';
 import {
     Search,
     Eye,
@@ -325,7 +326,8 @@ const DetectivePage = () => {
                 <div className="sidebar-header">
                     <div className="sidebar-logo">
                         <div className="sidebar-logo-icon">
-                            <Search className="icon-sm text-white"/>
+                            {/*<Search className="icon-sm text-white"/>*/}
+                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
                         <span className="sidebar-title">Detective AI</span>
                     </div>
@@ -402,7 +404,8 @@ const DetectivePage = () => {
                     {/*logo*/}
                     <div className="detective-logo">
                         <div className="detective-logo-icon">
-                            <Search className="icon-md text-white"/>
+                            {/*<Search className="icon-md text-white"/>*/}
+                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                             <div className="detective-logo-badge">
                                 <Eye className="icon-xs text-white"/>
                             </div>
@@ -413,10 +416,10 @@ const DetectivePage = () => {
                         </div>
                     </div>
                     {/*Sign in button*/}
-                    <button className="btn-signin">
+                    {/*<button className="btn-signin">
                         <span>Sign In</span>
                         <ChevronRight className="icon-sm"/>
-                    </button>
+                    </button>*/}
                 </div>
             </header>
 
