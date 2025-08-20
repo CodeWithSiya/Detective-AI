@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import './Team.css';
+import siyaImg from '../Assets/ethan.jpg';
+import lindoImg from '../Assets/lindo.jpg';
+import ethanImg from '../Assets/ethan.jpg';
 import{
     Search,
     Eye,
@@ -43,7 +46,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
         {
             id: 1,
             name: "Siyabonga Madondo",
-            initials: "SLM",
+            photo: siyaImg,
             university: "University of Cape Town",
             degree: "BSc Computer Science and Applied Statistics",
             role: "Team Leader & Backend Developer",
@@ -56,7 +59,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
         {
             id: 2,
             name: "Lindokuhle Mdlalose",
-            initials: "LBM",
+            photo: lindoImg,
             university: "University of Cape Town",
             degree: "BSc Computer Science and Computer Engineering",
             role: "Architect & Frontend Developer",
@@ -69,7 +72,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
         {
             id: 3,
             name: "Ethan Ngwetjana",
-            initials: "EN",
+            photo: ethanImg,
             university: "University of Cape Town",
             degree: "BSc Computer Science and Computer Engineering",
             role: "Communicator & AI Engineer",
@@ -248,7 +251,11 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                         {teamMembers.map((member) =>(
                             <div key={member.id} className="team-card">
                                 <div className="member-photo">
-                                    {member.initials}
+                                    <img
+                                        src={member.photo}
+                                        alt={member.name}
+                                        className="member-img"
+                                    />
                                 </div>
 
                                 <h3 className="member-name">{member.name}</h3>
