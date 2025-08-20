@@ -7,13 +7,13 @@ import{
     ChevronRight,
     ArrowLeft,
     Mail,
-    GitHub,
+    Github,
     Linkedin,
     Users,
     Code,
     Brain,
     Palette,
-    Coffe,
+    Coffee,
     Music,
     Gamepad2,
     Book,
@@ -107,7 +107,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                     left: sidebarOpen ? '300px' : '1rem',
                     zIndex: 70,
                     background: 'linear-gradient(to-right, #1f2937, #7c3aed)',
-                    border: none,
+                    border: "none",
                     color: 'white',
                     width: '40px',
                     height: '40px',
@@ -304,7 +304,7 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                     {/*team stats*/}
                     <div className="team-stats">
                         <h3 className="stats-title">Team Overview</h3>
-                        <div className="states-grid">
+                        <div className="stats-grid">
                             {teamStats.map((stat, index) => (
                                 <div key={index} className="stat-item">
                                     <div className="stat-number">{stat.number}</div>
