@@ -92,14 +92,14 @@ export const Login = () => {
                         <FormControl id="email">
                             <Field.Root>
                                 <Field.Label>Email</Field.Label>
-                                <Input placeholder="me@example.com" />
+                                <Input placeholder="me@example.com" ref={emailRef}/>
                             </Field.Root>
                         </FormControl>
 
                         <FormControl id="password">
                             <Field.Root>
                                 <Field.Label>Password</Field.Label>
-                                <PasswordInput />
+                                <PasswordInput ref={passwordRef}/>
                             </Field.Root>
                         </FormControl>
 
