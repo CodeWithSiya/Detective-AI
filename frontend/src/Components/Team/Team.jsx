@@ -243,6 +243,63 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                         </p>
                     </div>
 
+                    {/*team grid*/}
+                    <div className="team-grid">
+                        {teamMembers.map((member) =>{
+                            <div key={member.id} className="team-card">
+                                <div className="member-photo">
+                                    {member.initials}
+                                </div>
+
+                                <h3 className="member-name">{member.name}</h3>
+                                <p className="member-university">{member.university}</p>
+                                <p className="member-degree">{member.degree}</p>
+
+                                <div className="member-role">{member.role}</div>
+
+                                <p className="member-description">{member.description}</p>
+
+                                <div className="member-interests">
+                                    <div className="interests-title">Areas of Interest</div>
+                                    <div className="interests-list">
+                                        {member.interests.map((interest, index) => (
+                                            <span key={index} className="interest-tag">
+                                                {interest}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <a 
+                                        href={`mailto:${member.email}`} 
+                                        className="social-link"
+                                        title="Email"
+                                    >
+                                        <Mail className="icon-sm" />
+                                    </a>
+                                    <a 
+                                        href={`https://github.com/${member.github}`} 
+                                        className="social-link"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="GitHub"
+                                    >
+                                        <Github className="icon-sm" />
+                                    </a>
+                                    <a 
+                                        href={`https://linkedin.com/in/${member.linkedin}`} 
+                                        className="social-link"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="LinkedIn"
+                                    >
+                                        <Linkedin className="icon-sm" />
+                                    </a>
+                                </div>
+                            </div>
+                        })}
+                    </div>
+
 
                 </div>
             </main>
