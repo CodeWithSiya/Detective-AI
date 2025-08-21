@@ -3,7 +3,7 @@ import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Navigate } from 'react-router-dom';
+
 
 import { login } from './AuthHandler';
 
@@ -30,11 +30,14 @@ import {
 
 
 export const Login = () => {
+    //Inititialise motion box
     const MotionBox = motion(Box);
 
+    //store references for email and password
     const emailRef = useRef();
     const passwordRef = useRef();
 
+    //Initialise navigation
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
@@ -45,6 +48,7 @@ export const Login = () => {
         //Mock backend behaviour
         const result = login(email, password);
 
+        //move to next page if login successful
         if (result.success){
             navigate("/detective");
         }

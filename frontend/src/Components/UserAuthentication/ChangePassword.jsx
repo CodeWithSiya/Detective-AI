@@ -3,6 +3,7 @@ import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 import {
   PasswordInput,
@@ -23,16 +24,39 @@ import {
   Stack,
   Field,
 } from "@chakra-ui/react";
-
-const handleSubmit = (e) => {
-
-}
+import { getEmail } from './ForgotPassword';
+import { changePassword } from './AuthHandler';
 
 
 const ChangePassword = () => {
 
     const MotionBox = motion(Box);
 
+    //store references 
+    
+    const passwordRef = useRef();
+    const confirmPasswordRef = useRef();
+
+    const navigate = useNavigate();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        const password = passwordRef.current.value;
+        const confirmPassword = confirmPasswordRef.current.value;
+
+        //Mock backend behaviour
+        const result = changePassword(getEmail(), password);
+
+        alert(result.message);
+
+        //move to main page when password is changee
+        if (result.success){
+            navigate("/detective");
+        }
+    };
+
+    
     return (
         //Container for background
         <Flex
@@ -86,7 +110,7 @@ const ChangePassword = () => {
                             <Stack>
                                 <Field.Root>
                                     <Field.Label>Password</Field.Label>
-                                        <PasswordInput />
+                                        <PasswordInput ref={passwordRef}/>
                                 </Field.Root>
                                 <PasswordStrengthMeter value={2} />
                             </Stack>
@@ -96,7 +120,7 @@ const ChangePassword = () => {
                             <Stack>
                                 <Field.Root>
                                     <Field.Label>Confirm Password</Field.Label>
-                                        <PasswordInput />
+                                        <PasswordInput ref={confirmPasswordRef}/>
                                 </Field.Root>
                             </Stack>
                         </FormControl>

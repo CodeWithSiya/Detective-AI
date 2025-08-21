@@ -86,3 +86,16 @@ export function changePassword(email, newPassword){
     return { success: false, message: "User not found" };
 }
 
+
+export function emailExists(email){
+    const users = getUsers(); //from localStorage
+
+    //look for user
+    const user = users.find(user => user.email === email);
+
+    if (user){
+        return { success: true, message: "User found" };
+    }
+
+    return { success: false, message: "Email does not exist" };
+}
