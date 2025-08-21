@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
+import Logo from '../Assets/Logo.svg';
 import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";
@@ -65,7 +66,8 @@ const DemoLandingPage = () => {
                     <div className="demo-logo">
                         <div className="relative">
                             <div className="demo-logo-icon">
-                                <Search className="icon-md text-white" />
+                                <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
+                                {/*<Search className="icon-md text-white" />*/}
                             </div>
                             <div className="demo-logo-badge">
                                 <Eye className="icon-xs text-white" />

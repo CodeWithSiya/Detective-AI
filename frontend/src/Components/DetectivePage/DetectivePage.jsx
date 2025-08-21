@@ -31,6 +31,7 @@ import {
     AlertCircle,
     ArrowLeft,
     Loader,
+    Menu
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
@@ -318,7 +319,7 @@ const DetectivePage = () => {
                 className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
                 onClick={toggleSidebar}
             >
-                <X className="icon-md"/>
+                <Menu className="icon-md"/>
             </button>
 
             {/*sidebar*/}
@@ -332,7 +333,7 @@ const DetectivePage = () => {
                         <span className="sidebar-title">Detective AI</span>
                     </div>
                     <button className="close-sidebar" onClick={toggleSidebar}>
-                        <X className="icon-sm"/>
+                        <Menu className="icon-sm"/>
                     </button>
                 </div>
 
@@ -783,7 +784,7 @@ const DetectivePage = () => {
                         <div className="modal-header">
                             <h3 className="modal-title">Help Us Improve</h3>
                             <button className="modal-close" onClick={() => setShowFeedback(false)}>
-                                <X className="icon-sm" />
+                                <Menu className="icon-sm" />
                             </button>
                         </div>
                         <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>

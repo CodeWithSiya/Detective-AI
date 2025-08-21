@@ -10,8 +10,8 @@ body{
 
 /* Base */
 .demo-container {
-  background: #000;
-  color: #fff;
+  background: #fff;
+  color: #000;
   font-family: Arial, sans-serif;
   min-height: 100vh;
   overflow: hidden;
@@ -42,9 +42,9 @@ body{
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 50;
-  background: rgba(0,0,0,0.8);
+  background: rgba(255,255,255,0.95);
   backdrop-filter: blur(6px);
-  border-bottom: 1px solid #1f2937;
+  border-bottom: 2px solid #000;
 }
 
 .demo-header-inner {
@@ -58,11 +58,14 @@ body{
 
 .demo-logo {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .demo-logo-icon {
   width: 40px; height: 40px;
-  background: linear-gradient(to bottom right, #3b82f6, #a855f7, #ec4899);
+  background: #fff;
   border-radius: 8px;
   display: flex; 
   align-items: center; 
@@ -73,7 +76,8 @@ body{
   position: absolute;
   top: -5px; right: -5px;
   width: 16px; height: 16px;
-  background: linear-gradient(to bottom right, #facc15, #f97316);
+  background: #000;
+  border: 2px solid #fff;
   border-radius: 50%;
   display: flex; 
   align-items: center; 
@@ -83,25 +87,30 @@ body{
 .demo-title { 
     font-size: 1.25rem; 
     font-weight: bold; 
+    color: #000;
 }
 .demo-subtitle { 
     font-size: 0.75rem; 
-    color: #9ca3af; 
+    color: #000; 
 }
 
 .btn-signin {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(to right, #2563eb, #9333ea);
+  background: #000;
   color: #fff;
+  border: 2px solid #000;
   border-radius: 8px;
   display: flex; align-items: center; gap: 0.5rem;
   font-weight: 600;
   transition: 0.3s ease;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .btn-signin:hover { 
-    background: linear-gradient(to right, #1d4ed8, #7e22ce); 
-    transform: scale(1.05); 
+    background: #fff;
+    color: #000;
+    border-color: #000;
 }
 
 /* Hero */
@@ -109,6 +118,7 @@ body{
     padding: 6rem 1.5rem 4rem; 
     position: relative; 
     text-align: center; 
+    background: #fff;
 }
 
 .hero-inner { 
@@ -132,12 +142,12 @@ body{
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 1rem;
-    background: rgba(30,58,138,0.5);
-    border: 1px solid rgba(59,130,246,0.3);
+    background: #fff;
+    border: 2px solid #000;
     border-radius: 9999px;
     margin-bottom: 1.5rem;
     font-size: 0.875rem;
-    color: #60a5fa;
+    color: #000;
 }
 
 .hero-heading { 
@@ -145,25 +155,41 @@ body{
     font-weight: bold; 
     margin-bottom: 1rem; 
     line-height: 1.2; 
+    color: #000;
 }
 
 .hero-heading-gradient { 
-    background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent; 
+    color: #000;
     display: block; 
 }
 
-.hero-text { font-size: 1.25rem; 
-    color: #d1d5db; 
+.hero-text { 
+    font-size: 1.25rem; 
+    color: #000; 
     max-width: 700px; 
     margin: 0 auto 2rem; 
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+@media (min-width: 640px){
+    .hero-buttons{
+        flex-direction: row;
+    }
 }
 
 /* Buttons */
 .btn-primary {
   padding: 1rem 2rem;
-  background: linear-gradient(to right, #2563eb, #9333ea);
+  background: #000;
+  border: 2px solid #000;
   border-radius: 12px;
   color: white;
   font-weight: 600;
@@ -172,14 +198,19 @@ body{
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
-.btn-primary:hover { background: linear-gradient(to right, #1d4ed8, #7e22ce); transform: scale(1.05); }
+.btn-primary:hover { 
+    background: #fff; 
+    color: #000; 
+    border-color: #000;
+}
 
 .btn-secondary {
   padding: 1rem 2rem;
-  border: 2px solid #4b5563;
+  border: 2px solid #000;
   border-radius: 12px;
-  color: white;
+  color: #000;
   background: transparent;
   font-weight: 600;
   cursor: pointer;
@@ -187,42 +218,119 @@ body{
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
-.btn-secondary:hover { background: #1f2937; border-color: #6b7280; }
+.btn-secondary:hover { 
+    background: #000; 
+    color: #fff;
+    border-color: #000; 
+}
 
 /* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+.stats-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+    gap: 1.5rem; 
+    margin-top: 2rem; 
+}
 .stat-card {
-  background: linear-gradient(to bottom right, #111827, #000);
-  border: 1px solid #1f2937;
+  background: #fff;
+  border: 2px solid #000;
   border-radius: 12px;
   padding: 1.5rem;
   transition: 0.3s ease;
 }
-.stat-card:hover { transform: scale(1.05); border-color: #374151; }
-.stat-icon { margin-bottom: 0.75rem; }
-.stat-number { font-size: 2rem; font-weight: bold; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.stat-label { color: #9ca3af; font-size: 0.875rem; }
+.stat-card:hover { 
+    transform: scale(1.05); 
+    border-color: #000; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.stat-icon { 
+    margin-bottom: 0.75rem; 
+    color: #000;
+}
+.stat-number { 
+    font-size: 2rem; 
+    font-weight: bold; 
+    color: #000;
+}
+.stat-label { 
+    color: #000; 
+    font-size: 0.875rem; 
+}
 
 /* Features */
-.features { padding: 5rem 1.5rem; background: linear-gradient(to bottom, #000, #111827); }
-.features-inner { max-width: 1100px; margin: auto; }
-.features-header { text-align: center; margin-bottom: 2rem; }
-.section-heading { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; }
-.section-subtext { font-size: 1.25rem; color: #d1d5db; max-width: 700px; margin: auto; }
-.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
-.feature-card { background: linear-gradient(to bottom right, #111827, #000); border: 1px solid #1f2937; border-radius: 16px; padding: 2rem; transition: 0.3s ease; }
-.feature-card:hover { border-color: #6b7280; transform: scale(1.05); }
-.feature-icon { width: 64px; height: 64px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
-.gradient-blue-cyan { background: linear-gradient(to bottom right, #3b82f6, #06b6d4); }
-.gradient-purple-pink { background: linear-gradient(to bottom right, #9333ea, #ec4899); }
-.gradient-yellow-orange { background: linear-gradient(to bottom right, #facc15, #f97316); }
-.feature-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
-.feature-text { color: #d1d5db; }
+.features { 
+    padding: 5rem 1.5rem; 
+    background: #fff; 
+}
+.features-inner { 
+    max-width: 1100px; 
+    margin: auto; 
+}
+.features-header { 
+    text-align: center; 
+    margin-bottom: 2rem; 
+}
+.section-heading { 
+    font-size: 2.5rem; 
+    font-weight: bold; 
+    margin-bottom: 1rem; 
+    color: #000;
+}
+.section-subtext { 
+    font-size: 1.25rem; 
+    color: #000; 
+    max-width: 700px; 
+    margin: auto; 
+}
+.features-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 2rem; 
+}
+.feature-card { 
+    background: #fff; 
+    border: 2px solid #000; 
+    border-radius: 16px; 
+    padding: 2rem; 
+    transition: 0.3s ease; 
+}
+.feature-card:hover { 
+    border-color: #000; 
+    transform: scale(1.05); 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.feature-icon { 
+    width: 64px; 
+    height: 64px; 
+    background: #000;
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 1rem; 
+    color: #fff;
+}
+.gradient-blue-cyan,
+.gradient-purple-pink,
+.gradient-yellow-orange { 
+    background: #000;
+}
+.feature-title { 
+    font-size: 1.5rem; 
+    font-weight: bold; 
+    margin-bottom: 0.5rem; 
+    color: #000;
+}
+.feature-text { 
+    color: #000; 
+}
 
 /* Demo Preview */
 .demo-preview {
     padding: 5rem 1.5rem;
+    background: #fff;
 }
 
 .demo-preview-inner{ 
@@ -237,15 +345,16 @@ body{
 }
 
 .demo-card { 
-    background: linear-gradient(to bottom right, #111827, #000); 
-    border: 1px solid #1f2937; 
+    background: #fff; 
+    border: 2px solid #000; 
     border-radius: 16px; 
     padding: 2rem; 
     transition: 0.3s ease; 
 }
 
 .demo-card:hover { 
-    border-color: #6b7280; 
+    border-color: #000; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .demo-card-header { 
@@ -257,53 +366,60 @@ body{
 
 .demo-icon { 
     padding: 0.75rem; 
-    background: linear-gradient(to bottom right, #3b82f6, #9333ea); 
+    background: #000; 
     border-radius: 8px; 
+    color: #fff;
 }
 
 .demo-title{ 
     font-size: 1.25rem; 
     font-weight: bold; 
+    color: #000;
 }
 
 .demo-subtitle{ 
-    color: #9ca3af; 
+    color: #000; 
 }
 
 .demo-preview-box{ 
-    background: rgba(0,0,0,0.5); 
-    border: 1px solid #374151; 
+    background: #fff; 
+    border: 2px solid #000; 
     border-radius: 8px; 
     padding: 1rem; 
     margin-bottom: 1rem; 
+    color: #000;
 }
 
 .btn-demo{ 
     width: 100%; 
     padding: 0.75rem; 
     border-radius: 8px; 
-    background: linear-gradient(to right, #374151, #4b5563); 
+    background: #000; 
     color: white; 
+    border: 2px solid #000;
     display: flex; 
     align-items: center; 
     justify-content: center; 
     gap: 0.5rem; 
     transition: 0.3s ease; 
+    cursor: pointer;
 }
 
 .btn-demo:hover{ 
-    background: linear-gradient(to right, #4b5563, #6b7280);
+    background: #fff;
+    color: #000;
+    border-color: #000;
 }
 
 /* CTA */
 .cta {
     padding: 5rem 1.5rem; 
-    background: linear-gradient(to right, rgba(30,58,138,0.2), rgba(91,33,182,0.2)); 
+    background: #fff; 
     text-align: center; 
 }
 
 .cta-inner { 
-    max-width: 800
+    max-width: 800px;
     margin: 0 auto;
 }
 
@@ -324,8 +440,9 @@ body{
 /*footer*/
 .demo-footer{
     padding: 3rem 1.5rem;
-    border-top: 1px solid #1f2937;
+    border-top: 2px solid #000;
     text-align: center;
+    background: #fff;
 }
 
 .footer-inner{
@@ -342,25 +459,27 @@ body{
 .footer-logo-icon{
     width: 32px;
     height: 32px;
-    background: linear-gradient(to bottom rigth, #3b82f6, #9333ea);
+    background: #000;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #fff;
 }
 
 .footer-title{
     font-size: 1.25rem;
     font-weight: 800;
+    color: #000;
 }
 
 .footer-text{
-    color: #9ca3af;
+    color: #000;
     margin: 0.5rem 0;
 }
 
 .footer-subtext{
-    color: #6b7280;
+    color: #000;
     font-size: 0.9rem;
 }
 
