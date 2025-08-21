@@ -133,7 +133,7 @@ const DemoLandingPage = () => {
                             <div key={i} className={`stat-card ${isVisible ? 'visible' : 'hidden'}`} style={{transitionDelay: `${i * 100}ms`}}>
                                 <div className="stat-icon">{stat.icon}</div>
                                 <div className="stat-number">{stat.number}</div>
-                                <div className="stat-lable">{stat.label}</div>
+                                <div className="stat-label">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -182,7 +182,7 @@ const DemoLandingPage = () => {
                             <div key={i} className="demo-card">
                                 <div className="demo-card-header">
                                     <div className="demo-icon">
-                                        {demo.type === 'type' ? <FileText className="icon-md" /> : <ImageIcon className="icon-md"/>}
+                                        {demo.type === 'text' ? <FileText className="icon-md" /> : <ImageIcon className="icon-md"/>}
                                     </div>
                                     <div>
                                         <h3 className="demo-title">{demo.title}</h3>
