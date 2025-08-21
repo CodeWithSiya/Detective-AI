@@ -1,6 +1,8 @@
 import React, {useState, useRef} from 'react';
 import './DetectivePage.css';
-import Logo from '../Assets/Logo.svg';
+import Logo from '../Assets/Logo.png';
+import * as pdfjsLib from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {
     Search,
     Eye,
@@ -31,44 +33,61 @@ import {
     AlertCircle,
     ArrowLeft,
     Loader,
+    Menu,
+    Target,
+    TrendingUp,
+    Brain,
+    FileCheck,
+    Info
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
+
 const DetectivePage = () => {
+    //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [currentView, setCurrentView] = useState('main');
+
+    //text and image analysis state
     const [activeDetectionType, setActiveDetectionType] = useState('text');
     const [inputMode, setInputMode] = useState('type'); //type or upload
     const [textContent, setTextContent] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [feedbackText, setFeedbackText] = useState('');
-    const [currentView, setCurrentView] = useState('main'); // 'main' or 'history-detail'
-    const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
     const [uploadedImage, setUploadedImage] = useState(null);
 
+    //feedback state
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+
+    //Refs for file inputs
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
 
+    //history items state
     const [historyItems, setHistoryItems] = useState([
+        //sample items
         {
             id: 1,
             type:'text',
             title: 'Academic Essay Analysis',
             date: '2 hours ago',
-            content: 'The rapid evolution of AI has revolutionized various industries...',
-            result: {isAI: true, confidence: 87, highlightedText: 'The rapid advancements of AI has <span class="highlight">revolutionized<span class="tooltip">AI-typical word choice</span></span>various industries and <span class="highlight">transformed<span class="tooltip">Overused transition word</span></span> the way we approach complex problems.'}
+            content: 'This AI-generated report demonstrates how the field of artificial...',
+            result: {isAI: true, confidence: 87, highlightedText: 'This <span class="highlight">AI-generated<span class="tooltip">Explicit phrase often flagged</span></span> report demonstrates how the field of <span class="highlight">artificial intelligence<span class="tooltip">Suspicious phrase pattern</span></span> has <span class="highlight">revolutionized<span class="tooltip">AI-typical word choice</span></span> and <span class="highlight">transformed<span class="tooltip">Generic overused verb</span></span> countless industries through <span class="highlight">cutting-edge<span class="tooltip">Buzzword frequently used by AI</span></span>, <span class="highlight">state-of-the-art<span class="tooltip">Marketing-style phrasing</span></span>, and profoundly <span class="highlight">innovative<span class="tooltip">Overly polished descriptor</span></span> approaches. The discussion <span class="highlight">delves<span class="tooltip">Unnatural academic phrasing</span></span> into the potential to <span class="highlight">leverage<span class="tooltip">Corporate jargon flagged by detectors</span></span> data, <span class="highlight">optimize<span class="tooltip">Common AI buzzword</span></span> processes, and <span class="highlight">facilitate<span class="tooltip">Inflated word choice</span></span> decision-making in ways that were previously unimaginable. <span class="highlight">Furthermore<span class="tooltip">Overused transition word</span></span>, research in <span class="highlight">machine learning<span class="tooltip">Suspicious phrase pattern</span></span> has <span class="highlight">consequently<span class="tooltip">Formulaic connector</span></span> accelerated breakthroughs across science, healthcare, and technology. <span class="highlight">Moreover<span class="tooltip">Repetitive transition marker</span></span>, the integration of these methods has <span class="highlight">additionally<span class="tooltip">Stacked connector often in AI text</span></span> created opportunities for businesses to thrive in highly competitive environments. <span class="highlight">Furthermore<span class="tooltip">Overused transition word</span></span>, by adopting such strategies, organizations can <span class="highlight">leverage<span class="tooltip">Corporate jargon flagged again</span></span> insights, <span class="highlight">optimize<span class="tooltip">Repetitive buzzword</span></span> resources, and <span class="highlight">facilitate<span class="tooltip">Artificially formal phrasing</span></span> growth. <span class="highlight">Moreover<span class="tooltip">Repetitive transition marker</span></span>, the evolution of algorithms has <span class="highlight">additionally<span class="tooltip">Stacked connector again</span></span> reshaped human interaction with digital ecosystems, ultimately underscoring how <span class="highlight">state-of-the-art<span class="tooltip">Buzzword repeated</span></span> innovations continue to transform society.'}
         },
         {
             id: 2,
             type:'text',
-            title: 'Research Paper Review',
+            title: 'Report Review',
             date: '2 days ago',
-            content: 'Climate change represents one of the most pressing challenges of our time...',
-            result: {isAI: false, confidence: 92, highlightedText: 'Climate change represents one of the most pressing challenges of our time. The scientific evidence  overwhelmingly supports the conclusion that human activities are the primary driver of recent climate change.'}
+            content: 'Abstract—This practical investigates the computational performance of the STM32F0...',
+            result: {isAI: false, confidence: 92, highlightedText: 'Abstract—This practical investigates the computational performance of the STM32F0 microcontroller through implementation and benchmarking of Mandelbrot set calculations. Two numerical approaches were evaluated: Fixed-Point Arithmetic and Double-Precision Floating-Point operations across multiple image resolutions (128x128 to 256×256 pixels). The study demonstrates the trade-offs between computational accuracy and execution speed in embedded systems, with Fixed-Point Arithmetic achieving great performance while maintaining acceptable accuracy within 1% tolerance of reference Python implementations (Mandelbrot.py).'}
         }
     ]);
 
+    //quick stats and recent activities
     const [recentStats] = useState([
         {label: 'Today', value: '24', change: '+12%'},
         {label: 'This Week', value: '156', change: '+8%'},
@@ -115,61 +134,239 @@ const DetectivePage = () => {
         }
     ]);
 
+    //sidebar toggle
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
 
-    //mock ai detection logic
+    //------------------------
+    //mock AI detection logic
+    //-------------------------
     const performTextAnalysis = (text) => {
-        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'furthermore', 'moreover', 'additionally', 'leverage', 'optimize', 'facilitate', 'furthermore', 'moreover', 'additionally', 'consequently'];
+        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
         const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
+        const transitionWords = ['furthermore', 'moreover', 'additionally', 'consequently', 'therefore', 'nevertheless', 'however'];
+        const corporateJargon = ['leverage', 'optimize', 'facilitate', 'streamline', 'synergize', 'paradigm'];
+        const buzzwords = ['cutting-edge', 'state-of-the-art', 'revolutionary', 'groundbreaking', 'innovative', 'profoundly'];
+        const humanIndicators = ['hi', 'my name is', 'i am', 'yah', 'from', 'student', 'towards', 'degree', 'majoring'];
 
         let isAI = false;
         let confidence = 0;
+        const detectionReasons = [];
+        const statistics = {
+            totalWords: 0,
+            sentences: 0,
+            avgSentenceLength: 0,
+            aiKeywordsCount: 0,
+            transitionWordsCount: 0,
+            corporateJargonCount: 0,
+            buzzwordsCount: 0,
+            suspiciousPatternsCount: 0,
+            humanIndicatorsCount: 0
+        };
 
         //check for ai keywords
         const lowerText = text.toLowerCase();
-        const foundKeywords = aiKeywords.filter(keyword => lowerText.includes(keyword));
-        const foundPatterns = suspiciousPatterns.filter(pattern => lowerText.includes(pattern.toLowerCase()));
 
-        if (foundKeywords.length > 2 || foundPatterns.length > 0){
+        //calculate basic stats
+        const words = text.split(/\s+/).filter(word => word.length > 0);
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+
+        statistics.totalWords = words.length;
+        statistics.sentences = sentences.length;
+        statistics.avgSentenceLength = sentences.length > 0 ? words.length / sentences.length : 0;
+        
+        //check for ai keywords
+        const foundKeywords = aiKeywords.filter(keyword => lowerText.includes(keyword));
+        statistics.aiKeywordsCount = foundKeywords.length;
+
+        //check for transition words
+        const foundTransitions = transitionWords.filter(word => lowerText.includes(word));
+        statistics.transitionWordsCount = foundTransitions.length;
+
+        //check for corporate jargon
+        const foundJargon = corporateJargon.filter(word => lowerText.includes(word));
+        statistics.corporateJargonCount = foundJargon.length;
+
+        //check for buzzwords
+        const foundBuzzwords = buzzwords.filter(word => lowerText.includes(word));
+        statistics.buzzwordsCount = foundBuzzwords.length;
+
+        //check for suspicious patterns
+        const foundPatterns = suspiciousPatterns.filter(pattern => lowerText.includes(pattern.toLowerCase()));
+        statistics.suspiciousPatternsCount = foundPatterns.length;
+
+        //check for human indicators
+        const foundHumanIndicators = humanIndicators.filter(indicator => lowerText.includes(indicator));
+        statistics.humanIndicatorsCount = foundHumanIndicators.length;
+
+        //base confidence
+        confidence = 50;
+
+        //analysis logic for AI detection
+        if (foundPatterns.length > 0) {
             isAI = true;
-            confidence = Math.min(95, 60 + (foundKeywords.length * 10) + (foundPatterns.length * 15));
+            confidence += 35;
+            detectionReasons.push({
+                type: 'critical',
+                title: 'Explicit AI References',
+                description: `Found ${foundPatterns.length} explicit AI-related phrases: ${foundPatterns.join(', ')}`,
+                impact: 'High'
+            });
         }
-        else{
-            confidence = Math.max(75, 90 - (foundKeywords.length * 5));
+
+        if (foundKeywords.length >= 5) {
+            isAI = true;
+            confidence += 20;
+            detectionReasons.push({
+                type: 'warning',
+                title: 'High AI Keyword Density',
+                description: `Detected ${foundKeywords.length} AI-typical words (${((foundKeywords.length / words.length) * 100).toFixed(1)}% of text)`,
+                impact: 'High'
+            });
+        }
+
+        if (foundTransitions.length >= 3) {
+            isAI = true;
+            confidence += 15;
+            detectionReasons.push({
+                type: 'warning',
+                title: 'Excessive Formal Transitions',
+                description: `High frequency of formal transition words: ${foundTransitions.length} instances (${foundTransitions.join(', ')})`,
+                impact: 'Medium'
+            });
+        }
+
+        if (foundJargon.length >= 3) {
+            isAI = true;
+            confidence += 10;
+            detectionReasons.push({
+                type: 'info',
+                title: 'Corporate Jargon Pattern',
+                description: `Business terminology suggests AI generation: ${foundJargon.join(', ')}`,
+                impact: 'Medium'
+            });
+        }
+
+        if (statistics.avgSentenceLength > 20) {
+            confidence += 5;
+            detectionReasons.push({
+                type: 'info',
+                title: 'Complex Sentence Structure',
+                description: `Average sentence length of ${statistics.avgSentenceLength.toFixed(1)} words suggests formal AI writing`,
+                impact: 'Low'
+            });
+        }
+
+        //human indicators (reduce AI confidence)
+        if (foundHumanIndicators.length >= 3) {
+            confidence -= 30;
+            detectionReasons.push({
+                type: 'success',
+                title: 'Personal/Conversational Language',
+                description: `Found ${foundHumanIndicators.length} human-style indicators: ${foundHumanIndicators.slice(0, 5).join(', ')}`,
+                impact: 'Positive'
+            });
+        }
+
+        if (statistics.avgSentenceLength < 15 && foundTransitions.length <= 1) {
+            confidence -= 20;
+            detectionReasons.push({
+                type: 'success',
+                title: 'Natural Sentence Structure',
+                description: 'Short, natural sentences with minimal formal transitions',
+                impact: 'Positive'
+            });
+        }
+
+        if (foundKeywords.length === 0 && foundPatterns.length === 0) {
+            confidence -= 25;
+            detectionReasons.push({
+                type: 'success',
+                title: 'No AI-typical Patterns',
+                description: 'No AI buzzwords or suspicious patterns detected',
+                impact: 'Positive'
+            });
+        }
+
+        //check for informal language patterns
+        const informalPatterns = ['!', 'yah', 'hi', 'my name', 'i am', 'cool'];
+        const foundInformal = informalPatterns.filter(pattern => lowerText.includes(pattern));
+        if (foundInformal.length >= 2) {
+            confidence -= 15;
+            detectionReasons.push({
+                type: 'success',
+                title: 'Informal/Personal Tone',
+                description: 'Casual language and personal expressions detected',
+                impact: 'Positive'
+            });
+        }
+
+        //final determination
+        if (confidence >= 60) {
+            isAI = true;
+        } else {
+            isAI = false;
+        }
+
+        //ensure confidence is within bounds
+        confidence = Math.min(95, Math.max(5, confidence));
+        
+        //if determined to be human invert confidence
+        if (!isAI) {
+            confidence = 100 - confidence;
         }
 
         //generate highlighted text
         let highlightedText = text;
-        [...aiKeywords, ...suspiciousPatterns].forEach(keyword => {
+        [...aiKeywords, ...suspiciousPatterns, ...transitionWords, ...corporateJargon, ...buzzwords].forEach(keyword => {
             const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
             highlightedText = highlightedText.replace(regex,
                 `<span class="hightlight">${keyword}<span class="tooltip">AI-typical phrase detected</span></span>`
             );
         });
-        return {isAI, confidence, highlightedText};
+        return {isAI,
+            confidence,
+            highlightedText,
+            detectionReasons,
+            statistics,
+            analysisDetails: {
+                foundKeywords,
+                foundPatterns,
+                foundTransitions,
+                foundJargon,
+                foundBuzzwords,
+                foundHumanIndicators
+            }
+        };
     };
 
     const performImageAnalysis = (filename) => {
         //mock logic based on filename
-        const isAI = filename.toLowerCase().includes('ai') || filename.toLowerCase().includes('generated');
-        const confidence = isAI ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 20) + 75;
+        const lower = filename.toLowerCase();
+        if (lower.includes("lindo_ai") || lower.includes("generated")){
+            return {isAI: true, confidence: 90};
+        }
+        else if (lower.includes("lindo_original") || lower.includes("written")){
+            return {isAI: false, confidence: 92};
+        }
 
-        return {isAI, confidence};
+        return {isAI: Math.random() > 0.5, confidence: 85}
     };
 
+    //---------------------------
+    //handlers for user actions
+    //--------------------------
     const handleTextAnalysis = async () => {
         if (!textContent.trim()) return;
 
         setIsAnalyzing(true);
 
-        //simulate api delay
         setTimeout(() => {
             const result = performTextAnalysis(textContent);
             setAnalysisResult(result);
             setIsAnalyzing(false);
-        }, 2000);
+        }, 2000);   //simulate api delay
     };
 
     const handleFileUpload = async (event) => {
@@ -179,20 +376,33 @@ const DetectivePage = () => {
         const fileType = file.type;
         const fileName = file.name.toLowerCase();
 
-        if (activeDetectionType === 'text'){
-            if (!fileType.includes('pdf') && !fileType.includes('document') && !fileName.endsWith('docx')){
-                alert('Please upload only PDF or DOCX files for text analysis.');
+        if (activeDetectionType === 'text') {
+            if (!fileType.includes('pdf')) {
+                alert('Please upload only PDF files for text analysis in this prototype.');
                 return;
             }
 
-            //mock file reading
             setIsAnalyzing(true);
-            setTimeout(() => {
-                const mockText = `This is a sample text extracted from ${file.name}. The document contains various paragraphs with potentially AI-generated content that needs to be analyzed for authenticity.`;
-                const result = performTextAnalysis(mockText);
-                setAnalysisResult({...result, filename: file.name});
+
+            //read PDF text using pdfjs
+            const reader = new FileReader();
+            reader.onload = async function () {
+                const typedArray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                let fullText = "";
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+                }
+
+                //perform enhanced analysis on extracted tezt
+                const result = performTextAnalysis(fullText);
+                setAnalysisResult({ ...result, filename: file.name });
                 setIsAnalyzing(false);
-            }, 3000);
+            };
+            reader.readAsArrayBuffer(file);
         }
     };
 
@@ -245,6 +455,9 @@ const DetectivePage = () => {
         setShowFeedback(false);
     };
 
+    //-------------------
+    //history management
+    //-------------------
     const saveToHistory = () => {
         if (!analysisResult || analysisResult.isImage) return;
 
@@ -289,6 +502,163 @@ const DetectivePage = () => {
         }
     };
 
+    // Analysis Report Component
+    const AnalysisReport = ({ result }) => (
+        <div className="analysis-report">
+            <div className="report-header">
+                <div className="report-icon">
+                    <FileCheck className="icon-md" style={{ color: '#ffffff' }} />
+                </div>
+                <div>
+                    <h3 className="report-title">Detailed Analysis Report</h3>
+                    <p className="report-subtitle">Comprehensive breakdown of detection methodology</p>
+                </div>
+            </div>
+
+            {/* Statistics Overview */}
+            <div className="report-section">
+                <div className="section-header">
+                    <TrendingUp className="icon-sm" />
+                    <h4 className="section-title">Content Statistics</h4>
+                </div>
+                <div className="stats-grid">
+                    <div className="stat-item">
+                        <span className="stat-label">Total Words</span>
+                        <span className="stat-value">{result.statistics.totalWords}</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-label">Sentences</span>
+                        <span className="stat-value">{result.statistics.sentences}</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-label">Avg Sentence Length</span>
+                        <span className="stat-value">{result.statistics.avgSentenceLength.toFixed(1)} words</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-label">AI Indicators</span>
+                        <span className="stat-value">{result.statistics.aiKeywordsCount + result.statistics.suspiciousPatternsCount}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Detection Factors */}
+            <div className="report-section">
+                <div className="section-header">
+                    <Brain className="icon-sm" />
+                    <h4 className="section-title">Detection Factors</h4>
+                </div>
+                <div className="factors-list">
+                    {result.detectionReasons.map((reason, index) => (
+                        <div key={index} className={`factor-item factor-${reason.type}`}>
+                            <div className="factor-header">
+                                <div className={`factor-icon ${reason.type}`}>
+                                    {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
+                                    {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
+                                    {reason.type === 'info' && <Info className="icon-xs" />}
+                                    {reason.type === 'success' && <CheckCircle className="icon-xs" />}
+                                </div>
+                                <div className="factor-title">{reason.title}</div>
+                                <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
+                                    {reason.impact} Impact
+                                </div>
+                            </div>
+                            <div className="factor-description">{reason.description}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Pattern Analysis */}
+            <div className="report-section">
+                <div className="section-header">
+                    <Target className="icon-sm" />
+                    <h4 className="section-title">Pattern Analysis</h4>
+                </div>
+                <div className="pattern-grid">
+                    <div className="pattern-category">
+                        <h5 className="pattern-title">Transition Words</h5>
+                        <div className="pattern-count">{result.statistics.transitionWordsCount}</div>
+                        <div className="pattern-items">
+                            {result.analysisDetails.foundTransitions.slice(0, 3).map((word, i) => (
+                                <span key={i} className="pattern-tag">{word}</span>
+                            ))}
+                            {result.analysisDetails.foundTransitions.length > 3 && (
+                                <span className="pattern-more">+{result.analysisDetails.foundTransitions.length - 3}</span>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="pattern-category">
+                        <h5 className="pattern-title">Corporate Jargon</h5>
+                        <div className="pattern-count">{result.statistics.corporateJargonCount}</div>
+                        <div className="pattern-items">
+                            {result.analysisDetails.foundJargon.slice(0, 3).map((word, i) => (
+                                <span key={i} className="pattern-tag">{word}</span>
+                            ))}
+                            {result.analysisDetails.foundJargon.length > 3 && (
+                                <span className="pattern-more">+{result.analysisDetails.foundJargon.length - 3}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="pattern-category">
+                        <h5 className="pattern-title">Buzzwords</h5>
+                        <div className="pattern-count">{result.statistics.buzzwordsCount}</div>
+                        <div className="pattern-items">
+                            {result.analysisDetails.foundBuzzwords.slice(0, 3).map((word, i) => (
+                                <span key={i} className="pattern-tag">{word}</span>
+                            ))}
+                            {result.analysisDetails.foundBuzzwords.length > 3 && (
+                                <span className="pattern-more">+{result.analysisDetails.foundBuzzwords.length - 3}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="pattern-category">
+                        <h5 className="pattern-title">AI Patterns</h5>
+                        <div className="pattern-count">{result.statistics.suspiciousPatternsCount}</div>
+                        <div className="pattern-items">
+                            {result.analysisDetails.foundPatterns.slice(0, 3).map((word, i) => (
+                                <span key={i} className="pattern-tag">{word}</span>
+                            ))}
+                            {result.analysisDetails.foundPatterns.length > 3 && (
+                                <span className="pattern-more">+{result.analysisDetails.foundPatterns.length - 3}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/*Confidence Breakdown */}
+            <div className="report-section">
+                <div className="section-header">
+                    <Shield className="icon-sm" />
+                    <h4 className="section-title">Confidence Analysis</h4>
+                </div>
+                <div className="confidence-breakdown">
+                    <div className="confidence-bar">
+                        <div 
+                            className={`confidence-fill ${result.isAI ? 'ai-detected' : 'human-written'}`}
+                            style={{ width: `${result.confidence}%` }}
+                        ></div>
+                    </div>
+                    <div className="confidence-labels">
+                        <span className="confidence-label">0%</span>
+                        <span className="confidence-label">50%</span>
+                        <span className="confidence-label">100%</span>
+                    </div>
+                    <p className="confidence-explanation">
+                        {result.isAI 
+                            ? `This content shows ${result.confidence}% likelihood of being AI-generated based on ${result.detectionReasons.length} detection factors.`
+                            : `This content shows ${result.confidence}% likelihood of being human-written with natural language patterns.`
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
+    //detection type cards and sidebar navigation
     const detectionOptions = [
         {
             id: 'text',
@@ -307,7 +677,7 @@ const DetectivePage = () => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
+        
         {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
     ];
 
@@ -318,7 +688,7 @@ const DetectivePage = () => {
                 className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
                 onClick={toggleSidebar}
             >
-                <X className="icon-md"/>
+                <Menu className="icon-sm"/>
             </button>
 
             {/*sidebar*/}
@@ -332,7 +702,7 @@ const DetectivePage = () => {
                         <span className="sidebar-title">Detective AI</span>
                     </div>
                     <button className="close-sidebar" onClick={toggleSidebar}>
-                        <X className="icon-sm"/>
+                        <Menu className="icon-sm"/>
                     </button>
                 </div>
 
@@ -347,14 +717,17 @@ const DetectivePage = () => {
                     <div className="nav-section">
                         <div className="nav-section-title">Navigation</div>
                         {navigationItems.map((item) => (
-                            <button
+                            <RouterLink
                                 key={item.id}
+                                to={`/${item.id}`}
                                 className={`nav-item ${item.active ? 'active' : ''}`}
                             >
+                            
                                 {item.icon}
                                 <span>{item.label}</span>
                                 <ChevronRight className="icon-xs" style={{ marginLeft: 'auto'}}/>
-                            </button>
+                            
+                            </RouterLink>
                         ))}
                     </div>
 
@@ -653,6 +1026,9 @@ const DetectivePage = () => {
                                                     </div>
                                                 </div>
 
+                                                {/* Enhanced Analysis Report */}
+                                                <AnalysisReport result={analysisResult} />
+
                                                 <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
 
                                                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
@@ -767,6 +1143,11 @@ const DetectivePage = () => {
                                             </button>
                                         </div>
                                     </div>
+
+                                    {/*show analysis report for history items if available */}
+                                    {selectedHistoryItem.result.detectionReasons && (
+                                        <AnalysisReport result={selectedHistoryItem.result} />
+                                    )}
 
                                     <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
                                 </div>

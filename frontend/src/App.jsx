@@ -11,10 +11,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DetectivePage from './Components/DetectivePage/DetectivePage';
 import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
 import Team from './Components/Team/Team';
+import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
 
 function App() {
   return (
     <Router>
+    <ScrollToTop/>
       <Routes>
         <Route path="/" element={<DemoLandingPage />} />
         <Route path="/login" element={<Login />} />

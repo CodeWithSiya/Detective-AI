@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
+import Logo from '../Assets/Logo.png';
 import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";
@@ -65,7 +66,8 @@ const DemoLandingPage = () => {
                     <div className="demo-logo">
                         <div className="relative">
                             <div className="demo-logo-icon">
-                                <Search className="icon-md text-white" />
+                                <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
+                                {/*<Search className="icon-md text-white" />*/}
                             </div>
                             <div className="demo-logo-badge">
                                 <Eye className="icon-xs text-white" />
@@ -111,11 +113,13 @@ const DemoLandingPage = () => {
                     
                     {/* Action Buttons */}
                     <div className="hero-buttons">
-                        <button className="btn-primary">
-                            <Eye className="icon-sm" />
-                            <span>Enter Detective Mode</span>
-                            <ChevronRight className="icon-sm" />
-                        </button>
+                        <RouterLink to="/detective">
+                            <button className="btn-primary">
+                                <Eye className="icon-sm" />
+                                <span>Enter Detective Mode</span>
+                                <ChevronRight className="icon-sm" />
+                            </button>
+                        </RouterLink>
                         
                         <button className="btn-secondary">
                             <Play className="icon-sm" />
@@ -129,7 +133,7 @@ const DemoLandingPage = () => {
                             <div key={i} className={`stat-card ${isVisible ? 'visible' : 'hidden'}`} style={{transitionDelay: `${i * 100}ms`}}>
                                 <div className="stat-icon">{stat.icon}</div>
                                 <div className="stat-number">{stat.number}</div>
-                                <div className="stat-lable">{stat.label}</div>
+                                <div className="stat-label">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -178,7 +182,7 @@ const DemoLandingPage = () => {
                             <div key={i} className="demo-card">
                                 <div className="demo-card-header">
                                     <div className="demo-icon">
-                                        {demo.type === 'type' ? <FileText className="icon-md" /> : <ImageIcon className="icon-md"/>}
+                                        {demo.type === 'text' ? <FileText className="icon-md" /> : <ImageIcon className="icon-md"/>}
                                     </div>
                                     <div>
                                         <h3 className="demo-title">{demo.title}</h3>
