@@ -1,9 +1,20 @@
+/**
+ * Forgot Password Component
+ * 
+ * Provides an interface for users to initiate password reset by entering their email
+ * 
+ * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
+ * version: 22/08/2025
+ */
+
+
 import React, { useRef } from 'react';
-import { FormControl, FormLabel } from '@chakra-ui/form-control';
+import { FormControl } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
 
+//Chakra UI components for styling and layout
 import {
   Box,
   Flex,
@@ -12,27 +23,43 @@ import {
   Input,
   Button,
   Text,
-  Link,
-  VStack,
-  Checkbox,
   Stack,
   Field,
 } from "@chakra-ui/react";
+
+// Import authentication handler for email verification
 import { emailExists } from './AuthHandler';
+
+
 
 let emailValue = null;
 
+/**
+ * Function that sets the email for the password reset
+ * @param {string} email 
+ */
 export const setEmail = (email) => {
   emailValue = email;
 };
 
+/**
+ * Function that gets the email value for the password reset
+ * @returns {string|null}
+ */
 export const getEmail = () => {
   return emailValue;
 };
 
+/**
+ * Function that renders the form for forgot password component
+ * @returns {JSX.Element} ForgotPasswordComponent
+ */
 const ForgotPassword = () => {
 
+    //Initialise motion box for animation
     const MotionBox = motion(Box);
+
+    //Initialise navigator for navigating between routes
     const navigate = useNavigate();
 
     const emailRef = useRef();

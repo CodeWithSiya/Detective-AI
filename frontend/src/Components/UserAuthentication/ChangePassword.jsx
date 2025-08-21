@@ -35,7 +35,7 @@ import { getEmail } from './ForgotPassword';
 import { changePassword } from './AuthHandler';
 
 /**
- * Function that renders the form changing password functionality
+ * Function that renders the form for changing password functionality
  * @returns {JSX.Element} ChangePassword Component
  */
 const ChangePassword = () => {
