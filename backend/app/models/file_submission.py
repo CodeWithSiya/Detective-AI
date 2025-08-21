@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import FileExtensionValidator
 from typing import Optional
 from .submission import Submission
-from app.services.TextExtractor import TextExtractor
+from app.services.text_extractor import TextExtractor
 import os
 
 def file_upload_path(instance: 'FileSubmission', filename: str) -> str:
