@@ -784,7 +784,7 @@ const DetectivePage = () => {
                         <div className="modal-header">
                             <h3 className="modal-title">Help Us Improve</h3>
                             <button className="modal-close" onClick={() => setShowFeedback(false)}>
-                                <Menu className="icon-sm" />
+                                <X className="icon-sm" />
                             </button>
                         </div>
                         <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
