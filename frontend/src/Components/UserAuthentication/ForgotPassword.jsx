@@ -18,6 +18,17 @@ import {
   Stack,
   Field,
 } from "@chakra-ui/react";
+import { emailExists } from './AuthHandler';
+
+let emailValue = null;
+
+export const setEmail = (email) => {
+  emailValue = email;
+};
+
+export const getEmail = () => {
+  return emailValue;
+};
 
 const ForgotPassword = () => {
 
@@ -29,7 +40,17 @@ const ForgotPassword = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        navigate('/verify-email');
+        const result = emailExists(emailRef.current.value);
+
+        if (result.success){
+            setEmail(emailRef.current.value);
+
+            navigate('/verify-email');
+        }
+        else{
+            alert(result.message);
+        }
+        
 
 
     }
@@ -87,7 +108,7 @@ const ForgotPassword = () => {
                 <FormControl id="email">
                     <Field.Root>
                         <Field.Label>Email</Field.Label>
-                        <Input placeholder="johndoe@example.com" />
+                        <Input placeholder="johndoe@example.com" ref={emailRef}/>
                     </Field.Root>
                 </FormControl>
 

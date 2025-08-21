@@ -5,6 +5,7 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { PinInput } from "@chakra-ui/react"
 import { Navigate } from 'react-router-dom';
+import ForgotPassword, { getEmail } from './ForgotPassword';
 
 
 import {
@@ -21,10 +22,6 @@ import {
   Stack,
   HStack
 } from "@chakra-ui/react";
-
-const handleSubmit = (e) => {
-
-}
 
 
 const VerifyEmail = () => {
@@ -95,7 +92,7 @@ const VerifyEmail = () => {
                     fontWeight={'bold'}
                     pb={6}
                 >
-                    johndoe@gmail.com
+                    {getEmail()}
                 </Text>
 
                 
