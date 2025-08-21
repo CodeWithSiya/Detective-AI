@@ -64,7 +64,7 @@ export const Login = () => {
 
                     <Heading color={'black'} fontSize={'4xl'}>
                         <Typewriter
-                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!', 'Detect your email and password!'
+                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!'
                             ]}
                             loop={true}
                             cursor
