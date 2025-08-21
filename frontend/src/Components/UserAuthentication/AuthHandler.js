@@ -4,7 +4,7 @@
  * function that gets all users from localStorage
  * @returns array of users / empty array
  */ 
-export function getUsers(){
+function getUsers(){
     return JSON.parse(localStorage.getItem("users")) || [];
 }
 
@@ -22,7 +22,7 @@ function saveUsers(users){
  * @param {*} password 
  * @return error object
  */
-export function signUp(email, password){
+function signUp(email, password){
     const users = getUsers() //from localStorage
 
     //check if email already exists
@@ -46,15 +46,13 @@ export function signUp(email, password){
  * @param {*} password 
  * @returns error object
  */
-export function login(email, password){
+function login(email, password){
     const users = getUsers();   //From localStorage
 
     //look for the user in the users array with matching email and password
     const user = users.find(user => user.email === email && user.password === password);
 
     if (user){
-        //if found save user as currentUser in localStorage
-        localStorage.setItem("currentUser", JSON.stringify(user));
         return {success: true, message: "Login successful"};
     }
 
@@ -69,7 +67,7 @@ export function login(email, password){
  * @param {*} newPassword 
  * @returns error object
  */
-export function changePassword(email, newPassword){
+function changePassword(email, newPassword){
     const users = getUsers(); //from localStorage
 
     //find the index of the user in the array
@@ -89,4 +87,4 @@ export function changePassword(email, newPassword){
 }
 
 
-
+module.exports = { getUsers, signUp, login, changePassword };
