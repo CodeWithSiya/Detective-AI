@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
-import Logo from '../Assets/Logo.svg';
+import Logo from '../Assets/Logo.png';
 import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";

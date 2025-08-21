@@ -3,7 +3,7 @@ import './Team.css';
 import siyaImg from '../Assets/siya.jpg';
 import lindoImg from '../Assets/lindo.jpg';
 import ethanImg from '../Assets/ethan.jpg';
-import Logo from '../Assets/Logo.svg';
+import Logo from '../Assets/Logo.png';
 import { Link as RouterLink } from "react-router-dom";
 import{
     Search,
