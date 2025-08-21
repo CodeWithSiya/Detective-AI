@@ -45,14 +45,20 @@ const ChangePassword = () => {
         const password = passwordRef.current.value;
         const confirmPassword = confirmPasswordRef.current.value;
 
-        //Mock backend behaviour
-        const result = changePassword(getEmail(), password);
+        if (password === confirmPassword){
 
-        alert(result.message);
+            //Mock backend behaviour
+            const result = changePassword(getEmail(), password);
 
-        //move to main page when password is changee
-        if (result.success){
-            navigate("/detective");
+            alert(result.message);
+
+            //move to main page when password is changee
+            if (result.success){
+                navigate("/detective");
+            }
+        }
+        else{
+            alert("Passwords do not match");
         }
     };
 

@@ -37,6 +37,7 @@ const Signup = () => {
     const nameRef = useRef();
     const emailRef = useRef();
     const passwordRef = useRef();
+    const confirmPasswordRef = useRef();
     const lastNameRef = useRef();
 
     const navigate = useNavigate();
@@ -49,13 +50,21 @@ const Signup = () => {
         const lastName = lastNameRef.current.value;
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
+        const confirmPassword = confirmPasswordRef.current.value;
 
-        const result = signUp(email, password);
+        if (password === confirmPassword){
 
-        alert(result.message)
+            const result = signUp(email, password);
 
-        if (result.success){
-            navigate("/detective")
+            alert(result.message)
+
+            if (result.success){
+                navigate("/detective")
+            }
+
+        }
+        else{
+            alert("Passwords do not match");
         }
     }
 
@@ -148,7 +157,7 @@ const Signup = () => {
                             <Stack>
                                 <Field.Root required>
                                     <Field.Label>Confirm Password<Field.RequiredIndicator /></Field.Label>
-                                        <PasswordInput />
+                                        <PasswordInput ref={confirmPasswordRef}/>
                                 </Field.Root>
                             </Stack>
                         </FormControl>
