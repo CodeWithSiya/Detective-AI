@@ -1,5 +1,9 @@
 /**
- * Jest unit testing for the AuthHandler.js
+ * User Authentication Handler Unit Test
+ * Jest framework that conducts unit tests.
+ * 
+ * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
+ * version: 22/08/2025
  */
 
 import {signUp, login, getUsers, changePassword, emailExists } from "./AuthHandler.js";
