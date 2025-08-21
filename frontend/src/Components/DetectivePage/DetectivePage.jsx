@@ -154,10 +154,15 @@ const DetectivePage = () => {
 
     const performImageAnalysis = (filename) => {
         //mock logic based on filename
-        const isAI = filename.toLowerCase().includes('ai') || filename.toLowerCase().includes('generated');
-        const confidence = isAI ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 20) + 75;
+        const lower = filename.toLowerCase();
+        if (lower.includes("lindo_ai") || lower.includes("generated")){
+            return {isAI: true, confidence: 90};
+        }
+        else if (lower.includes("lindo_original") || lower.includes("written")){
+            return {isAI: false, confidence: 92};
+        }
 
-        return {isAI, confidence};
+        return {isAI: Math.random() > 0.5, confidence: 85}
     };
 
     const handleTextAnalysis = async () => {

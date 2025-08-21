@@ -113,11 +113,13 @@ const DemoLandingPage = () => {
                     
                     {/* Action Buttons */}
                     <div className="hero-buttons">
-                        <button className="btn-primary">
-                            <Eye className="icon-sm" />
-                            <span>Enter Detective Mode</span>
-                            <ChevronRight className="icon-sm" />
-                        </button>
+                        <RouterLink to="/detective">
+                            <button className="btn-primary">
+                                <Eye className="icon-sm" />
+                                <span>Enter Detective Mode</span>
+                                <ChevronRight className="icon-sm" />
+                            </button>
+                        </RouterLink>
                         
                         <button className="btn-secondary">
                             <Play className="icon-sm" />
