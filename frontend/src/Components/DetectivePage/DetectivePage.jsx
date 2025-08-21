@@ -319,7 +319,7 @@ const DetectivePage = () => {
                 className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
                 onClick={toggleSidebar}
             >
-                <Menu className="icon-md"/>
+                <Menu className="icon-sm"/>
             </button>
 
             {/*sidebar*/}
