@@ -1,4 +1,10 @@
-// A Authentication handler that performs the required operations on the user data on LocalStorage. (mocks backend)
+/** 
+ * User Authentication Handler
+ * A Authentication handler that performs the required operations on the user data on LocalStorage. (mocks     backend)
+ * 
+ * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
+ * version: 22/08/2025 
+ */
 
 /**
  * function that gets all users from localStorage
@@ -93,6 +99,7 @@ export function emailExists(email){
     //look for user
     const user = users.find(user => user.email === email);
 
+    //check if user exists
     if (user){
         return { success: true, message: "User found" };
     }
