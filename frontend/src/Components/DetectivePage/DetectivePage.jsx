@@ -2,7 +2,7 @@ import React, {useState, useRef} from 'react';
 import './DetectivePage.css';
 import Logo from '../Assets/Logo.png';
 import * as pdfjsLib from "pdfjs-dist";
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {
     Search,
     Eye,
@@ -37,25 +37,33 @@ import {
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
 const DetectivePage = () => {
+    //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [currentView, setCurrentView] = useState('main');
+
+    //text and image analysis state
     const [activeDetectionType, setActiveDetectionType] = useState('text');
     const [inputMode, setInputMode] = useState('type'); //type or upload
     const [textContent, setTextContent] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [feedbackText, setFeedbackText] = useState('');
-    const [currentView, setCurrentView] = useState('main'); // 'main' or 'history-detail'
-    const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
     const [uploadedImage, setUploadedImage] = useState(null);
 
+    //feedback state
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+
+    //Refs for file inputs
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
 
+    //history items state
     const [historyItems, setHistoryItems] = useState([
+        //sample items
         {
             id: 1,
             type:'text',
@@ -74,6 +82,7 @@ const DetectivePage = () => {
         }
     ]);
 
+    //quick stats and recent activities
     const [recentStats] = useState([
         {label: 'Today', value: '24', change: '+12%'},
         {label: 'This Week', value: '156', change: '+8%'},
@@ -120,11 +129,14 @@ const DetectivePage = () => {
         }
     ]);
 
+    //sidebar toggle
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
 
-    //mock ai detection logic
+    //------------------------
+    //mock AI detection logic
+    //-------------------------
     const performTextAnalysis = (text) => {
         const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'furthermore', 'moreover', 'additionally', 'leverage', 'optimize', 'facilitate', 'furthermore', 'moreover', 'additionally', 'consequently'];
         const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
@@ -169,17 +181,19 @@ const DetectivePage = () => {
         return {isAI: Math.random() > 0.5, confidence: 85}
     };
 
+    //---------------------------
+    //handlers for user actions
+    //--------------------------
     const handleTextAnalysis = async () => {
         if (!textContent.trim()) return;
 
         setIsAnalyzing(true);
 
-        //simulate api delay
         setTimeout(() => {
             const result = performTextAnalysis(textContent);
             setAnalysisResult(result);
             setIsAnalyzing(false);
-        }, 2000);
+        }, 2000);   //simulate api delay
     };
 
     const handleFileUpload = async (event) => {
@@ -197,7 +211,7 @@ const DetectivePage = () => {
 
             setIsAnalyzing(true);
 
-            // Read PDF text using pdfjs
+            //read PDF text using pdfjs
             const reader = new FileReader();
             reader.onload = async function () {
                 const typedArray = new Uint8Array(this.result);
@@ -210,14 +224,14 @@ const DetectivePage = () => {
                     fullText += textContent.items.map(item => item.str).join(" ") + "\n";
                 }
 
-                // Hardcoded logic based on filename
+                //hardcoded logic based on filename
                 let result;
                 if (fileName.includes("generated")) {
                     result = { isAI: true, confidence: 93, highlightedText: fullText };
                 } else if (fileName.includes("written")) {
                     result = { isAI: false, confidence: 91, highlightedText: fullText };
                 } else {
-                    // Fallback to keyword analysis
+                    //fallback to keyword analysis
                     result = performTextAnalysis(fullText);
                 }
 
@@ -277,6 +291,9 @@ const DetectivePage = () => {
         setShowFeedback(false);
     };
 
+    //-------------------
+    //history management
+    //-------------------
     const saveToHistory = () => {
         if (!analysisResult || analysisResult.isImage) return;
 
@@ -321,6 +338,7 @@ const DetectivePage = () => {
         }
     };
 
+    //detection type cards and sidebar navigation
     const detectionOptions = [
         {
             id: 'text',
@@ -339,7 +357,7 @@ const DetectivePage = () => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
+        
         {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
     ];
 
