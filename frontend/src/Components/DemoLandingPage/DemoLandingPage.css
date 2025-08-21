@@ -76,7 +76,7 @@ body{
   position: absolute;
   top: -5px; right: -5px;
   width: 16px; height: 16px;
-  background: #000;
+  background: #fff;
   border: 2px solid #fff;
   border-radius: 50%;
   display: flex; 
