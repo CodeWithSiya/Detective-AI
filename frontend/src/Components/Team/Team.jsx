@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import './Team.css';
-import siyaImg from '../Assets/ethan.jpg';
+import siyaImg from '../Assets/siya.jpg';
 import lindoImg from '../Assets/lindo.jpg';
 import ethanImg from '../Assets/ethan.jpg';
 import Logo from '../Assets/Logo.svg';
@@ -236,10 +236,12 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
             <main className={`team-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="team-content">
                     {/*back button*/}
-                    <button className="back-button" onClick={onBackToDetective}>
-                        <ArrowLeft className="icon-sm"/>
-                        Back to Detective
-                    </button>
+                    <RouterLink to="/detective">
+                        <button className="back-button" onClick={onBackToDetective}>
+                            <ArrowLeft className="icon-sm"/>
+                            Back to Detective
+                        </button>
+                    </RouterLink>
 
                     {/*page header*/}
                     <div className="page-header">
