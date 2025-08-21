@@ -5,6 +5,8 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Navigate } from 'react-router-dom';
 
+import { login } from './AuthHandler';
+
 import {
   PasswordInput,
   PasswordStrengthMeter,
@@ -37,10 +39,18 @@ export const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Email:", emailRef.current.value);
-        console.log("Password:", passwordRef.current.value);
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
 
-        navigate('/detective')
+        //Mock backend behaviour
+        const result = login(email, password);
+
+        if (result.success){
+            navigate("/detective");
+        }
+        else{
+            alert(result.message);
+        }
     };
 
     return (
