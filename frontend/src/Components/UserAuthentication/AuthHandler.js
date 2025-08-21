@@ -1,4 +1,4 @@
-// A Authentication handler that performs the required operations on the user authentication data on LocalStorage. (mocks backend)
+// A Authentication handler that performs the required operations on the user data on LocalStorage. (mocks backend)
 
 /**
  * function that gets all users from localStorage
@@ -81,7 +81,7 @@ export function changePassword(email, newPassword){
         users[index].password = newPassword; //change the users password
         saveUsers(users); //save updated users to localStorage
 
-        return {success: false, message: "Password changed"};
+        return {success: true, message: "Password changed"};
     }
 
     //user not found
