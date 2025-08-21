@@ -3,6 +3,9 @@ import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+
+import { signUp } from './AuthHandler';
 
 import {
   PasswordInput,
@@ -36,12 +39,24 @@ const Signup = () => {
     const passwordRef = useRef();
     const lastNameRef = useRef();
 
+    const navigate = useNavigate();
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("First Name:", nameRef.current.value);
-        console.log("Last Name:", lastNameRef.current.value);
-        console.log("Email:", emailRef.current.value);
-        console.log("Password:", passwordRef.current.value);
+
+        //Record user credentials
+        const firstName = nameRef.current.value;
+        const lastName = lastNameRef.current.value;
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
+
+        const result = signUp(email, password);
+
+        alert(result.message)
+
+        if (result.success){
+            navigate("/detective")
+        }
     }
 
     return (
@@ -98,15 +113,15 @@ const Signup = () => {
                                 <FormControl id="firstName">
                                     <Field.Root required>
                                         <Field.Label>Name<Field.RequiredIndicator /></Field.Label>
-                                            <Input placeholder="e.g. John" />
+                                            <Input placeholder="e.g. John" ref={nameRef} />
                                     </Field.Root>
                                 </FormControl>
                             </Box>
                             <Box flex={1}> 
                                 <FormControl id="lastName">
                                     <Field.Root>
-                                        <Field.Label>Surname</Field.Label>
-                                            <Input placeholder="e.g. Doe" />
+                                        <Field.Label>Last Name</Field.Label>
+                                            <Input placeholder="e.g. Doe" ref={lastNameRef} />
                                     </Field.Root>
                                 </FormControl>
                             </Box>
@@ -115,7 +130,7 @@ const Signup = () => {
                         <FormControl id="email">
                             <Field.Root required>
                                 <Field.Label>Email<Field.RequiredIndicator /></Field.Label>
-                                    <Input placeholder="johndoe@example.com" />
+                                    <Input placeholder="johndoe@example.com" ref={emailRef}/>
                             </Field.Root>
                         </FormControl>
 
@@ -123,7 +138,7 @@ const Signup = () => {
                             <Stack>
                                 <Field.Root required>
                                     <Field.Label>Password<Field.RequiredIndicator /></Field.Label>
-                                        <PasswordInput />
+                                        <PasswordInput ref={passwordRef}/>
                                 </Field.Root>
                                 <PasswordStrengthMeter value={2} />
                             </Stack>
