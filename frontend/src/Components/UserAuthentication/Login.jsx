@@ -3,7 +3,9 @@ import { FormControl, FormLabel } from '@chakra-ui/form-control';
 import { motion } from 'framer-motion'
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Navigate } from 'react-router-dom';
+
+
+import { login } from './AuthHandler';
 
 import {
   PasswordInput,
@@ -28,19 +30,31 @@ import {
 
 
 export const Login = () => {
+    //Inititialise motion box
     const MotionBox = motion(Box);
 
+    //store references for email and password
     const emailRef = useRef();
     const passwordRef = useRef();
 
+    //Initialise navigation
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Email:", emailRef.current.value);
-        console.log("Password:", passwordRef.current.value);
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
 
-        navigate('/detective')
+        //Mock backend behaviour
+        const result = login(email, password);
+
+        //move to next page if login successful
+        if (result.success){
+            navigate("/detective");
+        }
+        else{
+            alert(result.message);
+        }
     };
 
     return (
@@ -64,7 +78,7 @@ export const Login = () => {
 
                     <Heading color={'black'} fontSize={'4xl'}>
                         <Typewriter
-                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!', 'Detect your email and password!'
+                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!'
                             ]}
                             loop={true}
                             cursor
