@@ -86,7 +86,7 @@ const Signup = () => {
 
             // If success, navigate to main page
             if (result.success){
-                navigate("/detective")
+                navigate("/login")
             }
 
         }

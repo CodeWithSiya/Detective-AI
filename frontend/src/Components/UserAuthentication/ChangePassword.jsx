@@ -72,7 +72,7 @@ const ChangePassword = () => {
 
             //move to main page when password is changed successfully
             if (result.success){
-                navigate("/detective");
+                navigate("/login");
             }
         }
         else{
