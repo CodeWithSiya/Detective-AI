@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from rest_framework.authtoken.models import Token
 from typing import Any, Dict
 import logging
 
@@ -43,6 +44,10 @@ class UserService:
             last_name=last_name,
             user_type=user_type
         )
+        
+        # Create token for the new user.
+        Token.objects.create(user=user)
+
         logger.info(f"User created: {user.pk} ({user.email})")
         return user
     
@@ -53,17 +58,35 @@ class UserService:
 
         :param email: User's email.
         :param password: User's password.
-        :return: User instance if authentication successful, None otherwise.
+        :return: Tuple of (User instance, token) if authentication successful, (None, None) otherwise.
         """
         try:
             user = User.objects.get(email=email)
             if user.check_password(password):
+                # Get or create token for the user.
+                token, created = Token.objects.get_or_create(user=user)
                 logger.info(f"User authenticated: {user.pk} ({user.email})")
-                return user
-            return None
+                return user, token.key
+            return None, None
         
         except User.DoesNotExist:
-            return None
+            return None, None
+        
+    @staticmethod
+    def logout_user(user) -> bool:
+        """
+        Logout user by deleting their token.
+
+        :param user: User instance.
+        :return: True if logout successful.
+        """
+        try:
+            Token.objects.filter(user=user).delete()
+            logger.info(f"User logged out: {user.pk} ({user.email})")
+            return True
+        except Exception as e:
+            logger.error(f"Error logging out user {user.pk}: {str(e)}")
+            return False
     
     @staticmethod
     def get_user_by_id(user_id: str):
@@ -108,6 +131,8 @@ class UserService:
 
             # Define allowable fields for update.
             allowed_fields = ['first_name', 'last_name', 'email', 'username']
+
+            #TODO: Add validation for other stuff like same first_name and lastname for same user etc.
 
             # Check for duplicate email if email is being updated.
             if 'email' in update_data and update_data['email'] != user.email:

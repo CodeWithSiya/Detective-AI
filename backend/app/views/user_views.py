@@ -1,6 +1,7 @@
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+
 from django.contrib.auth import get_user_model
 from app.services.user_service import UserService
 from typing import Optional, Any
@@ -100,19 +101,42 @@ def login_user(request):
             status_code=status.HTTP_400_BAD_REQUEST
         )
     
-    user = UserService.authenticate_user(email, password)
+    user, token = UserService.authenticate_user(email, password)
 
-    if user:
+    if user and token:
+        user_data = user_to_dict(user)
+        user_data['token'] = token  # TODO: Fix this!
+
         return create_json_response(
             success=True,
             message='Login successful',
-            data=user_to_dict(user)
+            data=user_data
         )
     else:
         return create_json_response(
             success=False,
             error='Invalid credentials',
             status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def logout_user(request):
+    """
+    Logout current user.
+
+    POST /api/users/logout/
+    """
+    if UserService.logout_user(request.user):
+        return create_json_response(
+            success=True,
+            message='Logout successful'
+        )
+    else:
+        return create_json_response(
+            success=False,
+            error='Logout failed',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 @api_view(['GET'])
@@ -160,13 +184,13 @@ def get_current_user(request):
         data=user_to_dict(request.user)
     )
 
-@api_view(['PUT', 'PATCH'])
+@api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])
 def update_user_profile(request, user_id: str):
     """
     Update user profile.
 
-    PUT/PATCH /api/users/{user_id}/
+    PUT /api/users/{user_id}/update/
     """
     # Only admins or the user themselves can update profile.
     if not request.user.is_admin_user() and str(request.user.id) != user_id:
@@ -276,7 +300,7 @@ def delete_user(request, user_id: str):
     """
     Delete user account.
 
-    DELETE /api/users/{user_id}/
+    DELETE /api/users/{user_id}/delete
     """
     # Only admins or the user themselves can delete
     if not request.user.is_admin_user() and str(request.user.id) != user_id:

@@ -5,7 +5,8 @@ urlpatterns = [
     # User authentication
     path('users/register/', user_views.register_user, name='register_user'),
     path('users/login/', user_views.login_user, name='login_user'),
-    
+    path('users/logout/', user_views.logout_user, name='logout_user'),
+
     # User profile management
     path('users/me/', user_views.get_current_user, name='get_current_user'),
     path('users/<str:user_id>/', user_views.get_user_profile, name='get_user_profile'),
