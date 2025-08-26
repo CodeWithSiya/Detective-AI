@@ -319,11 +319,45 @@ const DetectivePage = () => {
 
         //generate highlighted text
         let highlightedText = text;
-        [...aiKeywords, ...suspiciousPatterns, ...transitionWords, ...corporateJargon, ...buzzwords].forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-            highlightedText = highlightedText.replace(regex,
-                `<span class="hightlight">${keyword}<span class="tooltip">AI-typical phrase detected</span></span>`
-            );
+
+        // Helper for group highlighting
+        const highlightGroups = [
+            {
+                words: aiKeywords,
+                className: "highlight-keyword",
+                tooltip: "AI keyword: frequently used in AI-generated content"
+            },
+            {
+                words: suspiciousPatterns,
+                className: "highlight-suspicious",
+                tooltip: "Explicit AI-related phrase"
+            },
+            {
+                words: transitionWords,
+                className: "highlight-transition",
+                tooltip: "Formal transition word: often overused by AI"
+            },
+            {
+                words: corporateJargon,
+                className: "highlight-jargon",
+                tooltip: "Corporate jargon: business/AI terminology"
+            },
+            {
+                words: buzzwords,
+                className: "highlight-buzzword",
+                tooltip: "Buzzword: marketing or hype language"
+            }
+        ];
+
+        // Avoid double-highlighting by replacing in order of least likely overlap
+        highlightGroups.forEach(group => {
+            group.words.forEach(keyword => {
+                const regex = new RegExp(`\\b${keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
+                highlightedText = highlightedText.replace(
+                    regex,
+                    `<span class="highlight ${group.className}">${keyword}<span class="tooltip">${group.tooltip}</span></span>`
+                );
+            });
         });
         return {isAI,
             confidence,

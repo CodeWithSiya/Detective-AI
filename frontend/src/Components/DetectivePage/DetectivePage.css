@@ -1,4 +1,3 @@
-
 body{
     background-color: #fff;
 }
@@ -25,10 +24,10 @@ body{
 
 .toggle-btn {
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
+    /*border: 1px solid #d1d5db;*/
     background: #ffffff;
     color: #000000;
-    border-radius: 8px;
+    /*border-radius: 8px;*/
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -38,12 +37,12 @@ body{
 
 .toggle-btn.active {
     background: #000000;
-    border-color: #000000;
+    /*border-color: #000000;*/
     color: white;
 }
 
 .toggle-btn:hover:not(.active) {
-    border-color: #9ca3af;
+    /*border-color: #9ca3af;*/
     background: #f3f4f6;
 }
 
@@ -81,8 +80,8 @@ body{
     padding: 1rem 2rem;
     background: #fff;
     color: #000;
-    border: 1px solid #000;
-    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -94,7 +93,6 @@ body{
 .analyze-button:hover {
     background: #000;
     color: #fff;
-    
 }
 
 .analyze-button:disabled {
@@ -106,21 +104,9 @@ body{
 /* Results Area */
 .results-container {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 2rem;
+    border-radius: 8px;
+    padding: 0rem;
     margin-top: 2rem;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .results-header {
@@ -141,7 +127,7 @@ body{
 .result-icon {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -150,10 +136,12 @@ body{
 
 .result-icon.ai-detected {
     background: #fff;
+    color: red;
 }
 
 .result-icon.human-written {
     background: #fff;
+    color: blue;
 }
 
 .result-status {
@@ -182,7 +170,7 @@ body{
 
 .action-btn {
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
+    /*border: 1px solid #d1d5db;*/
     background: #ffffff;
     color: #000000;
     border-radius: 8px;
@@ -194,18 +182,20 @@ body{
 }
 
 .action-btn:hover {
-    border-color: #000000;
-    background: #f3f4f6;
+    /*border-color: #000000;*/
+    background: #000;
+    color: #fff;
 }
 
 .action-btn.export {
-    background: #000000;
-    border-color: #000000;
-    color: white;
+    background: #fff;
+    /*border-color: #000000;*/
+    color: #000;
 }
 
 .action-btn.export:hover {
-    background: #333333;
+    background: #000;
+    color: #fff;
 }
 
 /* Highlighted Text */
@@ -221,7 +211,6 @@ body{
 }
 
 .highlight {
-    background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
     padding: 0 2px;
     cursor: pointer;
@@ -229,8 +218,21 @@ body{
     position: relative;
 }
 
-.highlight:hover {
-    background: rgba(0, 0, 0, 0.2);
+/* Group-specific highlight colors */
+.highlight-keyword {
+    background: rgba(59, 130, 246, 0.25); /* blue */
+}
+.highlight-suspicious {
+    background: rgba(239, 68, 68, 0.25); /* red */
+}
+.highlight-transition {
+    background: rgba(251, 191, 36, 0.25); /* yellow */
+}
+.highlight-jargon {
+    background: rgba(16, 185, 129, 0.25); /* green */
+}
+.highlight-buzzword {
+    background: rgba(168, 85, 247, 0.25); /* purple */
 }
 
 .tooltip {
