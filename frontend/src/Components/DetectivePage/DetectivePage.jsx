@@ -739,7 +739,14 @@ const DetectivePage = () => {
                 </div>
 
                 {/*new detection button*/}
-                <button className="new-detection">
+                <button className="new-detection" onClick={() => {
+                    setCurrentView('main');
+                    setActiveDetectionType('text');
+                    setInputMode('type');
+                    resetAnalysis();
+                    setShowFeedback(false);
+                    setSelectedHistoryItem(null);
+                }}>
                     <Plus className="icon-sm"/>
                     <span>New Detection</span>
                 </button>
