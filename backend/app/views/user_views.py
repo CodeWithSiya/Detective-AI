@@ -1,27 +1,13 @@
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-
 from django.contrib.auth import get_user_model
 from app.services.user_service import UserService
+from app.serializers.user_serializer import UserSerializer
 from typing import Optional, Any
 from datetime import datetime
 
 User = get_user_model()
-
-def user_to_dict(user):
-    """
-    Convert user instance to dictionary for JSON response.
-    """
-    return {
-        'id': str(user.id),
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'user_type': user.user_type,
-        'is_admin': user.is_admin_user()
-    }
 
 def create_json_response(success: bool = True, message: Optional[str] = None, data: Optional[Any] = None, error: Optional[str] = None, status_code = status.HTTP_200_OK):
     """
@@ -70,7 +56,7 @@ def register_user(request):
         return create_json_response(
             success=True,
             message='User registered successfully',
-            data=user_to_dict(user),
+            data=UserSerializer(user).data,
             status_code=status.HTTP_201_CREATED
         )
     
@@ -104,8 +90,8 @@ def login_user(request):
     user, token = UserService.authenticate_user(email, password)
 
     if user and token:
-        user_data = user_to_dict(user)
-        user_data['token'] = token  # TODO: Fix this!
+        user_data = dict(UserSerializer(user).data)
+        user_data['token'] = token
 
         return create_json_response(
             success=True,
@@ -167,7 +153,7 @@ def get_user_profile(request, user_id: str):
     return create_json_response(
         success=True,
         message='User profile retrieved successfully',
-        data=user_to_dict(user)
+        data=UserSerializer(user).data
     )
 
 @api_view(['GET'])
@@ -181,7 +167,7 @@ def get_current_user(request):
     return create_json_response(
         success=True,
         message='Current user profile retrieved successfully',
-        data=user_to_dict(request.user)
+        data=UserSerializer(request.user).data
     )
 
 @api_view(['PUT'])
@@ -225,7 +211,7 @@ def update_user_profile(request, user_id: str):
         return create_json_response(
             success=True,
             message='User profile updated successfully',
-            data=user_to_dict(user)
+            data=UserSerializer(user).data
         )
     
     except ValueError as e:
