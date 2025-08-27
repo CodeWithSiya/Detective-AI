@@ -1,6 +1,6 @@
 import React, {useState, useRef} from 'react';
 import './DetectivePage.css';
-import Logo from '../Assets/Logo.png';
+import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {
@@ -359,7 +359,8 @@ const DetectivePage = () => {
                 );
             });
         });
-        return {isAI,
+        return {
+            isAI,
             confidence,
             highlightedText,
             detectionReasons,
@@ -379,13 +380,13 @@ const DetectivePage = () => {
         //mock logic based on filename
         const lower = filename.toLowerCase();
         if (lower.includes("lindo_ai") || lower.includes("generated")){
-            return {isAI: true, confidence: 90};
+            return {isAI: true, confidence: 90, highlightedText: ''};
         }
         else if (lower.includes("lindo_original") || lower.includes("written")){
-            return {isAI: false, confidence: 92};
+            return {isAI: false, confidence: 92, highlightedText: ''};
         }
 
-        return {isAI: Math.random() > 0.5, confidence: 85}
+        return {isAI: Math.random() > 0.5, confidence: 85, highlightedText: ''}
     };
 
     //---------------------------
@@ -404,7 +405,7 @@ const DetectivePage = () => {
     };
 
     const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files?.[0];
         if (!file) return;
 
         const fileType = file.type;
@@ -428,7 +429,7 @@ const DetectivePage = () => {
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+                    fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
                 }
 
                 //perform enhanced analysis on extracted tezt
@@ -441,7 +442,7 @@ const DetectivePage = () => {
     };
 
     const handleImageUpload = async (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files?.[0];
         if (!file) return;
 
         const fileType = file.type;
@@ -458,7 +459,7 @@ const DetectivePage = () => {
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            setUploadedImage(e.target.result);
+            setUploadedImage(e.target?.result);
 
             setIsAnalyzing(true);
             setTimeout(() => {
@@ -476,14 +477,12 @@ const DetectivePage = () => {
 
     const submitFeedback = () =>{
         if (!feedbackText.trim()) return;
-
         const newFeedback = {
             id: Date.now(),
             query: analysisResult?.filename || 'Text Analysis',
             feedback: feedbackText,
             date: 'Just now'
         };
-
         setFeedbackList(prev => [newFeedback, ...prev]);
         setFeedbackText('');
         setShowFeedback(false);
@@ -494,7 +493,6 @@ const DetectivePage = () => {
     //-------------------
     const saveToHistory = () => {
         if (!analysisResult || analysisResult.isImage) return;
-
         const newHistoryItem = {
             id: Date.now(),
             type: 'text',
@@ -558,19 +556,19 @@ const DetectivePage = () => {
                 <div className="stats-grid">
                     <div className="stat-item">
                         <span className="stat-label">Total Words</span>
-                        <span className="stat-value">{result.statistics.totalWords}</span>
+                        <span className="stat-value">{result.statistics?.totalWords}</span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">Sentences</span>
-                        <span className="stat-value">{result.statistics.sentences}</span>
+                        <span className="stat-value">{result.statistics?.sentences}</span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">Avg Sentence Length</span>
-                        <span className="stat-value">{result.statistics.avgSentenceLength.toFixed(1)} words</span>
+                        <span className="stat-value">{result.statistics?.avgSentenceLength.toFixed(1)} words</span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">AI Indicators</span>
-                        <span className="stat-value">{result.statistics.aiKeywordsCount + result.statistics.suspiciousPatternsCount}</span>
+                        <span className="stat-value">{(result.statistics?.aiKeywordsCount || 0) + (result.statistics?.suspiciousPatternsCount || 0)}</span>
                     </div>
                 </div>
             </div>
@@ -582,7 +580,7 @@ const DetectivePage = () => {
                     <h4 className="section-title">Detection Factors</h4>
                 </div>
                 <div className="factors-list">
-                    {result.detectionReasons.map((reason, index) => (
+                    {result.detectionReasons?.map((reason, index) => (
                         <div key={index} className={`factor-item factor-${reason.type}`}>
                             <div className="factor-header">
                                 <div className={`factor-icon ${reason.type}`}>
@@ -611,52 +609,52 @@ const DetectivePage = () => {
                 <div className="pattern-grid">
                     <div className="pattern-category">
                         <h5 className="pattern-title">Transition Words</h5>
-                        <div className="pattern-count">{result.statistics.transitionWordsCount}</div>
+                        <div className="pattern-count">{result.statistics?.transitionWordsCount}</div>
                         <div className="pattern-items">
-                            {result.analysisDetails.foundTransitions.slice(0, 3).map((word, i) => (
+                            {result.analysisDetails?.foundTransitions.slice(0, 3).map((word, i) => (
                                 <span key={i} className="pattern-tag">{word}</span>
                             ))}
-                            {result.analysisDetails.foundTransitions.length > 3 && (
-                                <span className="pattern-more">+{result.analysisDetails.foundTransitions.length - 3}</span>
+                            {(result.analysisDetails?.foundTransitions.length || 0) > 3 && (
+                                <span className="pattern-more">+{(result.analysisDetails?.foundTransitions.length || 0) - 3}</span>
                             )}
                         </div>
                     </div>
                     
                     <div className="pattern-category">
                         <h5 className="pattern-title">Corporate Jargon</h5>
-                        <div className="pattern-count">{result.statistics.corporateJargonCount}</div>
+                        <div className="pattern-count">{result.statistics?.corporateJargonCount}</div>
                         <div className="pattern-items">
-                            {result.analysisDetails.foundJargon.slice(0, 3).map((word, i) => (
+                            {result.analysisDetails?.foundJargon.slice(0, 3).map((word, i) => (
                                 <span key={i} className="pattern-tag">{word}</span>
                             ))}
-                            {result.analysisDetails.foundJargon.length > 3 && (
-                                <span className="pattern-more">+{result.analysisDetails.foundJargon.length - 3}</span>
+                            {(result.analysisDetails?.foundJargon.length || 0) > 3 && (
+                                <span className="pattern-more">+{(result.analysisDetails?.foundJargon.length || 0) - 3}</span>
                             )}
                         </div>
                     </div>
 
                     <div className="pattern-category">
                         <h5 className="pattern-title">Buzzwords</h5>
-                        <div className="pattern-count">{result.statistics.buzzwordsCount}</div>
+                        <div className="pattern-count">{result.statistics?.buzzwordsCount}</div>
                         <div className="pattern-items">
-                            {result.analysisDetails.foundBuzzwords.slice(0, 3).map((word, i) => (
+                            {result.analysisDetails?.foundBuzzwords.slice(0, 3).map((word, i) => (
                                 <span key={i} className="pattern-tag">{word}</span>
                             ))}
-                            {result.analysisDetails.foundBuzzwords.length > 3 && (
-                                <span className="pattern-more">+{result.analysisDetails.foundBuzzwords.length - 3}</span>
+                            {(result.analysisDetails?.foundBuzzwords.length || 0) > 3 && (
+                                <span className="pattern-more">+{(result.analysisDetails?.foundBuzzwords.length || 0) - 3}</span>
                             )}
                         </div>
                     </div>
 
                     <div className="pattern-category">
                         <h5 className="pattern-title">AI Patterns</h5>
-                        <div className="pattern-count">{result.statistics.suspiciousPatternsCount}</div>
+                        <div className="pattern-count">{result.statistics?.suspiciousPatternsCount}</div>
                         <div className="pattern-items">
-                            {result.analysisDetails.foundPatterns.slice(0, 3).map((word, i) => (
+                            {result.analysisDetails?.foundPatterns.slice(0, 3).map((word, i) => (
                                 <span key={i} className="pattern-tag">{word}</span>
                             ))}
-                            {result.analysisDetails.foundPatterns.length > 3 && (
-                                <span className="pattern-more">+{result.analysisDetails.foundPatterns.length - 3}</span>
+                            {(result.analysisDetails?.foundPatterns.length || 0) > 3 && (
+                                <span className="pattern-more">+{(result.analysisDetails?.foundPatterns.length || 0) - 3}</span>
                             )}
                         </div>
                     </div>
@@ -683,7 +681,7 @@ const DetectivePage = () => {
                     </div>
                     <p className="confidence-explanation">
                         {result.isAI 
-                            ? `This content shows ${result.confidence}% likelihood of being AI-generated based on ${result.detectionReasons.length} detection factors.`
+                            ? `This content shows ${result.confidence}% likelihood of being AI-generated based on ${result.detectionReasons?.length} detection factors.`
                             : `This content shows ${result.confidence}% likelihood of being human-written with natural language patterns.`
                         }
                     </p>
