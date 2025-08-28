@@ -97,7 +97,7 @@ class AiTextModel(AiModel):
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             self.model = DetectionModel.from_pretrained(self.model_name)
-            self.max_length = min(self.tokenizer.max_length, 1024) # TODO: Find out max length of the model we will use.
+            self.max_length = 1024                                          # TODO: Find out maximum of our model.
             self.model.to(torch.device(self.device)) # type: ignore
             self.model.eval()
 
