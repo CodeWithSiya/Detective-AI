@@ -6,6 +6,9 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for User model.
+
+    :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
+    :version: 22/08/2025
     """
     is_admin = serializers.SerializerMethodField()
 
