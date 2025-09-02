@@ -818,9 +818,7 @@ const DetectivePage = () => {
                         <div className="detective-logo-icon">
                             {/*<Search className="icon-md text-white"/>*/}
                             <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
-                            <div className="detective-logo-badge">
-                                <Eye className="icon-xs text-white"/>
-                            </div>
+                            
                         </div>
                         <div>
                             <h1 className="detective-title">Detective AI</h1>
