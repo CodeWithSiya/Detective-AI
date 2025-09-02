@@ -1,7 +1,11 @@
 from django.urls import path
 from app.views import user_views
+from app.views import analysis_views
 
 urlpatterns = [
+    # Text analysis
+    path('analysis/text/', analysis_views.analyse_text, name="analyse_text"),
+
     # User authentication
     path('users/register/', user_views.register_user, name='register_user'),
     path('users/login/', user_views.login_user, name='login_user'),
