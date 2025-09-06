@@ -3,6 +3,7 @@ from .ai_analyser import AiAnalyser
 from app.ai.ai_text_model import AiTextModel
 from app.services.claude_service import ClaudeService
 from typing import Any, Dict, Optional
+import re
 
 class AiTextAnalyser(AiAnalyser):
     """
@@ -38,7 +39,7 @@ class AiTextAnalyser(AiAnalyser):
         
         :param input_data: Text content to analyse
         """
-        # Ensure model is loaded.
+        # Ensure detection model is loaded.
         if not self.ai_model.is_loaded():
             self.ai_model.load()
 
@@ -60,6 +61,9 @@ class AiTextAnalyser(AiAnalyser):
 
         # Combine results.
         final_result = self.postprocess(base_prediction, enhanced_analysis)
+
+        # Add statistics to result.
+        final_result['statistics'] = self.calculate_statistics(processed_text, enhanced_analysis)
 
         return final_result
 
@@ -142,3 +146,72 @@ class AiTextAnalyser(AiAnalyser):
                 })
         
         return result
+    
+    def calculate_statistics(self, text: str, enhanced_analysis: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Calculate basic text statistics for analysis.
+
+        :param text: The text to analyse.
+        :return: Dictionary containing text statistics.
+        """
+        if not text or not text.strip():
+            return {
+                'total_words': 0,
+                'sentences': 0,
+                'avg_sentence_length': 0,
+                'ai_keywords_count': 0,
+                'transition_words_count': 0,
+                'corporate_jargon_count': 0,
+                'buzzwords_count': 0,
+                'suspicious_patterns_count': 0,
+                'human_indicators_count': 0
+            }
+
+        # Basic text processing
+        words = [word for word in re.split(r'\s+', text) if len(word) > 0]
+        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+    
+        # Calculate basic statistics
+        total_words = len(words)
+        sentence_count = len(sentences)
+        avg_sentence_length = total_words / sentence_count if sentence_count > 0 else 0
+
+        # Extract counts from enhanced analysis 
+        ai_keywords_count = 0
+        transition_words_count = 0
+        corporate_jargon_count = 0
+        buzzwords_count = 0
+        suspicious_patterns_count = 0
+        human_indicators_count = 0
+
+        if enhanced_analysis and enhanced_analysis.get('analysis_details'):
+            analysis_details = enhanced_analysis['analysis_details']
+            
+            # Count items from Claude's analysis
+            ai_keywords_count = len(analysis_details.get('found_keywords', []))
+            transition_words_count = len(analysis_details.get('found_transitions', []))
+            corporate_jargon_count = len(analysis_details.get('found_jargon', []))
+            buzzwords_count = len(analysis_details.get('found_buzzwords', []))
+            suspicious_patterns_count = len(analysis_details.get('found_patterns', []))
+            human_indicators_count = len(analysis_details.get('found_human_indicators', []))
+
+        # Calculate statistics
+        total_words = len(words)
+        sentence_count = len(sentences)
+        total_characters = len(text)
+
+        # Calculate averages (handle division by zero)
+        avg_sentence_length = total_words / sentence_count if sentence_count > 0 else 0
+        avg_word_length = sum(len(word) for word in words) / total_words if total_words > 0 else 0
+
+        return {
+            'totalWords': total_words,
+            'sentences': sentence_count,
+            'avgSentenceLength': round(avg_sentence_length, 2),
+            'aiKeywordsCount': ai_keywords_count,
+            'transitionWordsCount': transition_words_count,
+            'corporateJargonCount': corporate_jargon_count,
+            'buzzwordsCount': buzzwords_count,
+            'suspiciousPatternsCount': suspicious_patterns_count,
+            'humanIndicatorsCount': human_indicators_count
+        }
