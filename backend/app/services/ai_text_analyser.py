@@ -198,20 +198,18 @@ class AiTextAnalyser(AiAnalyser):
         # Calculate statistics
         total_words = len(words)
         sentence_count = len(sentences)
-        total_characters = len(text)
 
         # Calculate averages (handle division by zero)
         avg_sentence_length = total_words / sentence_count if sentence_count > 0 else 0
-        avg_word_length = sum(len(word) for word in words) / total_words if total_words > 0 else 0
 
         return {
-            'totalWords': total_words,
+            'total_words': total_words,
             'sentences': sentence_count,
-            'avgSentenceLength': round(avg_sentence_length, 2),
-            'aiKeywordsCount': ai_keywords_count,
-            'transitionWordsCount': transition_words_count,
-            'corporateJargonCount': corporate_jargon_count,
-            'buzzwordsCount': buzzwords_count,
-            'suspiciousPatternsCount': suspicious_patterns_count,
-            'humanIndicatorsCount': human_indicators_count
+            'avg_sentence_length': round(avg_sentence_length, 2),
+            'ai_keywords_count': ai_keywords_count,
+            'transition_words_count': transition_words_count,
+            'corporate_jargon_count': corporate_jargon_count,
+            'buzzwords_count': buzzwords_count,
+            'suspicious_patterns_count': suspicious_patterns_count,
+            'human_indicators_count': human_indicators_count
         }
