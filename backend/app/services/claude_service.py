@@ -181,3 +181,15 @@ class ClaudeService:
             'found_human_indicators': []
         }
     }
+
+    def create_submission_name(self):
+        """
+        Create a summarised name for each submission
+        """
+        return None
+    
+    def humanise_text(self):
+        """
+        Humanise potentially AI generated text.
+        """
+        return None
