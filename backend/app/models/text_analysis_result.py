@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from .analysis_result import AnalysisResult
 
 class TextAnalysisResult(AnalysisResult):
@@ -7,13 +8,7 @@ class TextAnalysisResult(AnalysisResult):
 
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 22/08/2025
-    """
-    # Core prediction data.    
-    confidence = models.FloatField(
-        default=0.0,
-        help_text="Model confidence in the prediction (0.0 - 1.0)"
-    )
-    
+    """    
     # Enhanced analysis results
     detection_reasons = models.JSONField(
         default=list,
@@ -74,11 +69,11 @@ class TextAnalysisResult(AnalysisResult):
         if not self.statistics:
             return 0
         return (
-            self.statistics.get('aiKeywordsCount', 0) +
-            self.statistics.get('transitionWordsCount', 0) +
-            self.statistics.get('corporateJargonCount', 0) +
-            self.statistics.get('buzzwordsCount', 0) +
-            self.statistics.get('suspiciousPatternsCount', 0)
+            self.statistics.get('ai_keywords_count', 0) +
+            self.statistics.get('transition_words_count', 0) +
+            self.statistics.get('corporate_jargon_count', 0) +
+            self.statistics.get('buzzwords_count', 0) +
+            self.statistics.get('suspicious_patterns_count', 0)
         )
     
     def save_analysis_result(self, analysis_result: dict) -> None:
@@ -92,7 +87,7 @@ class TextAnalysisResult(AnalysisResult):
 
         # Save prediction data
         prediction = analysis_result.get('prediction', {})
-        self.probability = prediction.get('probability', 0.0)  # Uses inherited field
+        self.probability = prediction.get('probability', 0.0) 
         self.confidence = prediction.get('confidence', 0.0)
         
         # Map is_ai_generated to detection_result choices
@@ -110,9 +105,11 @@ class TextAnalysisResult(AnalysisResult):
         # Save statistics
         self.statistics = analysis_result.get('statistics', {})
         
-        # Save metadata
+        # Save metadata and processing time
         metadata = analysis_result.get('metadata', {})
         self.enhanced_analysis_used = metadata.get('enhanced_analysis_used', False)
+        self.processing_time_ms = metadata.get('processing_time_ms')
 
         # Set status to completed
         self.status = self.Status.COMPLETED
+        self.completed_at = timezone.now()

@@ -2,9 +2,17 @@ from abc import ABC
 from .ai_analyser import AiAnalyser
 from app.ai.ai_text_model import AiTextModel
 from app.services.claude_service import ClaudeService
+from app.models.text_analysis_result import TextAnalysisResult
+from app.models.text_submission import TextSubmission
+from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from typing import Any, Dict, Optional
+import time
 import re
 
+# TODO: Export Results for Registered Users. Add Report Generation Service and Email Service.
+# TODO: Add User Feedback API and Submission History API (Per User).
+# TODO: Find a way to automatically create a name for each analysis which is a short summary. Maybe use claude again or check how Lutho did it.
 class AiTextAnalyser(AiAnalyser):
     """
     Service class for AI text analysis logic.
@@ -33,39 +41,134 @@ class AiTextAnalyser(AiAnalyser):
                 print("Warning: Claude API key not found. Enhanced analysis disabled.")
                 self.use_claude = False
 
-    def analyse(self, input_data: Any) -> Dict[str, Any]:
+    def analyse(self, input_data: Any, user=None, submission=None) -> Dict[str, Any]:
         """
         Perform analysis using the AI model to detect AI generated content.
         
         :param input_data: Text content to analyse
+        :param user: User instance (None for users without an account)
+        :param submission: Related submission object (Optional)
+        :return: Analysis results
         """
-        # Ensure detection model is loaded.
-        if not self.ai_model.is_loaded():
-            self.ai_model.load()
+        # Start timing
+        start_time = time.time()
+        analysis_result = None
 
-        # Preprocess input.
-        processed_text = self.preprocess(input_data)
+        try: 
+            # Ensure detection model is loaded.
+            if not self.ai_model.is_loaded():
+                self.ai_model.load()
 
-        # Get base model prediction.
-        base_prediction = self.ai_model.predict(processed_text)
+            # Preprocess input.
+            processed_text = self.preprocess(input_data)
 
-        # Enhanced analysis with Claude if available.
-        enhanced_analysis = None
-        if self.use_claude and self.claude_service:
-            try:
-                enhanced_analysis = self.claude_service.analyse_text_patterns(
-                    processed_text, base_prediction
+            # Get base model prediction.
+            base_prediction = self.ai_model.predict(processed_text)
+
+            # Enhanced analysis with Claude if available.
+            enhanced_analysis = None
+            if self.use_claude and self.claude_service:
+                try:
+                    enhanced_analysis = self.claude_service.analyse_text_patterns(
+                        processed_text, base_prediction
+                    )
+                except Exception as e:
+                    print(f"Claude analysis failed: {e}")
+
+            # Combine results.
+            final_result = self.postprocess(base_prediction, enhanced_analysis)
+
+            # Add statistics to result.
+            final_result['statistics'] = self.calculate_statistics(processed_text, enhanced_analysis)
+
+            # Calculate and add processing time to results.
+            end_time = time.time()
+            processing_time_ms = (end_time - start_time) * 1000
+            final_result['metadata']['processing_time_ms'] = round(processing_time_ms, 2)
+
+            # Save analysis result for registered users.
+            if user and user.is_authenticated:
+                print("User is authenticated so we are saving their result!")
+                analysis_result = self._save_analysis_result(final_result, user, submission, processed_text, processing_time_ms)
+
+            # Add analysis info to result if saved successfully.
+            if analysis_result:
+                final_result['analysis_id'] = str(analysis_result.id)
+
+            return final_result
+
+        except Exception as e:
+            # Handle analysis failure.
+            print(f"Analysis failed: {e}")
+
+            # If we have a user and started creating an analysis, mark it as failed.
+            if user and user.is_authenticated and analysis_result:
+                try:
+                    analysis_result.status = TextAnalysisResult.Status.FAILED
+                    analysis_result.completed_at = timezone.now()
+                    analysis_result.calculate_processing_time()
+                    analysis_result.save()
+                except Exception as save_error:
+                    print(f"Failed to mark analysis as failed: {save_error}")
+
+            # Re-raise the exception so the view can handle it.
+            raise
+    
+    def _save_analysis_result(self, result: Dict[str, Any], user, submission, text: str, processing_time_ms: float):
+        """
+        Save analysis result to database for registered users.
+
+        :param result: Analysis result
+        :param user: User instance
+        :param submission: Related submission object
+        :param text: Analysed text
+        :param processing_time_ms: Processing time in milliseconds
+        :return: Created TextAnalysisResult instance or None
+        """
+        analysis = None
+        try:
+            # Create submission if it doesn't exist.
+            if submission is None:
+                # Create a new TextSubmission for this analysis.
+                submission = TextSubmission.objects.create(
+                    name=f"Text Analysis {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    content=text,
+                    user=user
                 )
-            except Exception as e:
-                print(f"Claude analysis failed: {e}")
 
-        # Combine results.
-        final_result = self.postprocess(base_prediction, enhanced_analysis)
+            # Get content type for the submission.
+            content_type = ContentType.objects.get_for_model(submission)
+            
+            # Create initial TextAnalysisResult instance with PENDING status initially.
+            analysis = TextAnalysisResult(
+                content_type=content_type,
+                object_id=submission.id,
+                status=TextAnalysisResult.Status.PENDING
+            )
+            analysis.save()
+            
+            # Save the analysis result with a COMPLETED status.
+            analysis.save_analysis_result(result)
+            analysis.save()
+            
+            print(f"Saved analysis result {analysis.id} for user {user.email} (processed in {processing_time_ms:.2f}ms)")
+            return analysis
+        
+        except Exception as e:
+            # Log error but don't fail the analysis
+            print(f"Failed to save analysis result: {e}")
 
-        # Add statistics to result.
-        final_result['statistics'] = self.calculate_statistics(processed_text, enhanced_analysis)
+            # If we created an analysis object, mark it as failed.
+            if analysis is not None:
+                try:
+                    analysis.status = TextAnalysisResult.Status.FAILED
+                    analysis.completed_at = timezone.now()
+                    analysis.calculate_processing_time()
+                    analysis.save()
+                except Exception as save_error:
+                    print(f"Failed to mark analysis as failed: {save_error}")
 
-        return final_result
+            return None
 
     def preprocess(self, raw_input: Any) -> Any:
         """

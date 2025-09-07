@@ -24,7 +24,6 @@ class AnalysisResult(models.Model):
     class DetectionResult(models.TextChoices):
         AI_GENERATED = "AI_GENERATED", "AI Generated"
         HUMAN_WRITTEN = "HUMAN_WRITTEN", "Human Written"
-        UNCERTAIN = "UNCERTAIN", "Uncertain"
 
     # Core fields for the analysis result.
     id = models.UUIDField(
@@ -125,7 +124,7 @@ class AnalysisResult(models.Model):
         self.status = self.Status.PROCESSING
         self.save(update_fields=["status"])
 
-    def mark_as_completed(self, detection_result, confidence_score, probability = None, reason = None) -> None:
+    def mark_as_completed(self, detection_result, confidence_score, probability = None, processing_time_ms=None) -> None:
         """
         Mark analysis as completed.
         """
@@ -134,9 +133,15 @@ class AnalysisResult(models.Model):
         self.confidence = confidence_score
         self.probability = probability
         self.completed_at = timezone.now()
-        self.calculate_processing_time()
+
+        # Use provided processing time or calculate it
+        if processing_time_ms is not None:
+            self.processing_time_ms = processing_time_ms
+        else:
+            self.calculate_processing_time()
+
         self.save(update_fields=["status", "detection_result", 
-                                 "confidence_score", "probability", "reason", "completed_at", "processing_time_ms"])
+                                 "confidence", "probability", "completed_at", "processing_time_ms"])
         
     def mark_as_failed(self) -> None:
         """
