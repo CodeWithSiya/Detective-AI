@@ -35,7 +35,7 @@
 
 /* Header with Sign In Button */
 .detective-header {
-    position: fixed;
+    position: relative;
     top: 0; 
     left: 0; 
     right: 0;
@@ -46,6 +46,7 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 .detective-header.sidebar-open {
@@ -59,6 +60,12 @@
     padding: 1rem 2rem;
     max-width: 1400px;
     margin: auto;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* space between menu button and logo */
 }
 
 .detective-logo {
@@ -346,10 +353,10 @@
 
 /* Menu toggle and overlay */
 .menu-toggle {
-    position: fixed;
-    top: 1.5rem;
-    left: 1.5rem;
-    z-index: 70;
+    position: static;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     color: #ffffff;

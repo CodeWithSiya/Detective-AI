@@ -290,13 +290,7 @@ const BasicDetectivePage = () => {
 
     return (
         <div className="basic-detective-container">
-            {/*Menu toggle button*/}
-            <button
-                className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
-                onClick={toggleSidebar}
-            >
-                <Menu className="icon-sm"/>
-            </button>
+            
 
             {/*sidebar*/}
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -356,23 +350,35 @@ const BasicDetectivePage = () => {
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="detective-header-inner">
+
+                  {/* Left side: menu button + logo together */}
+                  <div className="header-left">
+                    <button
+                      className="menu-toggle"
+                      onClick={toggleSidebar}
+                    >
+                      <Menu className="icon-sm"/>
+                    </button>
+
                     {/*logo*/}
                     <div className="detective-logo">
-                        <div className="detective-logo-icon">
-                            {/*<Search className="icon-md text-white"/>*/}
-                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
-                        </div>
-                        <div>
-                            <h1 className="detective-title">Detective AI</h1>
-                            <p className="detective-subtitle">Content Detection</p>
-                        </div>
+                      <div className="detective-logo-icon">
+                        <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
+                      </div>
+                      <div>
+                        <h1 className="detective-title">Detective AI</h1>
+                        <p className="detective-subtitle">Content Detection</p>
+                      </div>
                     </div>
-                    {/*Sign in button*/}
+                  </div>
+                    
+                    
+                    {/* Right side: sign in */}
                     <button className="btn-signin">
-                        <span>Sign In</span>
-                        <ChevronRight className="icon-sm"/>
+                      <span>Sign In</span>
+                      <ChevronRight className="icon-sm"/>
                     </button>
-                </div>
+                  </div>
             </header>
 
             {/*main content*/}
