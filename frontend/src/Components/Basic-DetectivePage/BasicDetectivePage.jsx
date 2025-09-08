@@ -53,12 +53,12 @@ const BasicDetectivePage = () => {
     const WORD_LIMIT = 250;
 
     //count words in text
-    const getWordCoount = () => {
+    const getWordCount = () => {
       return textContent.trim() ? textContent.trim().split(/\s+/).length : 0;
     };
 
     const isOverLimit = () => {
-      return getWordCoount() > WORD_LIMIT;
+      return getWordCount() > WORD_LIMIT;
     };
 
     //sidebar toggle
@@ -441,80 +441,37 @@ const BasicDetectivePage = () => {
                           </button>
                         </div>
 
-                                        {inputMode === 'type' ? (
-                                            <>
-                                                <textarea
-                                                    className="text-area"
-                                                    placeholder="Paste or type your text here for AI detection analysis..."
-                                                    value={textContent}
-                                                    onChange={(e) => setTextContent(e.target.value)}
-                                                />
-                                                <button 
-                                                    className="analyze-button"
-                                                    onClick={handleTextAnalysis}
-                                                    disabled={!textContent.trim() || isAnalyzing}
-                                                >
-                                                    {isAnalyzing ? (
-                                                        <>
-                                                            <Loader className="icon-sm animate-spin" />
-                                                            Analyzing...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Eye className="icon-sm" />
-                                                            Analyze Text
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                                                <div className="upload-icon">
-                                                    <FileText className="icon-lg" />
-                                                </div>
-                                                <h3 className="upload-title">Upload Document</h3>
-                                                <p className="upload-description">
-                                                    Click here or drag and drop PDF or DOCX files (up to 25MB)
-                                                </p>
-                                                <button className="upload-button">
-                                                    <Upload className="icon-sm" />
-                                                    Choose Document
-                                                </button>
-                                                <input
-                                                    ref={fileInputRef}
-                                                    type="file"
-                                                    className="file-input"
-                                                    accept=".pdf,.docx"
-                                                    onChange={handleFileUpload}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                        <div className="text-input-wrapper">
+                          <textarea
+                              className={`text-area ${isOverLimit() ? 'over-limit' : ''}`}
+                              placeholder="Paste or type your text here for AI detection analysis (up to 250 words)..."
+                              value={textContent}
+                              onChange={(e) => setTextContent(e.target.value)}
+                          />
+                          <div classsName={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
+                            {getWordCount()} / {WORD_LIMIT} words
+                            {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
+                          </div>
+                        </div>
 
-                                {/* Image Upload Area */}
-                                {activeDetectionType === 'image' && (
-                                    <div className="upload-area" onClick={() => imageInputRef.current?.click()}>
-                                        <div className="upload-icon">
-                                            <ImageIcon className="icon-lg" />
-                                        </div>
-                                        <h3 className="upload-title">Upload Image</h3>
-                                        <p className="upload-description">
-                                            Click here or drag and drop PNG or JPEG images (up to 10MB)
-                                        </p>
-                                        <button className="upload-button">
-                                            <Upload className="icon-sm" />
-                                            Choose Image
-                                        </button>
-                                        <input
-                                            ref={imageInputRef}
-                                            type="file"
-                                            className="file-input"
-                                            accept=".png,.jpg,.jpeg"
-                                            onChange={handleImageUpload}
-                                        />
-                                    </div>
-                                )}
+                        <button 
+                          className="analyze-button"
+                          onClick={handleTextAnalysis}
+                          disabled={!textContent.trim() || isAnalyzing || isOverLimit()}
+                        >
+                          {isAnalyzing ? (
+                              <>
+                                  <Loader className="icon-sm animate-spin" />
+                                  Analyzing...
+                              </>
+                          ) : (
+                              <>
+                                  <Eye className="icon-sm" />
+                                  Analyze Text
+                              </>
+                          )}
+                        </button>
+                      </div>
 
                                 {/* Loading State */}
                                 {isAnalyzing && (
