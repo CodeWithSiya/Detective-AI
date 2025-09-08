@@ -378,33 +378,14 @@ const BasicDetectivePage = () => {
             {/*main content*/}
             <main className={`detective-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="content-area">
-                    {currentView === 'main' ? (
-                        <>
-                            {/* Main Detection Interface */}
-                            <div className="detection-interface">
-                                <div className="interface-header">
-                                    <h1 className="interface-title">AI Content Detection</h1>
-                                    <p className="interface-subtitle">
-                                        Upload your content for instant AI detection analysis
-                                    </p>
-                                </div>
-
-                                {/*quick stats*/}
-                                <div className="stats-dashboard">
-                                    {recentStats.map((stat, index) => (
-                                        <div key={index} className="stat-card-mini">
-                                            <div className="stat-value">{stat.value}</div>
-                                            <div className="stat-label">{stat.label}</div>
-                                            <div style={{ 
-                                                fontSize: '0.75rem', 
-                                                color: stat.change.startsWith('+') ? '#10b981' : '#ef4444',
-                                                marginTop: '0.5rem'
-                                            }}>
-                                                {stat.change}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                  {/* Main Detection Interface */}
+                  <div className="detection-interface">
+                      <div className="interface-header">
+                          <h1 className="interface-title">AI Content Detection</h1>
+                          <p className="interface-subtitle">
+                              Try our AI detection with up to 250 words. Sign in for unlimited access.
+                          </p>
+                      </div>
 
                                 {/* Detection Type Options */}
                                 <div className="detection-options">
