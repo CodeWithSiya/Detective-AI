@@ -417,31 +417,29 @@ const BasicDetectivePage = () => {
                         </div>
                       </div>
 
-                                {/* Text Input Area */}
-                                {activeDetectionType === 'text' && (
-                                    <div className="text-input-area">
-                                        <div className="input-toggle">
-                                            <button 
-                                                className={`toggle-btn ${inputMode === 'type' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setInputMode('type');
-                                                    resetAnalysis();
-                                                }}
-                                            >
-                                                <Type className="icon-sm" />
-                                                Type Text
-                                            </button>
-                                            <button 
-                                                className={`toggle-btn ${inputMode === 'upload' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setInputMode('upload');
-                                                    resetAnalysis();
-                                                }}
-                                            >
-                                                <FileUp className="icon-sm" />
-                                                Upload Document
-                                            </button>
-                                        </div>
+                      {/* Text Input Area */}
+                      <div className="text-input-area">
+                        <div className="input-toggle">
+                          <button 
+                              className="toggle-btn active">
+                              <Type className="icon-sm" />
+                              Type Text
+                          </button>
+                          <button 
+                              className="toggle-btn disabled"
+                              onMouseEnter={() => setShowToolTip('upload')}
+                              onMouseLeave={() => setShowToolTip(null)}
+                              onClick= {() => handleDisabledFeature('upload')}
+                          >
+                              <FileUp className="icon-sm" />
+                              Upload Document
+                              {showToolTip === 'upload' && (
+                                <div className="feature-tooltip">
+                                  Sign in for File Upload
+                                </div>
+                              )}
+                          </button>
+                        </div>
 
                                         {inputMode === 'type' ? (
                                             <>
