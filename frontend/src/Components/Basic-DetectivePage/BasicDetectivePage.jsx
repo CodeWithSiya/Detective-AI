@@ -184,19 +184,7 @@ const BasicDetectivePage = () => {
         setTimeout(() => setShowToolTip(null), 2000);
     };
 
-    const resetAnalysis = () => {
-        setAnalysisResult(null);
-        setTextContent('');
-        setUploadedImage(null);
-        if (fileInputRef.current){
-            fileInputRef.current.value = '';
-        }
-        if (imageInputRef.current){
-            imageInputRef.current.value = '';
-        }
-    };
-
-    // Analysis Report Component
+    // Basic Analysis Report Component
     const AnalysisReport = ({ result }) => (
         <div className="analysis-report">
             <div className="report-header">
@@ -204,12 +192,12 @@ const BasicDetectivePage = () => {
                     <FileCheck className="icon-md" style={{ color: '#ffffff' }} />
                 </div>
                 <div>
-                    <h3 className="report-title">Detailed Analysis Report</h3>
-                    <p className="report-subtitle">Comprehensive breakdown of detection methodology</p>
+                    <h3 className="report-title">Basic Analysis Report</h3>
+                    <p className="report-subtitle">Limited analysis for non-registered users</p>
                 </div>
             </div>
 
-            {/* Statistics Overview */}
+            {/* Basic Statistics*/}
             <div className="report-section">
                 <div className="section-header">
                     <TrendingUp className="icon-sm" />
@@ -228,10 +216,6 @@ const BasicDetectivePage = () => {
                         <span className="stat-label">Avg Sentence Length</span>
                         <span className="stat-value">{result.statistics?.avgSentenceLength.toFixed(1)} words</span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-label">AI Indicators</span>
-                        <span className="stat-value">{(result.statistics?.aiKeywordsCount || 0) + (result.statistics?.suspiciousPatternsCount || 0)}</span>
-                    </div>
                 </div>
             </div>
 
@@ -239,17 +223,16 @@ const BasicDetectivePage = () => {
             <div className="report-section">
                 <div className="section-header">
                     <Brain className="icon-sm" />
-                    <h4 className="section-title">Detection Factors</h4>
+                    <h4 className="section-title">Key Detection Factors</h4>
                 </div>
                 <div className="factors-list">
-                    {result.detectionReasons?.map((reason, index) => (
+                    {result.detectionReasons?.slice(0, 3).map((reason, index) => (
                         <div key={index} className={`factor-item factor-${reason.type}`}>
                             <div className="factor-header">
                                 <div className={`factor-icon ${reason.type}`}>
                                     {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
                                     {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
                                     {reason.type === 'info' && <Info className="icon-xs" />}
-                                    {reason.type === 'success' && <CheckCircle className="icon-xs" />}
                                 </div>
                                 <div className="factor-title">{reason.title}</div>
                                 <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
@@ -259,6 +242,14 @@ const BasicDetectivePage = () => {
                             <div className="factor-description">{reason.description}</div>
                         </div>
                     ))}
+                    {result.detectionReasons?.length > 3 && (
+                        <div className="upgrade-notice">
+                          <div className="upgrade-text">
+                            <Shield className="icon-sm" />
+                            Sign in to see {result.detectionReasons.length - 3} more detection factors and advanced analysis
+                          </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
