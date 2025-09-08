@@ -230,7 +230,7 @@ body {
 }
 
 /* Base */
-.detective-container {
+.basic-detective-container {
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
     color: #1e293b;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -256,12 +256,13 @@ body {
     z-index: 0;
 }
 
+/* Icon Sizes */
 .icon-xs { width: 0.75rem; height: 0.75rem; }
 .icon-sm { width: 1rem; height: 1rem; }
 .icon-md { width: 1.5rem; height: 1.5rem; }
 .icon-lg { width: 2rem; height: 2rem; }
 
-/* Enhanced Header */
+/* Header with Sign In button */
 .detective-header {
     position: fixed;
     top: 0; 
@@ -307,6 +308,12 @@ body {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
+}
+
+.logo-img{
+    width: 28px;
+    height: 28px;
+    filter: brightness(0) invert(1);
 }
 
 .detective-logo-icon::before {
