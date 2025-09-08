@@ -398,6 +398,15 @@ body {
     transition: left 0.6s;
 }
 
+.btn-signin:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.btn-signin:hover::before{
+    left: 100%;
+}
+
 /* Modern Sidebar */
 .sidebar {
     position: fixed;
