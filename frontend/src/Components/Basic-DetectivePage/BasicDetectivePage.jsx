@@ -178,7 +178,11 @@ const BasicDetectivePage = () => {
         }, 2000);   //simulate api delay
     };
 
-
+    //disabled feature handlers
+    const handleDisabledFeature = (feature) => {
+        setShowToolTip(feature);
+        setTimeout(() => setShowToolTip(null), 2000);
+    };
 
     const resetAnalysis = () => {
         setAnalysisResult(null);
