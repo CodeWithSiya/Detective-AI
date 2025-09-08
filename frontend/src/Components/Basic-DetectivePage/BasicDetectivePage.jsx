@@ -185,7 +185,7 @@ const BasicDetectivePage = () => {
     };
 
     // Basic Analysis Report Component
-    const AnalysisReport = ({ result }) => (
+    const BasicAnalysisReport = ({ result }) => (
         <div className="analysis-report">
             <div className="report-header">
                 <div className="report-icon">
@@ -448,7 +448,7 @@ const BasicDetectivePage = () => {
                             value={textContent}
                             onChange={(e) => setTextContent(e.target.value)}
                         />
-                        <div classsName={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
+                        <div className={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
                           {getWordCount()} / {WORD_LIMIT} words
                           {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
                         </div>
