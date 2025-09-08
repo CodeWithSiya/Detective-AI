@@ -377,153 +377,178 @@ const BasicDetectivePage = () => {
 
             {/*main content*/}
             <main className={`detective-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
-                <div className="content-area">
-                  {/* Main Detection Interface */}
-                  <div className="detection-interface">
-                      <div className="interface-header">
-                          <h1 className="interface-title">AI Content Detection</h1>
-                          <p className="interface-subtitle">
-                              Try our AI detection with up to 250 words. Sign in for unlimited access.
-                          </p>
+              <div className="content-area">
+                {/* Main Detection Interface */}
+                <div className="detection-interface">
+                    <div className="interface-header">
+                        <h1 className="interface-title">AI Content Detection</h1>
+                        <p className="interface-subtitle">
+                            Try our AI detection with up to 250 words. Sign in for unlimited access.
+                        </p>
+                    </div>
+
+                    {/* Detection Type Options */}
+                    <div className="detection-options">
+                      {/* Text detection - Enabled*/}
+                      <div className="detection-option active">
+                        <div className="card-icon">
+                          <FileText className="icon-lg" />
+                        </div>
+                        <h3 className="card-title">Text Detection</h3>
+                        <p className="card-description">Analyze text up to 250 words for AI-generated patterns.</p>
                       </div>
 
-                      {/* Detection Type Options */}
-                      <div className="detection-options">
-                        {/* Text detection - Enabled*/}
-                        <div className="detection-option active">
-                          <div className="card-icon">
-                            <FileText className="icon-lg" />
-                          </div>
-                          <h3 className="card-title">Text Detection</h3>
-                          <p className="card-description">Analyze text up to 250 words for AI-generated patterns.</p>
+                      {/* Image detection - Disabled */}
+                      <div
+                        className="detection-option disabled"
+                        onMouseEnter={() => setShowToolTip('image')}
+                        onMouseLeave={() => setShowToolTip(null)}
+                      >
+                        <div className="card-icon">
+                          <ImageIcon className="icon-lg" />
                         </div>
-
-                        {/* Image detection - Disabled */}
-                        <div
-                          className="detection-option disabled"
-                          onMouseEnter={() => setShowToolTip('image')}
-                          onMouseLeave={() => setShowToolTip(null)}
-                        >
-                          <div className="card-icon">
-                            <ImageIcon className="icon-lg" />
+                        <h3 className="card-title">Image Detection</h3>
+                        <p className="card-description">Detect AI-generated images using advanced visual analysis.</p>
+                        {showToolTip === 'image' && (
+                          <div className="feature-tooltip"> 
+                            Sign in for Image Detection
                           </div>
-                          <h3 className="card-title">Image Detection</h3>
-                          <p className="card-description">Detect AI-generated images using advanced visual analysis.</p>
-                          {showToolTip === 'image' && (
-                            <div className="feature-tooltip"> 
-                              Sign in for Image Detection
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
+                    </div>
 
-                      {/* Text Input Area */}
-                      <div className="text-input-area">
-                        <div className="input-toggle">
-                          <button 
-                              className="toggle-btn active">
-                              <Type className="icon-sm" />
-                              Type Text
-                          </button>
-                          <button 
-                              className="toggle-btn disabled"
-                              onMouseEnter={() => setShowToolTip('upload')}
-                              onMouseLeave={() => setShowToolTip(null)}
-                              onClick= {() => handleDisabledFeature('upload')}
-                          >
-                              <FileUp className="icon-sm" />
-                              Upload Document
-                              {showToolTip === 'upload' && (
-                                <div className="feature-tooltip">
-                                  Sign in for File Upload
-                                </div>
-                              )}
-                          </button>
-                        </div>
-
-                        <div className="text-input-wrapper">
-                          <textarea
-                              className={`text-area ${isOverLimit() ? 'over-limit' : ''}`}
-                              placeholder="Paste or type your text here for AI detection analysis (up to 250 words)..."
-                              value={textContent}
-                              onChange={(e) => setTextContent(e.target.value)}
-                          />
-                          <div classsName={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
-                            {getWordCount()} / {WORD_LIMIT} words
-                            {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
-                          </div>
-                        </div>
-
+                    {/* Text Input Area */}
+                    <div className="text-input-area">
+                      <div className="input-toggle">
                         <button 
-                          className="analyze-button"
-                          onClick={handleTextAnalysis}
-                          disabled={!textContent.trim() || isAnalyzing || isOverLimit()}
+                            className="toggle-btn active">
+                            <Type className="icon-sm" />
+                            Type Text
+                        </button>
+                        <button 
+                            className="toggle-btn disabled"
+                            onMouseEnter={() => setShowToolTip('upload')}
+                            onMouseLeave={() => setShowToolTip(null)}
+                            onClick= {() => handleDisabledFeature('upload')}
                         >
-                          {isAnalyzing ? (
-                              <>
-                                  <Loader className="icon-sm animate-spin" />
-                                  Analyzing...
-                              </>
-                          ) : (
-                              <>
-                                  <Eye className="icon-sm" />
-                                  Analyze Text
-                              </>
-                          )}
+                            <FileUp className="icon-sm" />
+                            Upload Document
+                            {showToolTip === 'upload' && (
+                              <div className="feature-tooltip">
+                                Sign in for File Upload
+                              </div>
+                            )}
                         </button>
                       </div>
 
-                      {/* Loading State */}
-                      {isAnalyzing && (
-                          <div className="loading-container">
-                              <div className="loading-spinner"></div>
-                              <div className="loading-text">Analyzing text patterns...</div>
-                          </div>
-                      )}
+                      <div className="text-input-wrapper">
+                        <textarea
+                            className={`text-area ${isOverLimit() ? 'over-limit' : ''}`}
+                            placeholder="Paste or type your text here for AI detection analysis (up to 250 words)..."
+                            value={textContent}
+                            onChange={(e) => setTextContent(e.target.value)}
+                        />
+                        <div classsName={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
+                          {getWordCount()} / {WORD_LIMIT} words
+                          {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
+                        </div>
+                      </div>
 
-                      {/* Results */}
-                      {analysisResult && !isAnalyzing && (
-                        <div className="results-container">
-                          <div className="results-header">
-                              <div className="detection-result">
-                                  <div className={`result-icon ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                      {analysisResult.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                  </div>
-                                  <div>
-                                      <div className={`result-status ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                          {analysisResult.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                      </div>
-                                      <div className="result-confidence">
-                                          Confidence: {analysisResult.confidence}%
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
+                      <button 
+                        className="analyze-button"
+                        onClick={handleTextAnalysis}
+                        disabled={!textContent.trim() || isAnalyzing || isOverLimit()}
+                      >
+                        {isAnalyzing ? (
+                            <>
+                                <Loader className="icon-sm animate-spin" />
+                                Analyzing...
+                            </>
+                        ) : (
+                            <>
+                                <Eye className="icon-sm" />
+                                Analyze Text
+                            </>
+                        )}
+                      </button>
+                    </div>
 
-                          {/* Basic Analysis Report */}
-                          <BasicAnalysisReport result={analysisResult} />
+                    {/* Loading State */}
+                    {isAnalyzing && (
+                        <div className="loading-container">
+                            <div className="loading-spinner"></div>
+                            <div className="loading-text">Analyzing text patterns...</div>
+                        </div>
+                    )}
 
-                          <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
-
-                          {/* Sign in prompt */}
-                          <div className="signin-prompt">
-                            <div className="signin-content">
-                              <Shield className="signin-icon" />
-                              <div>
-                                <h4>Want More Detailed Analysis?</h4>
-                                <p>Sign in to unlock advanced features, unlimited analysis, and detailed reports.</p>
-                              </div>
-                              <button className="signin-btn">Sign In</button>
+                    {/* Results */}
+                    {analysisResult && !isAnalyzing && (
+                      <div className="results-container">
+                        <div className="results-header">
+                            <div className="detection-result">
+                                <div className={`result-icon ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
+                                    {analysisResult.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
+                                </div>
+                                <div>
+                                    <div className={`result-status ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
+                                        {analysisResult.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
+                                    </div>
+                                    <div className="result-confidence">
+                                        Confidence: {analysisResult.confidence}%
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Basic Analysis Report */}
+                        <BasicAnalysisReport result={analysisResult} />
+
+                        <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
+
+                        {/* Sign in prompt */}
+                        <div className="signin-prompt">
+                          <div className="signin-content">
+                            <Shield className="signin-icon" />
+                            <div>
+                              <h4>Want More Detailed Analysis?</h4>
+                              <p>Sign in to unlock advanced features, unlimited analysis, and detailed reports.</p>
+                            </div>
+                            <button className="signin-btn">Sign In</button>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-  
-
-
-
-            
+                    {/* Feature Promotion*/}
+                    <div className="features-promotion">
+                      <h3 className="promotion-title">Unlock Premium Features</h3>
+                      <div className="features-grid">
+                          <div className="feature-card">
+                              <div className="feature-icon">
+                                  <FileText className="icon-md" />
+                              </div>
+                              <h4>Unlimited Text Analysis</h4>
+                              <p>Analyze texts of any length without word limits</p>
+                          </div>
+                          <div className="feature-card">
+                              <div className="feature-icon">
+                                  <Upload className="icon-md" />
+                              </div>
+                              <h4>File Upload Support</h4>
+                              <p>Upload PDF and DOCX files for direct analysis</p>
+                          </div>
+                          <div className="feature-card">
+                              <div className="feature-icon">
+                                  <ImageIcon className="icon-md" />
+                              </div>
+                              <h4>Image Detection</h4>
+                              <p>Detect AI-generated images with advanced algorithms</p>
+                          </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </main>  
         </div>
     );
 };
