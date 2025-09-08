@@ -1,6 +1,7 @@
 from django.urls import path
 from app.views import user_views
 from app.views import analysis_views
+from app.views import feedback_views
 
 urlpatterns = [
     # Text analysis
@@ -17,4 +18,14 @@ urlpatterns = [
     path('users/<str:user_id>/update/', user_views.update_user_profile, name='update_user_profile'),
     path('users/<str:user_id>/change-password/', user_views.change_user_password, name='change_user_password'),
     path('users/<str:user_id>/delete/', user_views.delete_user, name='delete_user'),
+
+    # User feedback management
+    path('feedback/', feedback_views.get_user_feedback, name='get_user_feedback'),
+    path('feedback/statistics/', feedback_views.get_feedback_statistics, name='get_feedback_statistics'),
+    path('feedback/<str:feedback_id>/', feedback_views.delete_feedback, name='delete_feedback'),
+    path('feedback/analysis/<str:analysis_id>/', feedback_views.get_feedback_for_analysis, name='get_feedback_for_analysis'),
+    path('feedback/analysis/<str:analysis_id>/submit/', feedback_views.submit_feedback, name='submit_feedback'),
+    
+    # Admin feedback management
+    path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin')
 ]
