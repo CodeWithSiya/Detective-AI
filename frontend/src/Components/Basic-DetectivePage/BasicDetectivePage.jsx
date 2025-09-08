@@ -473,245 +473,57 @@ const BasicDetectivePage = () => {
                         </button>
                       </div>
 
-                                {/* Loading State */}
-                                {isAnalyzing && (
-                                    <div className="loading-container">
-                                        <div className="loading-spinner"></div>
-                                        <div className="loading-text">
-                                            {activeDetectionType === 'text' ? 'Analyzing text patterns...' : 'Processing image...'}
-                                        </div>
-                                    </div>
-                                )}
+                      {/* Loading State */}
+                      {isAnalyzing && (
+                          <div className="loading-container">
+                              <div className="loading-spinner"></div>
+                              <div className="loading-text">Analyzing text patterns...</div>
+                          </div>
+                      )}
 
-                                {/* Results */}
-                                {analysisResult && !isAnalyzing && (
-                                    <div className="results-container">
-                                        {analysisResult.isImage ? (
-                                            // Image Results
-                                            <div className="image-result">
-                                                <div className="results-header">
-                                                    <div className="detection-result">
-                                                        <div className={`result-icon ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                            {analysisResult.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                                        </div>
-                                                        <div>
-                                                            <div className={`result-status ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                                {analysisResult.isAI ? 'AI Generated' : 'Likely Human'}
-                                                            </div>
-                                                            <div className="result-confidence">
-                                                                Confidence: {analysisResult.confidence}%
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                {uploadedImage && (
-                                                    <img src={uploadedImage} alt="Uploaded" className="result-image" />
-                                                )}
-                                                
-                                                <div className="image-analysis">
-                                                    <p style={{ color: '#d1d5db', marginBottom: '1rem' }}>
-                                                        Analysis Complete: {analysisResult.filename}
-                                                    </p>
-                                                    <p style={{ color: '#9ca3af' }}>
-                                                        {analysisResult.isAI ? 
-                                                            'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
-                                                            'The image appears to be authentic with natural characteristics typical of human-created content.'
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            // Text Results
-                                            <>
-                                                <div className="results-header">
-                                                    <div className="detection-result">
-                                                        <div className={`result-icon ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                            {analysisResult.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                                        </div>
-                                                        <div>
-                                                            <div className={`result-status ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                                {analysisResult.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                                            </div>
-                                                            <div className="result-confidence">
-                                                                Confidence: {analysisResult.confidence}%
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="results-actions">
-                                                        <button className="action-btn export" onClick={() => exportResults('pdf')}>
-                                                            <Download className="icon-sm" />
-                                                            Export PDF
-                                                        </button>
-                                                        <button className="action-btn" onClick={() => exportResults('email')}>
-                                                            <Mail className="icon-sm" />
-                                                            Email
-                                                        </button>
-                                                    </div>
-                                                </div>
+                      {/* Results */}
+                      {analysisResult && !isAnalyzing && (
+                        <div className="results-container">
+                          <div className="results-header">
+                              <div className="detection-result">
+                                  <div className={`result-icon ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
+                                      {analysisResult.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
+                                  </div>
+                                  <div>
+                                      <div className={`result-status ${analysisResult.isAI ? 'ai-detected' : 'human-written'}`}>
+                                          {analysisResult.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
+                                      </div>
+                                      <div className="result-confidence">
+                                          Confidence: {analysisResult.confidence}%
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
 
-                                                {/* Enhanced Analysis Report */}
-                                                <AnalysisReport result={analysisResult} />
+                          {/* Basic Analysis Report */}
+                          <BasicAnalysisReport result={analysisResult} />
 
-                                                <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
+                          <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
 
-                                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-                                                    <button 
-                                                        className="action-btn" 
-                                                        onClick={() => {
-                                                            saveToHistory();
-                                                            alert('Results saved to history!');
-                                                        }}
-                                                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
-                                                    >
-                                                        <ThumbsUp className="icon-sm" />
-                                                        Accurate
-                                                    </button>
-                                                    <button className="action-btn" onClick={handleThumbsDown}>
-                                                        <ThumbsDown className="icon-sm" />
-                                                        Not Accurate
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Recent Activity */}
-                                <div className="recent-activity">
-                                    <div className="activity-header">
-                                        <div className="activity-icon">
-                                            <Activity className="icon-md text-white" />
-                                        </div>
-                                        <h3 className="activity-title">Recent Activity</h3>
-                                    </div>
-                                    <div className="activity-list">
-                                        {recentActivity.map((activity) => (
-                                            <div key={activity.id} className="activity-item">
-                                                <div className="activity-item-icon">
-                                                    {activity.type === 'text' ? 
-                                                        <FileText className="icon-sm text-white" /> :
-                                                        <ImageIcon className="icon-sm text-white" />
-                                                    }
-                                                </div>
-                                                <div className="activity-item-content">
-                                                    <div className="activity-item-title">{activity.title}</div>
-                                                    <div className="activity-item-time">{activity.time}</div>
-                                                </div>
-                                                <div className={`activity-item-status status-${activity.status}`}>
-                                                    {activity.status === 'success' && <CheckCircle className="icon-xs" />}
-                                                    {activity.status === 'processing' && <Clock className="icon-xs" />}
-                                                    {activity.status === 'warning' && <AlertTriangle className="icon-xs" />}
-                                                    <span style={{ marginLeft: '0.25rem', textTransform: 'capitalize' }}>
-                                                        {activity.status}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Feedback List (Admin View for Prototype) */}
-                                {feedbackList.length > 0 && (
-                                    <div className="feedback-list">
-                                        <h3 style={{ marginBottom: '1.5rem', color: '#d1d5db' }}>User Feedback (Admin View)</h3>
-                                        {feedbackList.map((feedback) => (
-                                            <div key={feedback.id} className="feedback-item">
-                                                <div className="feedback-header">
-                                                    <div className="feedback-query">{feedback.query}</div>
-                                                    <div className="feedback-date">{feedback.date}</div>
-                                                </div>
-                                                <div className="feedback-content">"{feedback.feedback}"</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                          {/* Sign in prompt */}
+                          <div className="signin-prompt">
+                            <div className="signin-content">
+                              <Shield className="signin-icon" />
+                              <div>
+                                <h4>Want More Detailed Analysis?</h4>
+                                <p>Sign in to unlock advanced features, unlimited analysis, and detailed reports.</p>
+                              </div>
+                              <button className="signin-btn">Sign In</button>
                             </div>
-                        </>
-                    ) : (
-                        // History Detail View
-                        <div className="history-detail">
-                            <div className="history-detail-header">
-                                <h2 className="history-detail-title">{selectedHistoryItem?.title}</h2>
-                                <button className="back-button" onClick={() => setCurrentView('main')}>
-                                    <ArrowLeft className="icon-sm" />
-                                    Back to Main
-                                </button>
-                            </div>
-
-                            {selectedHistoryItem && (
-                                <div className="results-container">
-                                    <div className="results-header">
-                                        <div className="detection-result">
-                                            <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                            </div>
-                                            <div>
-                                                <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                    {selectedHistoryItem.result.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                                </div>
-                                                <div className="result-confidence">
-                                                    Confidence: {selectedHistoryItem.result.confidence}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="results-actions">
-                                            <button className="action-btn export" onClick={() => exportResults('pdf')}>
-                                                <Download className="icon-sm" />
-                                                Export PDF
-                                            </button>
-                                            <button className="action-btn" onClick={() => exportResults('email')}>
-                                                <Mail className="icon-sm" />
-                                                Email
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/*show analysis report for history items if available */}
-                                    {selectedHistoryItem.result.detectionReasons && (
-                                        <AnalysisReport result={selectedHistoryItem.result} />
-                                    )}
-
-                                    <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
-                                </div>
-                            )}
+                          </div>
                         </div>
-                    )}
-                </div>
-            </main>
+                      )}
 
-            {/* Feedback Modal */}
-            {showFeedback && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <div className="modal-header">
-                            <h3 className="modal-title">Help Us Improve</h3>
-                            <button className="modal-close" onClick={() => setShowFeedback(false)}>
-                                <X className="icon-sm" />
-                            </button>
-                        </div>
-                        <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
-                            We're sorry the results weren't accurate. Please let us know what went wrong:
-                        </p>
-                        <textarea
-                            className="feedback-textarea"
-                            placeholder="Please describe what was inaccurate about the detection..."
-                            value={feedbackText}
-                            onChange={(e) => setFeedbackText(e.target.value)}
-                        />
-                        <div className="modal-actions">
-                            <button className="modal-btn cancel" onClick={() => setShowFeedback(false)}>
-                                Cancel
-                            </button>
-                            <button className="modal-btn submit" onClick={submitFeedback}>
-                                Submit Feedback
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+  
+
+
+
+            
         </div>
     );
 };
