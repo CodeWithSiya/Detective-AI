@@ -329,8 +329,21 @@ const BasicDetectivePage = () => {
                         ))}
                     </div>
 
-                    
-
+                    {/* Upgrade Prompt */}
+                    <div className="upgrade-prompt">
+                      <div className="upgrade-icon">
+                        <Shield className="icon-md upgrade-icon"/>
+                        <h4>Unlock Full Features</h4>
+                        <p>Sign in for free to access:</p>
+                        <ul>
+                            <li>Unlimited Text analysis</li>
+                            <li>File Uploade Support</li>
+                            <li>Image Detection</li>
+                            <li>Analysis History</li>
+                            <li>Advanced Report</li>
+                        </ul>
+                      </div>
+                    </div>
                 </nav>
             </div>
 
