@@ -3,13 +3,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import get_user_model
 from app.services.user_service import UserService
-from app.serializers.user_serializer import UserSerializer
+from app.serializers.user_serializers import UserSerializer
 from typing import Optional, Any
 from datetime import datetime
 
 User = get_user_model()
 
-# TODO: Make this a utility method or something so that you don't havw to repeat all the keep. Keep code DRY.
 def create_json_response(success: bool = True, message: Optional[str] = None, data: Optional[Any] = None, error: Optional[str] = None, status_code = status.HTTP_200_OK):
     """
     Create standardised JSON response.
