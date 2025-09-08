@@ -361,7 +361,6 @@ const BasicDetectivePage = () => {
                         <div className="detective-logo-icon">
                             {/*<Search className="icon-md text-white"/>*/}
                             <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
-                            
                         </div>
                         <div>
                             <h1 className="detective-title">Detective AI</h1>
@@ -369,10 +368,10 @@ const BasicDetectivePage = () => {
                         </div>
                     </div>
                     {/*Sign in button*/}
-                    {/*<button className="btn-signin">
+                    <button className="btn-signin">
                         <span>Sign In</span>
                         <ChevronRight className="icon-sm"/>
-                    </button>*/}
+                    </button>
                 </div>
             </header>
 
