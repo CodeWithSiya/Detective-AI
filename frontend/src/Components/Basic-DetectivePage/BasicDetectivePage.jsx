@@ -69,7 +69,7 @@ const BasicDetectivePage = () => {
     //------------------------
     //mock AI detection logic
     //-------------------------
-    const performTextAnalysis = (text) => {
+    const performBasicTextAnalysis = (text) => {
         const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
         const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
         const transitionWords = ['furthermore', 'moreover', 'additionally', 'consequently', 'therefore', 'nevertheless', 'however'];
@@ -180,7 +180,7 @@ const BasicDetectivePage = () => {
 
     //disabled feature handlers
     const handleDisabledFeature = (feature) => {
-        setShowToolTip(feature);
+        setShowTooltip(feature);
         setTimeout(() => setShowTooltip(null), 2000);
     };
 
@@ -400,7 +400,7 @@ const BasicDetectivePage = () => {
 
                       {/* Image detection - Disabled */}
                       <div
-                        className="detection-option disabled"
+                        className="detection-card disabled"
                         onMouseEnter={() => setShowTooltip('image')}
                         onMouseLeave={() => setShowTooltip(null)}
                       >
@@ -448,7 +448,7 @@ const BasicDetectivePage = () => {
                             value={textContent}
                             onChange={(e) => setTextContent(e.target.value)}
                         />
-                        <div className={`word-count ${isOverLimit() ? 'over-limit' : ''}`}>
+                        <div className={`word-counter ${isOverLimit() ? 'over-limit' : ''}`}>
                           {getWordCount()} / {WORD_LIMIT} words
                           {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
                         </div>
