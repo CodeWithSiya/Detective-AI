@@ -407,7 +407,7 @@ body {
     left: 100%;
 }
 
-/* Modern Sidebar */
+/* Sidebar */
 .sidebar {
     position: fixed;
     top: 0;
@@ -478,7 +478,6 @@ body {
     transform: scale(1.05);
 }
 
-/* Enhanced Navigation */
 .sidebar-nav {
     padding: 1.5rem 0;
     flex: 1;
@@ -562,74 +561,7 @@ body {
     width: 4px;
 }
 
-/* History */
-.history-section {
-    flex: 1;
-    padding: 0 1rem;
-}
 
-.history-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.history-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.02);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.history-content {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex: 1;
-    min-width: 0;
-}
-
-.history-text {
-    font-size: 0.875rem;
-    color: #e2e8f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 500;
-}
-
-.history-actions {
-    display: flex;
-    gap: 0.25rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.history-item:hover .history-actions {
-    opacity: 1;
-}
-
-.history-action {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e2e8f0;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.history-action:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    transform: scale(1.1);
-}
 
 /* Main Content */
 .detective-main {
