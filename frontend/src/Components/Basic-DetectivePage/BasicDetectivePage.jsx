@@ -163,24 +163,11 @@ const BasicDetectivePage = () => {
         };
     };
 
-    const performImageAnalysis = (filename) => {
-        //mock logic based on filename
-        const lower = filename.toLowerCase();
-        if (lower.includes("lindo_ai") || lower.includes("generated")){
-            return {isAI: true, confidence: 90, highlightedText: ''};
-        }
-        else if (lower.includes("lindo_original") || lower.includes("written")){
-            return {isAI: false, confidence: 92, highlightedText: ''};
-        }
-
-        return {isAI: Math.random() > 0.5, confidence: 85, highlightedText: ''}
-    };
-
     //---------------------------
     //handlers for user actions
     //--------------------------
     const handleTextAnalysis = async () => {
-        if (!textContent.trim()) return;
+        if (!textContent.trim() || isOverLimit()) return;
 
         setIsAnalyzing(true);
 
@@ -191,123 +178,7 @@ const BasicDetectivePage = () => {
         }, 2000);   //simulate api delay
     };
 
-    const handleFileUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
 
-        const fileType = file.type;
-        const fileName = file.name.toLowerCase();
-
-        if (activeDetectionType === 'text') {
-            if (!fileType.includes('pdf')) {
-                alert('Please upload only PDF files for text analysis in this prototype.');
-                return;
-            }
-
-            setIsAnalyzing(true);
-
-            //read PDF text using pdfjs
-            const reader = new FileReader();
-            reader.onload = async function () {
-                const typedArray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                let fullText = "";
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
-                }
-
-                //perform enhanced analysis on extracted tezt
-                const result = performTextAnalysis(fullText);
-                setAnalysisResult({ ...result, filename: file.name });
-                setIsAnalyzing(false);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    };
-
-    const handleImageUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const fileType = file.type;
-
-        if (!fileType.includes('image')){
-            alert('Please upload only PNG or JPEG images.');
-            return;
-        }
-
-        if (!fileType.includes('png') && !fileType.includes('jpeg') && !fileType.includes('jpg')){
-            alert('Please Upload only PNG or JPEG');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setUploadedImage(e.target?.result);
-
-            setIsAnalyzing(true);
-            setTimeout(() => {
-                const result = performImageAnalysis(file.name);
-                setAnalysisResult({...result, filename: file.name, isImage: true});
-                setIsAnalyzing(false);
-            }, 2500);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleThumbsDown = () => {
-        setShowFeedback(true);
-    };
-
-    const submitFeedback = () =>{
-        if (!feedbackText.trim()) return;
-        const newFeedback = {
-            id: Date.now(),
-            query: analysisResult?.filename || 'Text Analysis',
-            feedback: feedbackText,
-            date: 'Just now'
-        };
-        setFeedbackList(prev => [newFeedback, ...prev]);
-        setFeedbackText('');
-        setShowFeedback(false);
-    };
-
-    //-------------------
-    //history management
-    //-------------------
-    const saveToHistory = () => {
-        if (!analysisResult || analysisResult.isImage) return;
-        const newHistoryItem = {
-            id: Date.now(),
-            type: 'text',
-            title: analysisResult.filename || `Analysis ${new Date().toLocaleTimeString()}`,
-            date: 'Just now',
-            content: textContent,
-            result: analysisResult
-        };
-        setHistoryItems(prev => [newHistoryItem, ...prev]);
-    };
-
-    const viewHistoryItem = (item) => {
-        setSelectedHistoryItem(item);
-        setCurrentView('history-detail');
-    };
-
-    const deleteHistoryItem = (id) => {
-        setHistoryItems(prev => prev.filter(item => item.id !== id));
-    };
-
-    const exportResults = (format) => {
-        if (format === 'pdf'){
-            alert('PDF export functionality would be implemented here.');
-        }
-        else{
-            alert('Email export functionality would be implemented here.');
-        }
-    };
 
     const resetAnalysis = () => {
         setAnalysisResult(null);
