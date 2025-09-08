@@ -1,8 +1,6 @@
 import React, {useState, useRef} from 'react';
-import './DetectivePage.css';
+import './BasicDetectivePage.css';
 import Logo from "../Assets/Logo.png";
-import * as pdfjsLib from "pdfjs-dist";
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {
     Search,
     Eye,
@@ -23,6 +21,7 @@ import {
     Zap,
     CheckCircle,
     AlertTriangle,
+    AlertCircle,
     Activity,
     Type,
     FileUp,
@@ -30,7 +29,6 @@ import {
     Mail,
     ThumbsUp,
     ThumbsDown,
-    AlertCircle,
     ArrowLeft,
     Loader,
     Menu,
@@ -41,8 +39,6 @@ import {
     Info
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
 const DetectivePage = () => {
     //sidebar and view state
