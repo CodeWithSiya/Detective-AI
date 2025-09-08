@@ -172,7 +172,7 @@ const BasicDetectivePage = () => {
         setIsAnalyzing(true);
 
         setTimeout(() => {
-            const result = performTextAnalysis(textContent);
+            const result = performBasicTextAnalysis(textContent);
             setAnalysisResult(result);
             setIsAnalyzing(false);
         }, 2000);   //simulate api delay
@@ -181,7 +181,7 @@ const BasicDetectivePage = () => {
     //disabled feature handlers
     const handleDisabledFeature = (feature) => {
         setShowToolTip(feature);
-        setTimeout(() => setShowToolTip(null), 2000);
+        setTimeout(() => setShowTooltip(null), 2000);
     };
 
     // Basic Analysis Report Component
@@ -331,16 +331,16 @@ const BasicDetectivePage = () => {
 
                     {/* Upgrade Prompt */}
                     <div className="upgrade-prompt">
-                      <div className="upgrade-icon">
+                      <div className="upgrade-content">
                         <Shield className="icon-md upgrade-icon"/>
                         <h4>Unlock Full Features</h4>
                         <p>Sign in for free to access:</p>
                         <ul>
-                            <li>Unlimited Text analysis</li>
-                            <li>File Uploade Support</li>
-                            <li>Image Detection</li>
-                            <li>Analysis History</li>
-                            <li>Advanced Report</li>
+                            <li>Unlimited text analysis</li>
+                            <li>File uploaded support</li>
+                            <li>Image detection</li>
+                            <li>Analysis history</li>
+                            <li>Advanced report</li>
                         </ul>
                       </div>
                     </div>
@@ -390,7 +390,7 @@ const BasicDetectivePage = () => {
                     {/* Detection Type Options */}
                     <div className="detection-options">
                       {/* Text detection - Enabled*/}
-                      <div className="detection-option active">
+                      <div className="detection-card active">
                         <div className="card-icon">
                           <FileText className="icon-lg" />
                         </div>
@@ -401,15 +401,15 @@ const BasicDetectivePage = () => {
                       {/* Image detection - Disabled */}
                       <div
                         className="detection-option disabled"
-                        onMouseEnter={() => setShowToolTip('image')}
-                        onMouseLeave={() => setShowToolTip(null)}
+                        onMouseEnter={() => setShowTooltip('image')}
+                        onMouseLeave={() => setShowTooltip(null)}
                       >
                         <div className="card-icon">
                           <ImageIcon className="icon-lg" />
                         </div>
                         <h3 className="card-title">Image Detection</h3>
                         <p className="card-description">Detect AI-generated images using advanced visual analysis.</p>
-                        {showToolTip === 'image' && (
+                        {showTooltip === 'image' && (
                           <div className="feature-tooltip"> 
                             Sign in for Image Detection
                           </div>
@@ -427,13 +427,13 @@ const BasicDetectivePage = () => {
                         </button>
                         <button 
                             className="toggle-btn disabled"
-                            onMouseEnter={() => setShowToolTip('upload')}
-                            onMouseLeave={() => setShowToolTip(null)}
+                            onMouseEnter={() => setShowTooltip('upload')}
+                            onMouseLeave={() => setShowTooltip(null)}
                             onClick= {() => handleDisabledFeature('upload')}
                         >
                             <FileUp className="icon-sm" />
                             Upload Document
-                            {showToolTip === 'upload' && (
+                            {showTooltip === 'upload' && (
                               <div className="feature-tooltip">
                                 Sign in for File Upload
                               </div>
