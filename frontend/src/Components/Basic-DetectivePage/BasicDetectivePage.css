@@ -1381,31 +1381,6 @@ body {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-.highlight-suspicious {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.highlight-transition {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.3) 100%);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-}
-
-.highlight-jargon {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.highlight-buzzword {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(147, 51, 234, 0.3) 100%);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-}
-
-.highlight:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
 .tooltip {
     position: absolute;
     bottom: 100%;
@@ -1440,6 +1415,8 @@ body {
     border: 6px solid transparent;
     border-top-color: #1e293b;
 }
+
+
 
 /* Enhanced Feedback Modal */
 .modal-overlay {
