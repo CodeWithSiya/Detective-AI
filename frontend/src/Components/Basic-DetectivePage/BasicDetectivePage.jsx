@@ -253,67 +253,6 @@ const BasicDetectivePage = () => {
                 </div>
             </div>
 
-            {/* Pattern Analysis */}
-            <div className="report-section">
-                <div className="section-header">
-                    <Target className="icon-sm" />
-                    <h4 className="section-title">Pattern Analysis</h4>
-                </div>
-                <div className="pattern-grid">
-                    <div className="pattern-category">
-                        <h5 className="pattern-title">Transition Words</h5>
-                        <div className="pattern-count">{result.statistics?.transitionWordsCount}</div>
-                        <div className="pattern-items">
-                            {result.analysisDetails?.foundTransitions.slice(0, 3).map((word, i) => (
-                                <span key={i} className="pattern-tag">{word}</span>
-                            ))}
-                            {(result.analysisDetails?.foundTransitions.length || 0) > 3 && (
-                                <span className="pattern-more">+{(result.analysisDetails?.foundTransitions.length || 0) - 3}</span>
-                            )}
-                        </div>
-                    </div>
-                    
-                    <div className="pattern-category">
-                        <h5 className="pattern-title">Corporate Jargon</h5>
-                        <div className="pattern-count">{result.statistics?.corporateJargonCount}</div>
-                        <div className="pattern-items">
-                            {result.analysisDetails?.foundJargon.slice(0, 3).map((word, i) => (
-                                <span key={i} className="pattern-tag">{word}</span>
-                            ))}
-                            {(result.analysisDetails?.foundJargon.length || 0) > 3 && (
-                                <span className="pattern-more">+{(result.analysisDetails?.foundJargon.length || 0) - 3}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="pattern-category">
-                        <h5 className="pattern-title">Buzzwords</h5>
-                        <div className="pattern-count">{result.statistics?.buzzwordsCount}</div>
-                        <div className="pattern-items">
-                            {result.analysisDetails?.foundBuzzwords.slice(0, 3).map((word, i) => (
-                                <span key={i} className="pattern-tag">{word}</span>
-                            ))}
-                            {(result.analysisDetails?.foundBuzzwords.length || 0) > 3 && (
-                                <span className="pattern-more">+{(result.analysisDetails?.foundBuzzwords.length || 0) - 3}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="pattern-category">
-                        <h5 className="pattern-title">AI Patterns</h5>
-                        <div className="pattern-count">{result.statistics?.suspiciousPatternsCount}</div>
-                        <div className="pattern-items">
-                            {result.analysisDetails?.foundPatterns.slice(0, 3).map((word, i) => (
-                                <span key={i} className="pattern-tag">{word}</span>
-                            ))}
-                            {(result.analysisDetails?.foundPatterns.length || 0) > 3 && (
-                                <span className="pattern-more">+{(result.analysisDetails?.foundPatterns.length || 0) - 3}</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/*Confidence Breakdown */}
             <div className="report-section">
                 <div className="section-header">
@@ -334,8 +273,8 @@ const BasicDetectivePage = () => {
                     </div>
                     <p className="confidence-explanation">
                         {result.isAI 
-                            ? `This content shows ${result.confidence}% likelihood of being AI-generated based on ${result.detectionReasons?.length} detection factors.`
-                            : `This content shows ${result.confidence}% likelihood of being human-written with natural language patterns.`
+                            ? `This content shows ${result.confidence}% likelihood of being AI-generated.`
+                            : `This content shows ${result.confidence}% likelihood of being human-written.`
                         }
                     </p>
                 </div>
