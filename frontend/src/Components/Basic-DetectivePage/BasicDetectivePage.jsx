@@ -40,18 +40,22 @@ import {
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
-const DetectivePage = () => {
+const BasicDetectivePage = () => {
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [currentView, setCurrentView] = useState('main');
 
-    //text and image analysis state
-    const [activeDetectionType, setActiveDetectionType] = useState('text');
-    const [inputMode, setInputMode] = useState('type'); //type or upload
+    //text analysis state
     const [textContent, setTextContent] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
+
+    const WORD_LIMIT = 250;
+
+    //count words in text
+    const getWordCoount = () => {
+      return textContent.trim() ? textContent.trim().split(/\s+/).length : 0;
+    };
 
     //feedback state
     const [showFeedback, setShowFeedback] = useState(false);
@@ -1223,4 +1227,4 @@ const DetectivePage = () => {
         </div>
     );
 };
-export default DetectivePage;
+export default BasicDetectivePage;
