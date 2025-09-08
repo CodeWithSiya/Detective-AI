@@ -48,7 +48,7 @@ const BasicDetectivePage = () => {
     const [textContent, setTextContent] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [uploadedImage, setUploadedImage] = useState(null);
+    const [showTooltip, setShowTooltip] = useState(null);
 
     const WORD_LIMIT = 250;
 
