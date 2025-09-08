@@ -833,33 +833,22 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
-.detection-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(29, 78, 216, 0.05) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.detection-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
-    border-color: rgba(59, 130, 246, 0.4);
-}
-
-.detection-card:hover::before {
-    opacity: 1;
-}
-
 .detection-card.active {
     border-color: #3b82f6;
     background: rgba(59, 130, 246, 0.05);
     transform: translateY(-5px);
     box-shadow: 0 20px 50px rgba(59, 130, 246, 0.2);
+}
+
+.detection-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.detection-card.disabled:hover {
+    transform: none;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .card-icon {
@@ -877,7 +866,7 @@ body {
     color: #ffffff;
 }
 
-.detection-card:hover .card-icon {
+.detection-card:not(disabled):hover .card-icon {
     transform: rotate(5deg) scale(1.1);
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
 }
