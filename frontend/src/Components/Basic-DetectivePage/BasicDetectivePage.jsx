@@ -57,6 +57,10 @@ const BasicDetectivePage = () => {
       return textContent.trim() ? textContent.trim().split(/\s+/).length : 0;
     };
 
+    const isOverLimit = () => {
+      return getWordCoount() > WORD_LIMIT;
+    };
+
     //feedback state
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackText, setFeedbackText] = useState('');
