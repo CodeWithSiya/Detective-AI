@@ -387,25 +387,35 @@ const BasicDetectivePage = () => {
                           </p>
                       </div>
 
-                                {/* Detection Type Options */}
-                                <div className="detection-options">
-                                    {detectionOptions.map((option) => (
-                                        <div
-                                            key={option.id}
-                                            className={`detection-card ${activeDetectionType === option.id ? 'active' : ''}`}
-                                            onClick={() => {
-                                                setActiveDetectionType(option.id);
-                                                resetAnalysis();
-                                            }}
-                                        >
-                                            <div className="card-icon">
-                                                {option.icon}
-                                            </div>
-                                            <h3 className="card-title">{option.title}</h3>
-                                            <p className="card-description">{option.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
+                      {/* Detection Type Options */}
+                      <div className="detection-options">
+                        {/* Text detection - Enabled*/}
+                        <div className="detection-option active">
+                          <div className="card-icon">
+                            <FileText className="icon-lg" />
+                          </div>
+                          <h3 className="card-title">Text Detection</h3>
+                          <p className="card-description">Analyze text up to 250 words for AI-generated patterns.</p>
+                        </div>
+
+                        {/* Image detection - Disabled */}
+                        <div
+                          className="detection-option disabled"
+                          onMouseEnter={() => setShowToolTip('image')}
+                          onMouseLeave={() => setShowToolTip(null)}
+                        >
+                          <div className="card-icon">
+                            <ImageIcon className="icon-lg" />
+                          </div>
+                          <h3 className="card-title">Image Detection</h3>
+                          <p className="card-description">Detect AI-generated images using advanced visual analysis.</p>
+                          {showToolTip === 'image' && (
+                            <div className="feature-tooltip"> 
+                              Sign in for Image Detection
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
                                 {/* Text Input Area */}
                                 {activeDetectionType === 'text' && (
