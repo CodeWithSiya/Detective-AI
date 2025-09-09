@@ -11,8 +11,10 @@ import time
 import re
 
 # TODO: Export Results for Registered Users. Add Report Generation Service and Email Service.
-# TODO: Add User Feedback API and Submission History API (Per User).
-# TODO: Find a way to automatically create a name for each analysis which is a short summary. Maybe use claude again or check how Lutho did it.
+# TODO: Fix the processing time mistake. 
+# TODO: Improve response time, very slow right now for analysis. (Probably due to the external API calls)
+# TODO: Submission / Analysis History API (Per User).
+
 class AiTextAnalyser(AiAnalyser):
     """
     Service class for AI text analysis logic.
@@ -128,10 +130,17 @@ class AiTextAnalyser(AiAnalyser):
         analysis = None
         try:
             # Create submission if it doesn't exist.
-            if submission is None:
+            if submission is None and self.claude_service is not None:
+                # Generate a smart name using Claude.
+                try:
+                    submission_name = self.claude_service.create_submission_name(text, max_length=50)
+                except Exception:
+                    # Fallback to date-based name if Claude fails
+                    submission_name = f"Text Analysis {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
+
                 # Create a new TextSubmission for this analysis.
                 submission = TextSubmission.objects.create(
-                    name=f"Text Analysis {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    name=submission_name,
                     content=text,
                     user=user
                 )

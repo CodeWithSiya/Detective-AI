@@ -182,14 +182,56 @@ class ClaudeService:
         }
     }
 
-    def create_submission_name(self):
+    def create_submission_name(self, text: str, max_length: int = 20):
         """
-        Create a summarised name for each submission
+        Create a very brief summarised name for each submission.
+
+        :param text: The text to summarize.
+        :param max_length: Maximum length of the summary name (characters).
+        :return: Brief summary name.
         """
-        return None
-    
-    def humanise_text(self):
-        """
-        Humanise potentially AI generated text.
-        """
-        return None
+        try:
+            # Clean the text and truncate if very long.
+            cleaned_text = text.strip()
+            if not cleaned_text:
+                return "Empty Submission"
+            
+            # Use first 500 characters for analysis to keep prompt size manageable.
+            text_sample = cleaned_text[:500]
+            
+            prompt = f"""
+            Create a brief, descriptive title for this text submission (max {max_length} characters).
+            The title should capture the main topic and include "Analysis" at the end.
+
+            Guidelines:
+            - Focus on the main subject/theme
+            - Keep it under {max_length} characters total
+            - End with "Analysis" (e.g., "Climate Change Analysis", "Product Review Analysis")
+            - Use simple, clear language
+            - Avoid quotes, punctuation, or extra formatting
+
+            Text: {text_sample}
+
+            Reply with ONLY the title, nothing else.
+            """
+            
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=20,
+                temperature=0.3,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+            
+            # Extract and clean the title.
+            title = response.content[0].text.strip()  # type: ignore
+            title = title.replace('"', '').replace("'", "").strip()
+                
+            return title
+            
+        except Exception:
+            raise    

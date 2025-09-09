@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from app.services.ai_text_analyser import AiTextAnalyser
 from app.models.text_submission import TextSubmission
+from app.services.claude_service import ClaudeService
 from app.ai.ai_text_model import AiTextModel
 from typing import Optional, Any
 from datetime import datetime
@@ -51,7 +52,13 @@ def analyse_text(request):
         if request.user.is_authenticated:
             # Generate submission name if not provided.
             if not submission_name:
-                submission_name = f"Text Analysis {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                try:
+                    # Use Claude to generate a smart name
+                    claude_service = ClaudeService()
+                    submission_name = claude_service.create_submission_name(text, max_length=50)
+                except Exception:
+                    # Fallback to date-based name if Claude fails
+                    submission_name = f"Text Analysis {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
             # Create the submission.
             submission = TextSubmission.objects.create(
