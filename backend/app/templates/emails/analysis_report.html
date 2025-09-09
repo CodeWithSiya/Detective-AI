@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4; 
+        }
+        .email-container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white; 
+        }
+        .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .result-box { 
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
+            padding: 15px; 
+            margin: 20px 0; 
+            background: #f9f9f9; 
+        }
+        .ai-detected { border-color: #e74c3c; background: #fdf2f2; }
+        .human-detected { border-color: #27ae60; background: #f2fdf2; }
+        .footer { background: #ecf0f1; padding: 15px; text-align: center; font-size: 12px; }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .content { padding: 15px; }
+            .result-box { margin: 15px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Detective AI - Analysis Report</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{ recipient_name }},</h2>
+            
+            <p>Your AI content detection analysis has been completed. Please find the detailed report attached to this email.</p>
+            
+            <div class="result-box {% if analysis_result.detection_result == 'AI_GENERATED' %}ai-detected{% else %}human-detected{% endif %}">
+                <h3>Analysis Summary</h3>
+                <p><strong>Result:</strong> 
+                    {% if analysis_result.detection_result == 'AI_GENERATED' %}
+                        🤖 AI Generated Content
+                    {% else %}
+                        ✍️ Human Written Content
+                    {% endif %}
+                </p>
+                <p><strong>Confidence:</strong> {{ analysis_result.confidence|floatformat:1 }}%</p>
+                <p><strong>Analysis Date:</strong> {{ report_date }}</p>
+            </div>
+            
+            <p>The attached PDF contains detailed information about:</p>
+            <ul>
+                <li>Complete analysis results and reasoning</li>
+                <li>Text statistics and patterns detected</li>
+                <li>Detailed explanations of findings</li>
+            </ul>
+            
+            <p>If you have any questions about this analysis, please don't hesitate to contact our support team.</p>
+            
+            <p>Best regards,<br>The Detective AI Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Detective AI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

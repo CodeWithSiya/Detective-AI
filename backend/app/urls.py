@@ -2,6 +2,7 @@ from django.urls import path
 from app.views import user_views
 from app.views import analysis_views
 from app.views import feedback_views
+from app.views import report_views
 
 urlpatterns = [
     # Text analysis
@@ -27,5 +28,9 @@ urlpatterns = [
     path('feedback/analysis/<str:analysis_id>/submit/', feedback_views.submit_feedback, name='submit_feedback'),
     
     # Admin feedback management
-    path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin')
+    path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin'),
+
+    # Analysis report download and email management
+    path('reports/analysis/<str:analysis_id>/download/', report_views.download_report, name='download_report'),
+    path('reports/analysis/<str:analysis_id>/email/', report_views.email_report, name='email_report')
 ]

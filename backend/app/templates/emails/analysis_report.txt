@@ -1,0 +1,25 @@
+Detective AI - Analysis Report
+==============================
+
+Dear {{ recipient_name }},
+
+Your AI detection analysis has been completed. Please find the detailed report attached as a PDF.
+
+ANALYSIS SUMMARY:
+{% if analysis_result.detection_result == 'AI_GENERATED' %}
+Result: AI Generated Content
+{% else %}
+Result: Human Written Content
+{% endif %}
+Date: {{ report_date }}
+Confidence: {{ analysis_result.confidence|floatformat:1 }}%
+
+The attached PDF contains comprehensive details about the analysis including methodology, confidence metrics, and recommendations.
+
+If you have any questions about this report, please don't hesitate to contact our support team.
+
+Best regards,
+The Detective AI Team
+
+---
+This is an automated message from Detective AI. Please do not reply to this email.
