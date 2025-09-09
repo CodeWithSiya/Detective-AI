@@ -2,10 +2,10 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from typing import Optional, Dict, Any
-import logging
 from datetime import datetime
 from app.models.text_analysis_result import TextAnalysisResult
 from .report_service import ReportService
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class EmailService:
         :return: Dictionary with success status and message
         """
         try:
-            # Input validation
+            # Input validation.
             if not analysis_result:
                 raise ValueError("Analysis result cannot be None")
             if not recipient_email or '@' not in recipient_email:
@@ -46,7 +46,7 @@ class EmailService:
             )
             pdf_buffer.seek(0)  # Reset buffer position
             
-            # Safe date handling
+            # Date handling.
             created_at = getattr(analysis_result, 'created_at', None)
             report_date = created_at.strftime('%Y-%m-%d') if created_at else datetime.now().strftime('%Y-%m-%d')
             
@@ -54,10 +54,12 @@ class EmailService:
             context = {
                 'recipient_name': recipient_name or recipient_email.split('@')[0],
                 'analysis_result': analysis_result,
-                'report_date': report_date
+                'report_date': report_date,
+                'confidence_percent': round(float(analysis_result.confidence * 100),2),
+                'has_logo': True
             }
 
-            subject = f"AI Detection Analysis Report - {report_date}"
+            subject = f"Detective AI Analysis Report - {report_date}"
 
             # Render HTML email template
             html_content = render_to_string('emails/analysis_report.html', context)
@@ -71,7 +73,7 @@ class EmailService:
                 to=[recipient_email]
             )
             
-            # Add HTML version
+            # Add HTML version.
             email.attach_alternative(html_content, "text/html")
             
             # Attach PDF report
@@ -96,7 +98,7 @@ class EmailService:
                 'success': False,
                 'error': f'Failed to send report: {str(e)}'
             }
-
+        
     def send_welcome_email(self, user_email: str, user_name: str) -> Dict[str, Any]:
         """Send welcome email to new users."""
         return {}

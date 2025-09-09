@@ -92,7 +92,7 @@ def email_report(request, analysis_id):
         result = email_service.send_analysis_report(
             analysis, 
             request.user.email,
-            f"{request.user.first_name} {request.user.last_name}".strip()
+            f"{request.user.first_name}".strip()
         )
         
         if result['success']:
