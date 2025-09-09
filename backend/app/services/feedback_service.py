@@ -8,7 +8,7 @@ from app.serializers.feedback_serializers import (
     FeedbackAdminSerializer,
     FeedbackUpdateSerializer
 )
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 class FeedbackService:
     """
@@ -82,7 +82,7 @@ class FeedbackService:
         except Exception as e:
             return {
                 'success': False,
-                'error': str(e)
+                'error': f'Failed to submit feedback: {str(e)}'
             }
     
     @staticmethod

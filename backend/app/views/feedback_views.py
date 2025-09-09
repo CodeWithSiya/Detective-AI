@@ -104,6 +104,7 @@ def get_user_feedback(request):
         if result['success']:
             return create_json_response(
                 success=True,
+                message='User feedback retrieved successfully',
                 data={
                     'feedback': result.get('feedback'),
                     'pagination': result.get('pagination')
@@ -117,7 +118,7 @@ def get_user_feedback(request):
         )
 
     except ValueError:
-        # Bad pagination params
+        # Bad pagination params.
         return create_json_response(
             success=False,
             error="Invalid pagination parameters",
@@ -125,7 +126,7 @@ def get_user_feedback(request):
         )
 
     except Exception as e:
-        # Unexpected server error
+        # Unexpected server error.
         return create_json_response(
             success=False,
             error=str(e),
@@ -149,8 +150,13 @@ def get_feedback_for_analysis(request, analysis_id):
         if result['success']:
             return create_json_response(
                 success=True,
-                data={'feedback': result.get('feedback')}
+                message='User feedback retrieved successfully',
+                data={
+                    'feedback': result.get('feedback'),
+                    'pagination': result.get('pagination')
+                }
             )
+        
         else:
             return create_json_response(
                 success=False,
@@ -212,6 +218,7 @@ def get_feedback_statistics(request):
         if result['success']:
             return create_json_response(
                 success=True,
+                message='Feedback statistics retrieved successfully',
                 data={'statistics': result.get('statistics')}
             )
         else:
@@ -261,6 +268,7 @@ def get_all_feedback_admin(request):
         if result['success']:
             return create_json_response(
                 success=True,
+                message='All feedback retrieved successfully',
                 data={
                     'feedback': result.get('feedback'),
                     'pagination': result.get('pagination')
