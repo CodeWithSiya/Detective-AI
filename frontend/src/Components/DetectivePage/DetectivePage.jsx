@@ -41,6 +41,8 @@ import {
     Info
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
@@ -65,6 +67,7 @@ const DetectivePage = () => {
     //Refs for file inputs
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
+    const reportRef = useRef(null);
 
     //history items state
     const [historyItems, setHistoryItems] = useState([
@@ -713,15 +716,24 @@ const DetectivePage = () => {
         {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
     ];
 
+    // PDF export function
+    const exportReportAsPDF = async () => {
+        const input = reportRef.current;
+        if (!input) return;
+        const canvas = await html2canvas(input, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('analysis-report.pdf');
+    };
+
     return (
         <div className="detective-container">
-            {/*Menu toggle button*/}
-            <button
-                className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
-                onClick={toggleSidebar}
-            >
-                <Menu className="icon-sm"/>
-            </button>
+            
 
             {/*sidebar*/}
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -813,18 +825,28 @@ const DetectivePage = () => {
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="detective-header-inner">
-                    {/*logo*/}
-                    <div className="detective-logo">
-                        <div className="detective-logo-icon">
-                            {/*<Search className="icon-md text-white"/>*/}
-                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
-                            
+
+                    <div className="header-left"></div>
+                        {/*Menu toggle button*/}
+                        <button
+                            className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
+                            onClick={toggleSidebar}
+                        >
+                            <Menu className="icon-sm"/>
+                        </button>
+
+                        {/*logo*/}
+                        <div className="detective-logo">
+                            <div className="detective-logo-icon">
+                                {/*<Search className="icon-md text-white"/>*/}
+                                <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
+                                
+                            </div>
+                            <div>
+                                <h1 className="detective-title">Detective AI</h1>
+                                <p className="detective-subtitle">Content Detection</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="detective-title">Detective AI</h1>
-                            <p className="detective-subtitle">Content Detection</p>
-                        </div>
-                    </div>
                     {/*Sign in button*/}
                     {/*<button className="btn-signin">
                         <span>Sign In</span>
@@ -1052,7 +1074,7 @@ const DetectivePage = () => {
                                                     </div>
                                                     
                                                     <div className="results-actions">
-                                                        <button className="action-btn export" onClick={() => exportResults('pdf')}>
+                                                        <button className="action-btn export" onClick={exportReportAsPDF}>
                                                             <Download className="icon-sm" />
                                                             Export PDF
                                                         </button>
@@ -1064,7 +1086,9 @@ const DetectivePage = () => {
                                                 </div>
 
                                                 {/* Enhanced Analysis Report */}
-                                                <AnalysisReport result={analysisResult} />
+                                                <div ref={reportRef}>
+                                                    <AnalysisReport result={analysisResult} />
+                                                </div>
 
                                                 <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: analysisResult.highlightedText }} />
 
@@ -1170,7 +1194,7 @@ const DetectivePage = () => {
                                         </div>
                                         
                                         <div className="results-actions">
-                                            <button className="action-btn export" onClick={() => exportResults('pdf')}>
+                                            <button className="action-btn export" onClick={exportReportAsPDF}>
                                                 <Download className="icon-sm" />
                                                 Export PDF
                                             </button>
@@ -1183,7 +1207,9 @@ const DetectivePage = () => {
 
                                     {/*show analysis report for history items if available */}
                                     {selectedHistoryItem.result.detectionReasons && (
-                                        <AnalysisReport result={selectedHistoryItem.result} />
+                                        <div ref={reportRef}>
+                                            <AnalysisReport result={selectedHistoryItem.result} />
+                                        </div>
                                     )}
 
                                     <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />

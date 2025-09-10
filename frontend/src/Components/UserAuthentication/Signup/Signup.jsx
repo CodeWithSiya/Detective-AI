@@ -29,8 +29,24 @@ const Signup = () => {
     const confirmPasswordRef = useRef();
     const lastNameRef = useRef();
 
+    const [passwordStrength, setPasswordStrength] = useState(0);
+
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
+
+    const handlePasswordChange = (e) => {
+        const value = e.target.value;
+        passwordRef.current.value = value;
+
+        // Simple strength calculation
+        let strength = 0;
+        if (value.length > 6) strength +25;
+        if (/[A-Z]/.text(value)) strength += 25;
+        if (/[0-9]/.test(value)) strength += 25;
+        if (/[^A-Za-z0-9]/.test(value)) strength += 25;
+
+        setPasswordStrength(strength);
+    };
 
     /**
      * Handles form submission when the "Sign up" button is clicked

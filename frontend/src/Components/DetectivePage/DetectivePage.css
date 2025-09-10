@@ -263,7 +263,7 @@ body {
 
 /* Enhanced Header */
 .detective-header {
-    position: fixed;
+    position: relative;
     top: 0; 
     left: 0; 
     right: 0;
@@ -287,6 +287,12 @@ body {
     padding: 1rem 2rem;
     max-width: 1400px;
     margin: auto;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* space between menu button and logo */
 }
 
 .detective-logo {
@@ -612,10 +618,10 @@ body {
 
 /* Menu Toggle Button */
 .menu-toggle {
-    position: fixed;
-    top: 1.5rem;
-    left: 1.5rem;
-    z-index: 70;
+    position: static;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     color: #ffffff;
