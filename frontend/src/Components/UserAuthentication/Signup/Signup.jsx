@@ -94,8 +94,8 @@ const Signup = () => {
                 
                 <h1 className="signup-title">
                     <Typewriter
-                        words={["Become a Detective!"]}
-                        loop={1}
+                        words={["Become a Detective!", "Join the Investigation Today!", "Uncover the Truth with Us!"]}
+                        loop={true}
                         cursor
                         cursorStyle='_'
                         typeSpeed={70}
