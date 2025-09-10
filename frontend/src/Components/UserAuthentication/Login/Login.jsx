@@ -4,39 +4,16 @@
  * Provides a user authentication interface with email and password fields
  * 
  * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
- * version: 22/08/2025
+ * version: 10/09/2025
  */
 
-import React, { useRef } from 'react';
-import { FormControl} from '@chakra-ui/form-control';
-import { motion } from 'framer-motion'
+import React, { useRef, useState } from 'react';
+import "./Login.css";
+import Logo from '../../Assets/Logo.jpg';
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-
-//Import authentication handler for login
+import {Eye, EyeOff} from 'lucide-react';
 import { login } from '../AuthHandler';
-
-//Custom password input component with built-in functionality
-import {
-  PasswordInput,
-} from "@/components/ui/password-input"
-
-
-//Chakra UI components for styling and layout
-import {
-  Box,
-  Flex,
-  Heading,
-  Image,
-  Input,
-  Button,
-  Text,
-  Link,
-  Checkbox,
-  Stack,
-  Field,
-} from "@chakra-ui/react";
-
 
 /**
  * Function that renders the main login page
