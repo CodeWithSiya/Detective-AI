@@ -62,7 +62,65 @@ const ChangePassword = () => {
 
     
     return (
-        
+        <div className="change-container">
+            <div className="change-card">
+                <h1 className="change-title">
+                <Typewriter
+                    words={["Change your Password"]}
+                    loop={1}
+                    cursor
+                    cursorStyle="_"
+                    typeSpeed={70}
+                    deleteSpeed={50}
+                    delaySpeed={1000}
+                />
+                </h1>
+
+                <p className="change-subtitle">Don't forget it this time!</p>
+
+                <form className="change-form" onSubmit={handleSubmit}>
+                <div className="form-group" style={{ position: "relative" }}>
+                    <label>New Password<span className="required">*</span></label>
+                    <input
+                    type={showPassword ? "text" : "password"}
+                    ref={passwordRef}
+                    required
+                    style={{ paddingRight: "2.5rem" }}
+                    />
+                    <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="toggle-password"
+                    tabIndex={-1}
+                    >
+                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                    </button>
+                </div>
+
+                <div className="form-group" style={{ position: "relative" }}>
+                    <label>Confirm Password<span className="required">*</span></label>
+                    <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    ref={confirmPasswordRef}
+                    required
+                    style={{ paddingRight: "2.5rem" }}
+                    />
+                    <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="toggle-password"
+                    tabIndex={-1}
+                    >
+                    {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                    </button>
+                </div>
+
+                <button type="submit" className="change-button">
+                    Submit
+                </button>
+                </form>
+            </div>
+        </div>
     );
 };
 
