@@ -177,7 +177,7 @@ def delete_feedback(request, feedback_id):
     """
     Delete user's feedback.
 
-    DELETE /api/feedback/<feedback_id>/delete
+    DELETE /api/feedback/<feedback_id>/delete/
     """
     try:
         result = FeedbackService.delete_feedback(
@@ -244,27 +244,20 @@ def get_all_feedback_admin(request):
     GET /api/admin/feedback/?page=1&page_size=20
     """
     try:
-        try:
-            page = int(request.GET.get('page', 1))
-            page_size = int(request.GET.get('page_size', 20))
-            
-            if page < 1:
-                page = 1
-            if page_size < 1 or page_size > 100:
-                page_size = 20
-                
-        except ValueError:
-            return create_json_response(
-                success=False,
-                error='Invalid pagination parameters',
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
+
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 20))
         
+        if page < 1:
+            page = 1
+        if page_size < 1 or page_size > 100:
+            page_size = 20
+    
         result = FeedbackService.get_all_feedback_for_admin(
             page=page,
             page_size=page_size
         )
-        
+    
         if result['success']:
             return create_json_response(
                 success=True,
@@ -279,7 +272,13 @@ def get_all_feedback_admin(request):
                 success=False,
                 error=result.get('error'),
                 status_code=status.HTTP_400_BAD_REQUEST
-            )
+            )    
+    except ValueError:
+        return create_json_response(
+            success=False,
+            error='Invalid pagination parameters',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
             
     except Exception as e:
         return create_json_response(
