@@ -16,6 +16,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 // Import authentication handler for user registration
 import { signUp } from '../AuthHandler';
+import { Eye, EyeOff } from 'lucide-react';
 
 /**
  * function that renders the registration form 
@@ -30,6 +31,8 @@ const Signup = () => {
     const lastNameRef = useRef();
 
     const [passwordStrength, setPasswordStrength] = useState(0);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
@@ -122,9 +125,32 @@ const Signup = () => {
                         <input type="email" placeholder="e.g. peter.parker@example.com" ref={emailRef} required/>
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group" style={{ position: 'relative' }}>
                         <label>Password<span className="required">*</span></label>
-                        <input type="password" onChange={handlePasswordChange} ref={passwordRef} required/>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            onChange={handlePasswordChange}
+                            ref={passwordRef}
+                            required
+                            style={{ paddingRight: '2.5rem' }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            style={{
+                                position: 'absolute',
+                                right: '0.75rem',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0
+                            }}
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                        </button>
                         {/* Password Strength Indicator */}
                         <div className="password-strength-bar">
                             <div
@@ -150,9 +176,31 @@ const Signup = () => {
                         </p>
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group" style={{ position: 'relative' }}>
                         <label>Confirm Password<span className="required">*</span></label>
-                        <input type="password" ref={confirmPasswordRef} required/>
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            ref={confirmPasswordRef}
+                            required
+                            style={{ paddingRight: '2.5rem' }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            style={{
+                                position: 'absolute',
+                                right: '0.75rem',
+                                top: '70%',
+                                transform: 'translateY(-50%)',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0
+                            }}
+                            tabIndex={-1}
+                        >
+                            {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                        </button>
                     </div>
 
                     <button type="submit" className="signup-button">
@@ -171,4 +219,4 @@ const Signup = () => {
     );
 };
 
-export default Signup
+export default Signup;
