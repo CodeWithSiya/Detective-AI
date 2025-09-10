@@ -18,6 +18,10 @@ import {Eye, EyeOff} from 'lucide-react';
  * Function that renders the form for changing password functionality
  * @returns {JSX.Element} ChangePassword Component
  */
+
+/*
+
+*/
 const ChangePassword = () => {
     //store references from fields directly
     const passwordRef = useRef();
@@ -25,9 +29,24 @@ const ChangePassword = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState(0);
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
+
+    const handlePasswordChange = (e) => {
+        const value = e.target.value;
+        passwordRef.current.value = value;
+
+        // Simple password strength check
+        let strength = 0;
+        if (value.length >= 6) strength += 25;
+        if (/[A-Z]/.test(value)) strength += 25;
+        if (/[0-9]/.test(value)) strength += 25;
+        if (/[^A-Za-z0-9]/.test(value)) strength += 25;
+
+        setPasswordStrength(strength);
+    };
 
     /**
      * Function that gets called when submit button is pressed
