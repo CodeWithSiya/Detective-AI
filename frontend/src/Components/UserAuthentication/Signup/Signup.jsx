@@ -34,6 +34,7 @@ const Signup = () => {
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordMatch, setPasswordMatch] = useState(true);
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
@@ -50,6 +51,15 @@ const Signup = () => {
         if (/[^A-Za-z0-9]/.test(value)) strength += 25;
 
         setPasswordStrength(strength);
+    };
+
+    // Live check for password match
+    const handleConfirmPasswordChange = (e) => {
+        const confirmValue = e.target.value;
+        const passwordValue = passwordRef.current.value;
+        setPasswordMatch(
+            confirmValue === passwordValue || confirmValue === '' || passwordValue === ''
+        );
     };
 
     /**
@@ -190,6 +200,7 @@ const Signup = () => {
                             ref={confirmPasswordRef}
                             required
                             style={{ paddingRight: '2.5rem' }}
+                            onChange={handleConfirmPasswordChange}
                         />
                         <button
                             type="button"
@@ -208,6 +219,11 @@ const Signup = () => {
                         >
                             {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
                         </button>
+                        {!passwordMatch && (
+                            <p style={{ color: '#ef4444', fontWeight: 600, marginTop: '0.5rem' }}>
+                                Passwords do not match!!
+                            </p>
+                        )}
                     </div>
 
                     <button type="submit" className="signup-button">
