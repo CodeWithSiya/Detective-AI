@@ -14,7 +14,7 @@ import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 //Import authentication handler for login
-import { login } from './AuthHandler';
+import { login } from '../AuthHandler';
 
 //Custom password input component with built-in functionality
 import {
