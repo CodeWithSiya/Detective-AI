@@ -55,3 +55,16 @@
     display: flex;
     gap: 1rem;
 }
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-bottom: 1rem;
+}
+
+.form-group label{
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.3rem;
+}
