@@ -41,7 +41,7 @@ const Signup = () => {
         // Simple strength calculation
         let strength = 0;
         if (value.length > 6) strength += 25;
-        if (/[A-Z]/.text(value)) strength += 25;
+        if (/[A-Z]/.test(value)) strength += 25;
         if (/[0-9]/.test(value)) strength += 25;
         if (/[^A-Za-z0-9]/.test(value)) strength += 25;
 
@@ -124,7 +124,7 @@ const Signup = () => {
 
                     <div className="form-group">
                         <label>Password<span className="required">*</span></label>
-                        <input type="password" onChange={handlePasswordChange} required/>
+                        <input type="password" onChange={handlePasswordChange} ref={passwordRef} required/>
                         {/* Password Strength Indicator */}
                         <div className="password-strength-bar">
                             <div
