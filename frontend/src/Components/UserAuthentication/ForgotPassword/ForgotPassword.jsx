@@ -4,33 +4,16 @@
  * Provides an interface for users to initiate password reset by entering their email
  * 
  * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
- * version: 22/08/2025
+ * version: 10/09/2025
  */
 
 
 import React, { useRef } from 'react';
-import { FormControl } from '@chakra-ui/form-control';
-import { motion } from 'framer-motion'
+import "./ForgotPassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
-
-//Chakra UI components for styling and layout
-import {
-  Box,
-  Flex,
-  Heading,
-  Image,
-  Input,
-  Button,
-  Text,
-  Stack,
-  Field,
-} from "@chakra-ui/react";
-
 // Import authentication handler for email verification
 import { emailExists } from '../AuthHandler';
-
-
 
 let emailValue = null;
 
