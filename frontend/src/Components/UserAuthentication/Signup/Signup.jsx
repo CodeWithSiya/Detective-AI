@@ -29,6 +29,7 @@ const Signup = () => {
     const passwordRef = useRef();
     const confirmPasswordRef = useRef();
     const lastNameRef = useRef();
+    const userNameRef = useRef();
 
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
@@ -65,6 +66,7 @@ const Signup = () => {
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
         const confirmPassword = confirmPasswordRef.current.value;
+        const userName = userNameRef.current.value;
 
         //Validate password
         if (password === confirmPassword){
@@ -120,6 +122,11 @@ const Signup = () => {
                         </div>
                     </div>
                         
+                    <div className="form-group">
+                        <label>User Name<span className="required">*</span></label>
+                        <input type="text" placeholder="e.g. ParkPete2" ref={userNameRef} required/>
+                    </div>
+
                     <div className="form-group">
                         <label>Email<span className="required">*</span></label>
                         <input type="email" placeholder="e.g. peter.parker@example.com" ref={emailRef} required/>
