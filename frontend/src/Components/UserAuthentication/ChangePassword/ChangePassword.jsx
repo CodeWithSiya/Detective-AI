@@ -19,13 +19,12 @@ import {Eye, EyeOff} from 'lucide-react';
  * @returns {JSX.Element} ChangePassword Component
  */
 const ChangePassword = () => {
-
-    //Initialise the motion box for animation
-    const MotionBox = motion(Box);
-
     //store references from fields directly
     const passwordRef = useRef();
     const confirmPasswordRef = useRef();
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
@@ -63,106 +62,8 @@ const ChangePassword = () => {
 
     
     return (
-        //Main container
-        <Flex
-            minH={'100vh'} //take full viewport height
-            align={'center'} //vertically center
-            justify={'center'} //horizontal center
-        >
-            {/*Main content stack for logo, heading and form */}
-            <Stack 
-                spacing={8} //space between stacked children
-                mx={'auto'} //Centre stack horizontally
-                maxW={'lg'} //Max width
-                py={12} // p-top and p-bottonm
-                px={6} // p-left and p-right
-            >
-                {/*Header section with logo and animated title*/}
-                <Stack align={'center'}>
-                    {/*Logo*/}
-                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
-
-                    {/*Animated heading with typewriter effect*/}
-                    <Heading color={'black'} fontSize={'4xl'}>
-                        <Typewriter
-                            words={['Change your Password',]} //Text that will be typed
-                            loop={1} //amount of times animation plays
-                            cursor //Blinking cursor
-                            cursorStyle="_"
-                            typeSpeed={70} //typing speed in ms
-                            deleteSpeed={50} //deletion speed in ms
-                            delaySpeed={1000} //Delay before starting in ms
-                        />
-                    </Heading>
-
-                    {/* Subtitle */}
-                    <Text fontSize={'lg'} color={'gray.600'}>
-                        Don't forget it this time!
-                    </Text>
-                </Stack>
-
-                {/*Main form with animation*/}
-                <MotionBox
-                    rounded={'lg'} //rounded corners
-                    bg={"white"}   //background
-                    boxShadow={'lg'} //Shadow-effect behind card
-                    p={8} //padding
-                    w="500px"   //fixed width
-
-                    //Animation properties
-                    initial={{ opacity: 0, scale: 0.8 }} //Starts invisible and small
-                    animate={{ opacity: 1, scale: 1 }} //Animates to full size
-                    transition={{ duration: 0.5, ease: 'easeOut' }} //Transition timing
-                >
-                    {/*Form fields container*/}
-                    <Stack spacing={4}>
-                    
-                        {/*New Password Field */}
-                        <FormControl id="password" isRequired>
-                            <Stack>
-                                {/* Password input with built-in show/hide toggle */}
-                                <Field.Root>
-                                    <Field.Label>Password</Field.Label>
-                                        <PasswordInput ref={passwordRef}/>
-                                </Field.Root>
-                                {/* Visual indicator for password strength */}
-                                <PasswordStrengthMeter value={2} />
-                            </Stack>
-                        </FormControl>
-
-                        {/* Confim Password Field */}
-                        <FormControl id="confirm-password" isRequired>
-                            <Stack>
-                                {/* Second password input input for confirmation */}
-                                <Field.Root>
-                                    <Field.Label>Confirm Password</Field.Label>
-                                        <PasswordInput ref={confirmPasswordRef}/>
-                                </Field.Root>
-                            </Stack>
-                        </FormControl>
-
-                        {/* Submit button section */}
-                        <Stack spacing={6} pt={6}>
-                            <Button
-                                bg={'black'} //Black background
-                                color={'white'} //White text
-                                _hover={{ //hover state styling
-                                bg: 'blackAlpha.800',}}
-                                onClick={handleSubmit} //Click handler
-                            >
-                                Submit
-                            </Button>
-                        </Stack>
-
-                    </Stack>
-                    
-                </MotionBox>
-            </Stack>
-
-
-
-        </Flex>
-    )
-}
+        
+    );
+};
 
 export default ChangePassword
