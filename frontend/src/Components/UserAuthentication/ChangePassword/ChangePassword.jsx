@@ -3,37 +3,17 @@
  * Provides an interface for a user to change the password of their account
  * 
  * author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
- * version: 22/08/2025
+ * version: 10/09/2025
  */
 
-import React, { useRef } from 'react';
-import { FormControl } from '@chakra-ui/form-control';
-import { motion } from 'framer-motion'
+import React, { useRef, useState } from 'react';
+import "./ChangePassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
-
-//Custom password input components with built-in functionality
-import {
-  PasswordInput,
-  PasswordStrengthMeter,
-} from "@/components/ui/password-input"
-
-// Chakra UI components for styling and layout
-import {
-  Box,
-  Flex,
-  Heading,
-  Image,
-  Button,
-  Text,
-  Stack,
-  Field,
-} from "@chakra-ui/react";
-
 // Import for utility functions for email retrieval and password changing
 import { getEmail } from '../ForgotPassword/ForgotPassword';
 import { changePassword } from '../AuthHandler';
-
+import {Eye, EyeOff} from 'lucide-react';
 /**
  * Function that renders the form for changing password functionality
  * @returns {JSX.Element} ChangePassword Component
