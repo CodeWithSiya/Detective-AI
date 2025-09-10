@@ -68,145 +68,32 @@ const Signup = () => {
     };
 
     return (
-        //Main container
-        <Flex
-            minH={'100vh'} //take full height
-            align={'center'} //vertically center
-            justify={'center'} //horizontal center
-        >
-            {/* Main content stack */}
-            <Stack 
-                spacing={8} //space between stacked children
-                mx={'auto'} //Centre stack horizontally
-                maxW={'lg'} //Max width
-                py={12} // p-top and p-bottonm
-                px={6} // p-left and p-right
-            >
-                {/* Header section */}
-                <Stack align={'center'}>
-                    {/* Logo */}
-                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+        // Main container
+        <div className="signup-container">
+            <div className="signup-card">
+                <img src={Logo} alt="Logo" className="signup-logo" />
+                
+                <h1 className="signup-title">
+                    // Animated typewriter effect for the title
+                    <Typewriter
+                        words={["Become a Detective!"]}
+                        loop={1}
+                        cursor
+                        cursorStyle='_'
+                        typeSpeed={70}
+                        deleteSpeed={50}
+                        delaySpeed={1000}
+                    />
+                </h1>
 
-                    {/* Heading with typewriter animation */}
-                    <Heading fontSize={'4xl'} color={"black"}>
-                        <Typewriter
-                            words={['Become a Detective!',]}
-                            loop={1}
-                            cursor
-                            cursorStyle="_"
-                            typeSpeed={70}
-                            deleteSpeed={50}
-                            delaySpeed={1000}
-                        />
-                    </Heading>
+                <p className="signup-subtitle">Create your account </p>
 
-                    {/* Subtitle */}
-                    <Text fontSize={'lg'} color={'gray.600'}>
-                        Create an account to continue
-                    </Text>
-                </Stack>
-
-                {/* Signup form with animation */}
-                <MotionBox
-
-                    rounded={'lg'} //rounded corners
-                    bg={"white"}
-                    boxShadow={'lg'} //Shadow-effect behind card
-                    p={8} //padding
-                    w="500px"
-
-                    //Animate box
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                >
-                    <Stack spacing={4}>
+                <form>
                     
-                        <HStack>
-                            <Box flex={1}>
-
-                                {/* Name field */}
-                                <FormControl id="firstName">
-                                    <Field.Root required>
-                                        <Field.Label>Name<Field.RequiredIndicator /></Field.Label>
-                                            <Input placeholder="e.g. John" ref={nameRef} />
-                                    </Field.Root>
-                                </FormControl>
-                            </Box>
-
-                            <Box flex={1}> 
-                                
-                                {/* last name field */}
-                                <FormControl id="lastName">
-                                    <Field.Root>
-                                        <Field.Label>Last Name</Field.Label>
-                                            <Input placeholder="e.g. Doe" ref={lastNameRef} />
-                                    </Field.Root>
-                                </FormControl>
-                            </Box>
-                        </HStack>
-
-                        {/* email field */}
-                        <FormControl id="email">
-                            <Field.Root required>
-                                <Field.Label>Email<Field.RequiredIndicator /></Field.Label>
-                                    <Input placeholder="johndoe@example.com" ref={emailRef}/>
-                            </Field.Root>
-                        </FormControl>
-
-                        {/* password field */}
-                        <FormControl id="password" isRequired>
-                            <Stack>
-                                <Field.Root required>
-                                    <Field.Label>Password<Field.RequiredIndicator /></Field.Label>
-                                        <PasswordInput ref={passwordRef}/>
-                                </Field.Root>
-                                <PasswordStrengthMeter value={2} />
-                            </Stack>
-                        </FormControl>
-                        
-                        {/* confirm password field */}
-                        <FormControl id="confirm-password">
-                            <Stack>
-                                <Field.Root required>
-                                    <Field.Label>Confirm Password<Field.RequiredIndicator /></Field.Label>
-                                        <PasswordInput ref={confirmPasswordRef}/>
-                                </Field.Root>
-                            </Stack>
-                        </FormControl>
-
-                        {/* sign up button */}
-                        <Button
-                            bg={'black'}
-                            variant={'solid'}
-                            color={'white'}
-                            _hover={{
-                            bg: 'blackAlpha.800',
-                            }}
-                            onClick={handleSubmit}
-                        >
-                            Sign up
-                        </Button>
-                        
-                        {/* log in link */}
-                        <Text textAlign="center">
-                                Already a user?{" "}
-                            <Link 
-                                as={RouterLink} 
-                                _hover={{ color: "gray.500" }} 
-                                to="/login" color="black" 
-                            >
-                                Log in
-                            </Link>
-                        </Text>
-
-                    </Stack>
-                    
-                </MotionBox>
-            </Stack>
-
-        </Flex>
-    )
-}
+                </form>
+            </div>
+        </div>
+    );
+};
 
 export default Signup
