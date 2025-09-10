@@ -22,10 +22,6 @@ import { signUp } from '../AuthHandler';
  * @returns {JSX.Element} Signup Component
  */
 const Signup = () => {
-
-    //Initialise motion box for animation
-    const MotionBox = motion(Box);
-
     //Access field values
     const nameRef = useRef();
     const emailRef = useRef();
@@ -35,7 +31,6 @@ const Signup = () => {
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
-
 
     /**
      * Handles form submission when the "Sign up" button is clicked
@@ -65,13 +60,12 @@ const Signup = () => {
             if (result.success){
                 navigate("/login")
             }
-
         }
         else{
             //Error
             alert("Passwords do not match");
         }
-    }
+    };
 
     return (
         //Main container
