@@ -19,10 +19,7 @@ import { login } from '../AuthHandler';
  * Function that renders the main login page
  * @returns {JSX.Element} Login Component
  */
-export const Login = () => {
-    //Inititialise motion box
-    const MotionBox = motion(Box);
-
+const Login = () => {
     //store references for email and password
     const emailRef = useRef();
     const passwordRef = useRef();
@@ -30,6 +27,8 @@ export const Login = () => {
     //Initialise navigation between routes
     const navigate = useNavigate();
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     /**
      * Gets called when submit button is clicked
      * @param {Event} e 
@@ -57,142 +56,91 @@ export const Login = () => {
     };
 
     return (
-        
-        //Main container
-        <Flex
-            minH={'100vh'} //take full viewport height
-            align={'center'} //vertically center
-            justify={'center'} //horizontal center
-        >
-            {/* Main content stack */}
-            <Stack 
-                spacing={8} //space between stacked children
-                mx={'auto'} //Centre stack horizontally
-                maxW={'lg'} //Max width
-                py={12} // p-top and p-bottonm
-                px={6} // p-left and p-right
-            >
+        <div className="login-container">
+            <div className="login-card">
+                {/* <img src={Logo} alt="Logo" className="login-logo" /> */}
 
-                {/* Header section */}
-                <Stack align={'center'}>
+                <h1 className="login-title">
+                <Typewriter
+                    words={[
+                    "Welcome back!",
+                    "Let’s get started!",
+                    "Case files await, Detective.",
+                    "Mystery ahead. Stay sharp.",
+                    "Time to catch AI!"
+                    ]}
+                    loop
+                    cursor
+                    cursorStyle="_"
+                    typeSpeed={70}
+                    deleteSpeed={50}
+                    delaySpeed={1000}
+                />
+                </h1>
 
-                    {/*Logo*/}
-                    <Image src="/src/Components/Assets/Logo.jpg" alt="Logo" boxSize="250px" mb={4} />
+                <p className="login-subtitle">Log in to your account</p>
 
-                    {/* Heading with typewriter animation */}
-                    <Heading color={'black'} fontSize={'4xl'}>
-                        <Typewriter
-                            words={['Welcome back!', 'Let’s get started!', 'Case files await, Detective.', 'Mystery ahead. Stay sharp.','What are you waiting for?','Time to catch AI!'
-                            ]} //Message that rotate
-                            loop={true} //Continuosly loops
-                            cursor //Blinking cursor
-                            cursorStyle="_" //underscore
-                            typeSpeed={70}  //Speed of typing in ms
-                            deleteSpeed={50} //Delete speed in ms
-                            delaySpeed={1000} //Pause between messages in ms
-                        />
+                <form className="login-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label>Email<span className="required">*</span></label>
+                    <input type="email" placeholder="e.g. me@example.com" ref={emailRef} required />
+                </div>
 
-                    {/* Subtitle */}
-                    </Heading>
-                    <Text fontSize={'lg'} color={'gray.600'}>
-                        Log in to your account to continue
-                    </Text>
-                </Stack>
+                <div className="form-group" style={{ position: "relative" }}>
+                    <label>Password<span className="required">*</span></label>
+                    <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    ref={passwordRef}
+                    required
+                    style={{ paddingRight: "2.5rem" }}
+                    />
+                    <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    style={{
+                        position: "absolute",
+                        right: "0.75rem",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0
+                    }}
+                    tabIndex={-1}
+                    >
+                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                    </button>
+                </div>
 
-                {/* Login form with animation */}
-                <MotionBox
-                    rounded={'lg'} //rounded corners
-                    bg={"white"} //white background
-                    boxShadow={'lg'} //Shadow-effect behind card
-                    p={8} //padding
-                    w="500px" //fixed width
+                <div className="form-extra">
+                    <label className="remember-me">
+                    <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={() => setRememberMe((prev) => !prev)}
+                    />
+                    Remember me
+                    </label>
+                    <RouterLink to="/forgot-password" className="forgot-password-link">
+                    Forgot password?
+                    </RouterLink>
+                </div>
 
-                    //Animate box
-                    initial={{ opacity: 0, scale: 0.8 }} //Start small and invisible
-                    animate={{ opacity: 1, scale: 1 }} //Animate to full size and visibility
-                    transition={{ duration: 0.5, ease: 'easeOut' }} //Smooth transition
-                >
-                    {/* Field container */}
-                    <Stack spacing={4}>
-                    
-                        {/* Email input field */}
-                        <FormControl id="email">
-                            <Field.Root>
-                                <Field.Label>Email</Field.Label>
-                                <Input placeholder="me@example.com" ref={emailRef}  w="100%"/>
-                            </Field.Root>
-                        </FormControl>
+                <button type="submit" className="login-button">
+                    Log In
+                </button>
 
-                         {/* Password input field with show/hide toggle */}
-                        <FormControl id="password">
-                            <Field.Root>
-                                <Field.Label>Password</Field.Label>
-                                <PasswordInput ref={passwordRef}  w="100%"/>
-                            </Field.Root>
-                        </FormControl>
-
-                        {/* Remember me checkbox and forgot password link */}
-                        <Stack
-                            direction={{ base: 'column', sm: 'row' }}
-                            align={'start'}
-                            justify={'space-between'}
-                        >
-                            {/*Checkbox*/}
-                            <Checkbox.Root
-                                variant={'subtle'} //style
-                                colorPalette={'black'} //black colour
-                            >
-                                <Checkbox.HiddenInput />
-                                <Checkbox.Control />
-                                <Checkbox.Label>Remember me</Checkbox.Label>
-                            </Checkbox.Root>
-                            
-                            {/* Forgot password link */}
-                            <Link 
-                            as={RouterLink} //React Router link component
-                            to="/forgot-password" //go to Forgot Password
-                            color="black" 
-                            fontSize="sm"
-                            _hover={{ color: "gray.500" }}>
-                                Forgot password?
-                            </Link>
-
-                        </Stack>
-
-                        {/* login submit button */}
-                        <Button
-                            bg={'black'}
-                            variant={'solid'}
-                            color={'white'}
-                            _hover={{
-                            bg: 'blackAlpha.800',
-                            }}
-                            onClick={handleSubmit}
-                        >
-                            Log in
-                        </Button>
-
-
-                        {/* Sign up link for users without accounts */}
-                        <Text textAlign="center">
-                                Don’t have an account?{" "}
-                            <Link 
-                                as={RouterLink} 
-                                to="/signup" 
-                                color="black" 
-                                _hover={{ color: "gray.500" }}>
-                                Sign up
-                            </Link>
-                        </Text>
-
-                    </Stack>
-                    
-                </MotionBox>
-            </Stack>
-
-
-
-        </Flex>
+                <p className="login-footer">
+                    Don’t have an account?{" "}
+                    <RouterLink to="/signup" className="signup-link">
+                    Sign up
+                    </RouterLink>
+                </p>
+                </form>
+            </div>
+        </div>
     );
 };
 
