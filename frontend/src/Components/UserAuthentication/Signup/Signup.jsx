@@ -125,6 +125,29 @@ const Signup = () => {
                     <div className="form-group">
                         <label>Password<span className="required">*</span></label>
                         <input type="password" ref={passwordRef} required/>
+                        {/* Password Strength Indicator */}
+                        <div className="password-strength-bar">
+                            <div
+                                className={`password-strength-fill ${
+                                    passwordStrength < 50
+                                        ? "weak"
+                                        : passwordStrength < 75
+                                        ? "medium"
+                                        : "strong"
+                                }`}
+                                style={{ width: `${passwordStrength}%` }}
+                            ></div>
+                        </div>
+                        <p className="password-strength-label">
+                            {passwordStrength === 0
+                                ? "Enter a password"
+                                : passwordStrength < 50
+                                ? "Weak"
+                                : passwordStrength < 75
+                                ? "Medium"
+                                : "Strong"
+                            }
+                        </p>
                     </div>
 
                     <div className="form-group">
