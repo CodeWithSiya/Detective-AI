@@ -150,3 +150,11 @@ input:focus{
   background: linear-gradient(90deg, #10b981, #3b82f6);
 }
 
+.password-strength-label{
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 0.3rem;
+    font-weight: 500;
+    text-align: right;
+}
+
