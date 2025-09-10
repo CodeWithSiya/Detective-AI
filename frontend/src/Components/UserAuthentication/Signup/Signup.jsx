@@ -99,25 +99,33 @@ const Signup = () => {
                             <label>Last Name</label>
                             <input type="text" placeholder="e.g. Parker" ref={lastNameRef}/>
                         </div>
-                        
-                        <div className="form-group">
-                            <label>Email<span className="required">*</span></label>
-                            <input type="email" placeholder="e.g. peter.parker@example.com" ref={emailRef} required/>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Password<span className="required">*</span></label>
-                            <input type="password" ref={passwordRef} required/>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Confirm Password<span className="required">*</span></label>
-                            <input type="password" ref={confirmPasswordRef} required/>
-                        </div>
-
-                        
-
                     </div>
+                        
+                    <div className="form-group">
+                        <label>Email<span className="required">*</span></label>
+                        <input type="email" placeholder="e.g. peter.parker@example.com" ref={emailRef} required/>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Password<span className="required">*</span></label>
+                        <input type="password" ref={passwordRef} required/>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Confirm Password<span className="required">*</span></label>
+                        <input type="password" ref={confirmPasswordRef} required/>
+                    </div>
+
+                    <button type="submit" className="signup-button">
+                        Sign up
+                    </button>
+
+                    <p className="signup-footer">
+                        Already a user?{" "}
+                        <RouterLink to="/login" className="login-link">
+                            Log in
+                        </RouterLink>
+                    </p>
                 </form>
             </div>
         </div>
