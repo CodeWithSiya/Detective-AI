@@ -68,7 +68,41 @@ const ForgotPassword = () => {
     }
 
     return (
-        
+        <div className="forgot-container">
+            <div className="forgot-card">
+                <h1 className="forgot-title">
+                <Typewriter
+                    words={["Forgot your Password?", "We'll help you reset it!"]}
+                    loop={true}
+                    cursor
+                    cursorStyle="_"
+                    typeSpeed={70}
+                    deleteSpeed={50}
+                    delaySpeed={1000}
+                />
+                </h1>
+
+                <p className="forgot-subtitle">
+                Enter your email below to receive a password reset link
+                </p>
+
+                <form className="forgot-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label>Email<span className="required">*</span></label>
+                    <input
+                    type="email"
+                    placeholder="e.g. johndoe@example.com"
+                    ref={emailRef}
+                    required
+                    />
+                </div>
+
+                <button type="submit" className="forgot-button">
+                    Request Reset
+                </button>
+                </form>
+            </div>
+        </div>
     );
 };
 export default ForgotPassword;
