@@ -2,13 +2,19 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.conf import settings
 from app.services.user_service import UserService
 from app.serializers.user_serializers import UserSerializer
 from app.services.email_service import EmailService
 from typing import Optional, Any
 from datetime import datetime
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 def create_json_response(success: bool = True, message: Optional[str] = None, data: Optional[Any] = None, error: Optional[str] = None, status_code = status.HTTP_200_OK, **kwargs):
     """
@@ -334,4 +340,145 @@ def delete_user(request, user_id: str):
             success=False,
             error='User not found',
             status_code=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def forgot_password(request):
+    """
+    Send password reset email to user.
+
+    POST /api/users/forgot-password/
+    """
+    data = request.data
+    email = data.get('email')
+
+    if not email:
+        return create_json_response(
+            success=False,
+            error='Email address is required',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Find user by email.
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            # For security, always return success even if user doesn't exist
+            return create_json_response(
+                success=True,
+                message='If an account with this email exists, a password reset link has been sent',
+                password_reset_email={
+                    'sent': False,
+                    'status': 'No account found with this email'
+                }
+            )
+        
+        # Generate password reset token.
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # Create reset URL.
+        reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
+
+        # Send password reset email.
+        email_service = EmailService()
+        user_name = f"{user.first_name} {user.last_name}".strip()
+        if not user_name:
+            user_name = user.username
+
+        email_result = email_service.send_forgot_password_email(
+            user_email=user.email,
+            user_name=user_name,
+            reset_url=reset_url,
+            expiry_hours=1
+        )
+
+        if email_result['success']:
+            logging.info(f"Password reset email sent successfully to {user.email}")
+        else:
+            logging.warning(f"Password reset email failed for user {user.email}: {email_result.get('error')}")
+
+        return create_json_response(
+            success=True,
+            message='If an account with this email exists, a password reset link has been sent',
+            password_reset_email={
+                'sent': email_result['success'],
+                'status': email_result.get('message', 'Password reset email sent successfully') if email_result['success'] else email_result.get('error', 'Failed to send password reset email')
+            }
+        )
+    
+    except Exception as e:
+        logging.error(f"Error in forgot password process for {email}: {str(e)}")
+        return create_json_response(
+            success=False,
+            error='An error occurred while processing your request',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def reset_password(request):
+    """
+    Reset user password with token.
+
+    POST /api/users/reset-password/
+    """
+    data = request.data
+    uid = data.get('uid')
+    token = data.get('token')
+    new_password = data.get('new_password')
+    confirm_password = data.get('confirm_password')
+
+    if not all([uid, token, new_password, confirm_password]):
+        return create_json_response(
+            success=False,
+            error='UID, token, new password, and confirm password are required',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if new_password != confirm_password:
+        return create_json_response(
+            success=False,
+            error='New password and confirm password do not match',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        # Decode the user ID
+        user_id = urlsafe_base64_decode(uid).decode()
+        user = User.objects.get(pk=user_id)
+        
+        # Verify the token
+        if not default_token_generator.check_token(user, token):
+            return create_json_response(
+                success=False,
+                error='Invalid or expired reset token',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Reset the password
+        user.set_password(new_password)
+        user.save()
+        
+        logging.info(f"Password reset successfully for user {user.email}")
+        
+        return create_json_response(
+            success=True,
+            message='Password reset successfully'
+        )
+
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return create_json_response(
+            success=False,
+            error='Invalid reset token',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logging.error(f"Error resetting password: {str(e)}")
+        return create_json_response(
+            success=False,
+            error='An error occurred while resetting your password',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

@@ -9,7 +9,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# TODO: Link the Start Your First Email Service to the main page of the website!
+# TODO: Link the Start Your First Email Service to the main page of the website.
+# TODO: Link Password Reset to the Actual Password Reset Page.
+
 class EmailService:
     """
     Service for sending emails on Detective AI.
@@ -154,4 +156,66 @@ class EmailService:
             return {
                 'success': False,
                 'error': f'Failed to send welcome email: {str(e)}'
+            }
+        
+    def send_forgot_password_email(self, user_email: str, user_name: str, reset_url: str, expiry_hours: int = 24) -> Dict[str, Any]:
+        """
+        Send forgot password email to users.
+
+        :param user_email: Email address of the user.
+        :param user_name: Name of the user.
+        :param reset_url: Password reset URL with token.
+        :param expiry_hours: Hours until the reset link expires.
+        :return: Dictionary with success status and message.
+        """
+        try:
+            # Input validation.
+            if not user_email or '@' not in user_email:
+                raise ValueError("Valid user email is required")
+            if not user_name:
+                user_name = user_email.split('@')[0]  # Fallback to email username
+            if not reset_url:
+                raise ValueError("Reset URL is required")
+            
+            # Prepare email content.
+            context = {
+                'user_name': user_name,
+                'user_email': user_email,
+                'reset_url': reset_url,
+                'expiry_hours': expiry_hours,
+            }
+
+            subject = "Password Reset Request - Detective AI"
+
+            # Render email templates.
+            html_content = render_to_string('emails/forgot_password.html', context)
+            text_content = render_to_string('emails/forgot_password.txt', context)
+
+            # Create email.
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user_email]
+            )
+
+            # Add HTML version.
+            email.attach_alternative(html_content, "text/html")
+
+            # Send email.
+            email.send()
+
+            logger.info(f"Password reset email sent successfully to {user_email}")
+            
+            return {
+                'success': True,
+                'message': 'Password reset email sent successfully',
+                'recipient': user_email
+            }
+        
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {user_email}: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Failed to send password reset email: {str(e)}'
             }
