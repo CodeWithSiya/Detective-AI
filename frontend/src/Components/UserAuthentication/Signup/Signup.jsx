@@ -88,8 +88,43 @@ const Signup = () => {
 
                 <p className="signup-subtitle">Create your account </p>
 
-                <form>
-                    
+                // Registration form
+                <form className="signup-form" onSubmit={handleSubmit}>
+                    <div className="form-row">
+
+                        // First Name field
+                        <div className="form-group">
+                            <label>First Name<span className="required">*</span></label>
+                            <input type="text" placeholder="e.g. Peter" ref={nameRef} required/>
+                        </div>
+
+                        // Last Name field
+                        <div className="form-group">
+                            <label>Last Name</label>
+                            <input type="text" placeholder="e.g. Parker" ref={lastNameRef}/>
+                        </div>
+                        
+                        // Email field
+                        <div className="form-group">
+                            <label>Email<span className="required">*</span></label>
+                            <input type="email" placeholder="e.g. peter.parker@example.com" ref={emailRef} required/>
+                        </div>
+
+                        // Password field
+                        <div className="form-group">
+                            <label>Password<span className="required">*</span></label>
+                            <input type="password" ref={passwordRef} required/>
+                        </div>
+
+                        // Confirm Password field
+                        <div className="form-group">
+                            <label>Confirm Password<span className="required">*</span></label>
+                            <input type="password" ref={confirmPasswordRef} required/>
+                        </div>
+
+                        
+
+                    </div>
                 </form>
             </div>
         </div>
