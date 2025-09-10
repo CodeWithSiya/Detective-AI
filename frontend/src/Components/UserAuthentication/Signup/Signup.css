@@ -89,3 +89,22 @@ input:focus{
     box-shadow: 0 0 4px rgba(59, 130, 246, 0.1);
     background: rgba(255, 255, 255, 0.95);
 }
+
+.signup-button{
+    padding: 1rem;
+    margin-top: 0.5rem;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(30, 41, 59, 0.3);
+}
+
+.signup-button:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(30, 41, 59, 0.4);
+}
