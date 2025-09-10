@@ -10,11 +10,6 @@ from typing import Any, Dict, Optional
 import time
 import re
 
-# TODO: Export Results for Registered Users. Add Report Generation Service and Email Service.
-# TODO: Fix the processing time mistake. 
-# TODO: Improve response time, very slow right now for analysis. (Probably due to the external API calls)
-# TODO: Submission / Analysis History API (Per User).
-
 class AiTextAnalyser(AiAnalyser):
     """
     Service class for AI text analysis logic.
