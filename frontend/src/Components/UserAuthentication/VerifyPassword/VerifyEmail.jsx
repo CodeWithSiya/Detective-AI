@@ -41,10 +41,14 @@ const VerifyEmail = () => {
     const handleSubmit = (e) => {
         // Prevents default submit behaviour
         e.preventDefault();
-
-        //goes to change password page
-        navigate('/change-password');
-    }
+        const code = pin.join("");
+        if (code.length === 4){
+            navigate('/change-password');
+        }
+        else {
+            alert("Please enter the 4-digit code sent to your email.");
+        }
+    };
 
     return (
          // Main container
