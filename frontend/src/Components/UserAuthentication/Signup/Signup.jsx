@@ -4,41 +4,18 @@
  * Provides a user registration interface for creating new accounts.
  * 
  * authors: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
- * version: 22/08/2025
+ * version: 10/09/2025
  * 
  */
 
 import React, { useRef } from 'react';
-import { FormControl } from '@chakra-ui/form-control';
-import { motion } from 'framer-motion'
+import "./Signup.css";
+import Logo from '../../Assets/Logo.jpg';
 import { Typewriter } from 'react-simple-typewriter';
-import { Link as RouterLink } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 // Import authentication handler for user registration
 import { signUp } from '../AuthHandler';
-
-// Custom password input components with built-in functionality
-import {
-  PasswordInput,
-  PasswordStrengthMeter,
-} from "@/components/ui/password-input"
-
-// Chakra UI components for styling and layout
-import {
-  Box,
-  Flex,
-  Heading,
-  Image,
-  Input,
-  Button,
-  Text,
-  Link,
-  Stack,
-  HStack,
-  Field,
-} from "@chakra-ui/react";
-
 
 /**
  * function that renders the registration form 
