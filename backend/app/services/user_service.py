@@ -1,25 +1,34 @@
-from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django.db import transaction
 from rest_framework.authtoken.models import Token
+from app.models.user import User
+from datetime import timedelta
 from typing import Any, Dict
 import logging
+import secrets
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
 
 class UserService:
     """
     Service class for user account management.
 
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
-    :version: 26/08/2025 
+    :version: 10/09/2025
     """
 
     @staticmethod
-    @transaction.atomic
-    def create_user(username: str, email: str, password: str, first_name: str, last_name: str, user_type: str = "REGISTERED"):
+    def generate_verification_code() -> str:
         """
-        Create a new user account.
+        Generate a 6-digit verification code.
+        """
+        return str(secrets.randbelow(900000) + 100000)
+
+    @staticmethod
+    @transaction.atomic
+    def create_user_with_verification(username: str, email: str, password: str, first_name: str, last_name: str, user_type: str = "REGISTERED"):
+        """
+        Create a new user account that requires email verification.
 
         :param username: Unique username for the user.
         :param email: Unique email for the user.
@@ -27,7 +36,7 @@ class UserService:
         :param first_name: First name of the user.
         :param last_name: Last name of the user.
         :param user_type: Type of user (default is "REGISTERED").
-        :returns: The created User instance.
+        :returns: Tuple of (User instance, verification_code)
         """
         # Check for existing users.
         if User.objects.filter(email=email).exists():
@@ -36,20 +45,128 @@ class UserService:
         if User.objects.filter(username=username).exists():
             raise ValueError("A user with this username already exists.")
         
+        # Generate verification code that expires in 15 minutes from creation.
+        verification_code = UserService.generate_verification_code()
+        expires_at = timezone.now() + timedelta(minutes=15)
+        
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password,
             first_name=first_name,
             last_name=last_name,
-            user_type=user_type
+            user_type=user_type,
+            is_active=False,    # Inactive until verified.
+            is_email_verified=False,
+            verification_code_expires_at=expires_at
         )
-        
-        # Create token for the new user.
-        Token.objects.create(user=user)
 
-        logger.info(f"User created: {user.pk} ({user.email})")
-        return user
+        # Hash and store the verification code.
+        user.set_verification_code(verification_code)
+        user.save(update_fields=['email_verification_code_hash'])
+
+        logger.info(f"User created with verification required: {user.pk} ({user.email})")
+        
+        # Return plain verification code for email.
+        return user, verification_code
+    
+    @staticmethod
+    @transaction.atomic
+    def verify_email(email: str, verification_code: str) -> dict:
+        """
+        Verify user's email with verification code.
+
+        :param email: User's email address.
+        :param verification_code: 6 digit verification code.
+        :return: Dictionary with success status, user, and token if successful.
+        """
+        try:
+            user = User.objects.get(email=email)
+
+            # Check if already verified.
+            if user.is_email_verified:
+                return {
+                    'success': False,
+                    'error': 'Email is already verified'
+                }
+            
+            # Check if code has expired.
+            if user.verification_code_expires_at is not None and user.verification_code_expires_at < timezone.now():
+                return {
+                    'success': False,
+                    'error': 'Verification code has expired'
+                }
+            
+            # Check if code matches using hash comparison
+            if not user.check_verification_code(verification_code):
+                return {
+                    'success': False,
+                    'error': 'Invalid verification code'
+                }
+            
+            # Verify the user.
+            user.is_email_verified = True
+            user.is_active = True
+            user.clear_verification_code()  # Clear sensitive data
+            user.save(update_fields=[
+                'is_email_verified', 'is_active',
+                'email_verification_code_hash', 'verification_code_expires_at'
+            ])
+
+            # Create authentication token.
+            token, created = Token.objects.get_or_create(user=user)
+
+            return {
+                'success': True,
+                'user': user,
+                'token': token.key
+            }
+            
+        except User.DoesNotExist:
+            return {
+                'success': False,
+                'error': 'User not found'
+            }
+        
+    @staticmethod
+    @transaction.atomic
+    def resend_verification_code(email: str) -> dict:
+        """
+        Resend verification code to user.
+        
+        :param email: User's email address.
+        :return: Dictionary with success status, user, and new verification code.
+        """
+        try:
+            user = User.objects.get(email=email)
+            
+            if user.is_email_verified:
+                return {
+                    'success': False,
+                    'error': 'Email is already verified'
+                }
+            
+            # Generate new code.
+            verification_code = UserService.generate_verification_code()
+            expires_at = timezone.now() + timedelta(minutes=15)
+            
+            user.verification_code_expires_at = expires_at
+            user.set_verification_code(verification_code)  # Hash the new code
+            user.save(update_fields=['email_verification_code_hash', 'verification_code_expires_at'])
+            
+            logger.info(f"Verification code resent for user: {user.pk} ({user.email})")
+            
+            return {
+                'success': True,
+                'user': user,
+                'verification_code': verification_code  # Return plain code for email
+            }
+            
+        except User.DoesNotExist:
+            return {
+                'success': False,
+                'error': 'User not found'
+            }
     
     @staticmethod
     def authenticate_user(email: str, password: str):
@@ -62,6 +179,11 @@ class UserService:
         """
         try:
             user = User.objects.get(email=email)
+
+            # Check if email is verified.
+            if not user.is_email_verified:
+                return None, None
+            
             if user.check_password(password):
                 # Get or create token for the user.
                 token, created = Token.objects.get_or_create(user=user)
@@ -131,8 +253,6 @@ class UserService:
 
             # Define allowable fields for update.
             allowed_fields = ['first_name', 'last_name', 'email', 'username']
-
-            #TODO: Add validation for other stuff like same first_name and lastname for same user etc.
 
             # Check for duplicate email if email is being updated.
             if 'email' in update_data and update_data['email'] != user.email:

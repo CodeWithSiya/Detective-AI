@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
 import uuid
 
@@ -44,6 +45,23 @@ class User(AbstractUser):
         help_text="User's email address. Must be unique."
     )
 
+    # Email verification fields.
+    is_email_verified = models.BooleanField(
+        default=False,
+        help_text="Whether the user's email has been verified"
+    )
+    email_verification_code_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Hashed 6-digit verification code for email verification"
+    )
+    verification_code_expires_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When the verification code expires"
+    )
+    
     # Adding the field to differentiate between different user types.
     user_type = models.CharField(
         max_length=20,
@@ -83,3 +101,24 @@ class User(AbstractUser):
         Checks if the user is a standard registered user.
         """
         return self.user_type == "REGISTERED"
+    
+    def set_verification_code(self, code:str) -> None:
+        """
+        Set and hash the verification code.
+        """
+        self.email_verification_code_hash = make_password(code)
+
+    def check_verification_code(self, code: str) -> bool:
+        """
+        Check if the provided code matches the stored hash.
+        """
+        if not self.email_verification_code_hash:
+            return False
+        return check_password(code, self.email_verification_code_hash)
+    
+    def clear_verification_code(self) -> None:
+        """
+        Clear verification code data after successful verification.
+        """
+        self.email_verification_code_hash = None
+        self.verification_code_expires_at = None

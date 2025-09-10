@@ -18,6 +18,10 @@ urlpatterns = [
     path('users/forgot-password/', user_views.forgot_password, name='forgot_password'),
     path('users/reset-password/', user_views.reset_password, name='reset_password'),
 
+    # User verification
+    path('users/verify-email/', user_views.verify_email, name='verify_email'),
+    path('users/resend-verification/', user_views.resend_verification_code, name='resend_verification'),
+
     # User profile management
     path('users/me/', user_views.get_current_user, name='get_current_user'),
     path('users/<str:user_id>/', user_views.get_user_profile, name='get_user_profile'),

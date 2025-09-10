@@ -219,3 +219,63 @@ class EmailService:
                 'success': False,
                 'error': f'Failed to send password reset email: {str(e)}'
             }
+        
+    def send_verification_code_email(self, user_email: str, user_name: str, verification_code: str) -> Dict[str, Any]:
+        """
+        Send email verification code to new users.
+
+        :param user_email: Email address of the user.
+        :param user_name: Name of the user.
+        :param verification_code: 6-digit verification code.
+        :return: Dictionary with success status and message.
+        """
+        try:
+            # Input validation.
+            if not user_email or '@' not in user_email:
+                raise ValueError("Valid user email is required")
+            if not user_name:
+                user_name = user_email.split('@')[0]  # Fallback to email username
+            if not verification_code:
+                raise ValueError("Verification code is required")
+            
+            # Prepare email content.
+            context = {
+                'user_name': user_name,
+                'verification_code': verification_code,
+                'expiry_minutes': 15  # Code expires in 15 minutes
+            }
+
+            subject = "Verify Your Detective AI Account - Verification Code"
+
+            # Render email templates.
+            html_content = render_to_string('emails/email_verification.html', context)
+            text_content = render_to_string('emails/email_verification.txt', context)
+
+            # Create email.
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user_email]
+            )
+
+            # Add HTML version.
+            email.attach_alternative(html_content, "text/html")
+
+            # Send email.
+            email.send()
+
+            logger.info(f"Verification code email sent successfully to {user_email}")
+
+            return {
+                'success': True,
+                'message': 'Verification code sent successfully',
+                'recipient': user_email
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to send verification code to {user_email}: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Failed to send verification code: {str(e)}'
+            }
