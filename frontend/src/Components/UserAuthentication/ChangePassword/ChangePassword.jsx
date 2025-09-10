@@ -19,9 +19,6 @@ import {Eye, EyeOff} from 'lucide-react';
  * @returns {JSX.Element} ChangePassword Component
  */
 
-/*
-
-*/
 const ChangePassword = () => {
     //store references from fields directly
     const passwordRef = useRef();
@@ -98,45 +95,68 @@ const ChangePassword = () => {
                 <p className="change-subtitle">Don't forget it this time!</p>
 
                 <form className="change-form" onSubmit={handleSubmit}>
-                <div className="form-group" style={{ position: "relative" }}>
-                    <label>New Password<span className="required">*</span></label>
-                    <input
-                    type={showPassword ? "text" : "password"}
-                    ref={passwordRef}
-                    required
-                    style={{ paddingRight: "2.5rem" }}
-                    />
-                    <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="toggle-password"
-                    tabIndex={-1}
-                    >
-                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                    </button>
-                </div>
+                    <div className="form-group" style={{ position: "relative" }}>
+                        <label>New Password<span className="required">*</span></label>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            onChange={handlePasswordChange}
+                            ref={passwordRef}
+                            required
+                            style={{ paddingRight: "2.5rem" }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="toggle-password"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                        </button>
 
-                <div className="form-group" style={{ position: "relative" }}>
-                    <label>Confirm Password<span className="required">*</span></label>
-                    <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    ref={confirmPasswordRef}
-                    required
-                    style={{ paddingRight: "2.5rem" }}
-                    />
-                    <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="toggle-password"
-                    tabIndex={-1}
-                    >
-                    {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                    </button>
-                </div>
+                        <div className="password-strength-bar">
+                            <div
+                                className={`password-strength-fill ${
+                                passwordStrength < 50
+                                    ? "weak"
+                                    : passwordStrength < 75
+                                    ? "medium"
+                                    : "strong"
+                                }`}
+                                style={{ width: `${passwordStrength}%` }}
+                            ></div>
+                        </div>
+                        <p className="password-strength-label">
+                        {passwordStrength === 0
+                            ? "Enter a password"
+                            : passwordStrength < 50
+                            ? "Weak"
+                            : passwordStrength < 75
+                            ? "Medium"
+                            : "Strong"}
+                        </p>
+                    </div>
 
-                <button type="submit" className="change-button">
-                    Submit
-                </button>
+                    <div className="form-group" style={{ position: "relative" }}>
+                        <label>Confirm Password<span className="required">*</span></label>
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            ref={confirmPasswordRef}
+                            required
+                            style={{ paddingRight: "2.5rem" }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            className="toggle-password"
+                            tabIndex={-1}
+                        >
+                            {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                        </button>
+                    </div>
+
+                    <button type="submit" className="change-button">
+                        Submit
+                    </button>
                 </form>
             </div>
         </div>
