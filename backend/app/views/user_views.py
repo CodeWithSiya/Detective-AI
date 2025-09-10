@@ -4,12 +4,13 @@ from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import get_user_model
 from app.services.user_service import UserService
 from app.serializers.user_serializers import UserSerializer
+from app.services.email_service import EmailService
 from typing import Optional, Any
 from datetime import datetime
 
 User = get_user_model()
 
-def create_json_response(success: bool = True, message: Optional[str] = None, data: Optional[Any] = None, error: Optional[str] = None, status_code = status.HTTP_200_OK):
+def create_json_response(success: bool = True, message: Optional[str] = None, data: Optional[Any] = None, error: Optional[str] = None, status_code = status.HTTP_200_OK, **kwargs):
     """
     Create standardised JSON response.
     """
@@ -17,9 +18,17 @@ def create_json_response(success: bool = True, message: Optional[str] = None, da
         'success': success,
         'message': message,
         'data': data,
+    }
+
+    # Add any additional fields.
+    response_data.update(kwargs)
+
+    # Add error and timestamp at the end.
+    response_data.update({
         'error': error,
         'timestamp': datetime.now().isoformat()
-    }
+    })
+
     return Response(response_data, status=status_code)
 
 @api_view(['POST'])
@@ -53,10 +62,29 @@ def register_user(request):
             last_name=data['last_name'],
             user_type=data.get('user_type', 'REGISTERED')
         )
+
+        # Send Welcome Email.
+        email_service = EmailService()
+        user_name = f"{user.first_name}".strip()
+        if not user_name:
+            user_name = user.username
+
+        welcome_result = email_service.send_welcome_email(user.email, user_name)
+
+        # Determine response message.
+        if welcome_result['success']:
+            response_message = "User registered successfully and welcome email sent"
+        else:
+            response_message = "User registered successfully but welcome email failed to send"
+
         return create_json_response(
             success=True,
-            message='User registered successfully',
+            message=response_message,
             data=UserSerializer(user).data,
+            welcome_email={
+                'sent': welcome_result['success'],
+                'status': welcome_result.get('message', 'Welcome email sent successfully') if welcome_result['success'] else welcome_result.get('error', 'Failed to send welcome email')
+            },
             status_code=status.HTTP_201_CREATED
         )
     

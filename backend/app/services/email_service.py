@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# TODO: Link the Start Your First Email Service to the main page of the website!
 class EmailService:
     """
     Service for sending emails on Detective AI.
@@ -30,7 +31,7 @@ class EmailService:
 
         :param analysis_result: TextAnalysisResult instance.
         :param recipient_email: Email address to send to.
-        :param recipient_name: Optional recipient name
+        :param recipient_name: Optional recipient name.
         :return: Dictionary with success status and message
         """
         try:
@@ -100,5 +101,57 @@ class EmailService:
             }
         
     def send_welcome_email(self, user_email: str, user_name: str) -> Dict[str, Any]:
-        """Send welcome email to new users."""
-        return {}
+        """
+        Send welcome email to new users.
+        
+        :param user_email: Email address of the new user.
+        :param user_name: Name of the new user.
+        :return: Dictionary with success status and message.
+        """
+        try:
+            # Input Validation.
+            if not user_email or '@' not in user_email:
+                raise ValueError("Valid user email is required")
+            if not user_name:
+                user_name = user_email.split('@')[0]
+
+            # Prepare email content.
+            context = {
+                'user_name': user_name,
+                'current_year': datetime.now().year
+            }
+
+            subject = "Welcome to Detective AI - Your Account is Ready!"
+
+            # Render email templates.
+            html_content = render_to_string('emails/welcome.html', context)
+            text_content = render_to_string('emails/welcome.txt', context)
+
+            # Create email.
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user_email]
+            )
+
+            # Add HTML version.
+            email.attach_alternative(html_content, "text/html")
+
+            # Send email.
+            email.send()
+
+            logger.info(f"Welcome email sent successfully to {user_email}")
+
+            return {
+                'success': True,
+                'message': f'Welcome email sent successfully to {user_email}',
+                'recipient': user_email
+            }
+        
+        except Exception as e:
+            logger.error(f"Failed to send welcome email to {user_email}: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Failed to send welcome email: {str(e)}'
+            }
