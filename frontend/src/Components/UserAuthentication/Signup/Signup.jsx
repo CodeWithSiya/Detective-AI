@@ -115,8 +115,8 @@ const Signup = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Last Name</label>
-                            <input type="text" placeholder="e.g. Parker" ref={lastNameRef}/>
+                            <label>Last Name<span className="required">*</span></label>
+                            <input type="text" placeholder="e.g. Parker" ref={lastNameRef} required/>
                         </div>
                     </div>
                         
