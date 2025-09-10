@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import Login from './Components/UserAuthentication/Login'
-import Signup from './Components/UserAuthentication/Signup';
+import Signup from './Components/UserAuthentication/Signup/Signup';
 import ForgotPassword from './Components/UserAuthentication/ForgotPassword';
 import VerifyEmail from './Components/UserAuthentication/VerifyEmail';
 import ChangePassword from './Components/UserAuthentication/ChangePassword'
