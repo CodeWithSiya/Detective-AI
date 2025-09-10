@@ -37,3 +37,10 @@
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
 }
+
+.signup-subtitle{
+    font-size: 1rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 2rem;
+}
