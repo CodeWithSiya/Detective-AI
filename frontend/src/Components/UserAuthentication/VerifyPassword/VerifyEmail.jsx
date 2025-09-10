@@ -8,36 +8,31 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion'
+import "./VerifyEmail.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from "react-router-dom";
-import { PinInput } from "@chakra-ui/react"
 
 // Import utility function to get the email from the forgot password step
 import { getEmail } from '../ForgotPassword/ForgotPassword';
-
-// Chakra UI components for styling and layout
-import {
-  Box,
-  Flex,
-  Heading,
-  Image,
-  Button,
-  Text,
-  Stack,
-} from "@chakra-ui/react";
 
 /**
  * Renders the component for email verfication
  * @returns {JSX.Element} The VerifyEmail component
  */
 const VerifyEmail = () => {
-
-    //Initialise motion box for animation
-    const MotionBox = motion(Box);
+    const [pin, setPin] = useState(["", "", "", ""]);
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
+
+    // Function to handle changes in the PIN input fields
+    const handleChange = (index, value) => {
+        if (/^[0-9]?$/.test(value)) {
+        const newPin = [...pin];
+        newPin[index] = value;
+        setPin(newPin);
+        }
+    };
 
     /**
      * Handles form submission when the "Verify" button is clicked
