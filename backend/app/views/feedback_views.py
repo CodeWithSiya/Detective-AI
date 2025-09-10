@@ -177,7 +177,7 @@ def delete_feedback(request, feedback_id):
     """
     Delete user's feedback.
 
-    DELETE /api/feedback/<feedback_id>/
+    DELETE /api/feedback/<feedback_id>/delete
     """
     try:
         result = FeedbackService.delete_feedback(
