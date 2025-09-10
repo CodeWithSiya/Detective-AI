@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { PinInput } from "@chakra-ui/react"
 
 // Import utility function to get the email from the forgot password step
-import { getEmail } from './ForgotPassword';
+import { getEmail } from '../ForgotPassword/ForgotPassword';
 
 // Chakra UI components for styling and layout
 import {

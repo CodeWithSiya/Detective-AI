@@ -31,8 +31,8 @@ import {
 } from "@chakra-ui/react";
 
 // Import for utility functions for email retrieval and password changing
-import { getEmail } from './ForgotPassword';
-import { changePassword } from './AuthHandler';
+import { getEmail } from '../ForgotPassword/ForgotPassword';
+import { changePassword } from '../AuthHandler';
 
 /**
  * Function that renders the form for changing password functionality

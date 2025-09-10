@@ -4,9 +4,9 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import Login from './Components/UserAuthentication/Login/Login'
 import Signup from './Components/UserAuthentication/Signup/Signup';
-import ForgotPassword from './Components/UserAuthentication/ForgotPassword';
-import VerifyEmail from './Components/UserAuthentication/VerifyEmail';
-import ChangePassword from './Components/UserAuthentication/ChangePassword'
+import ForgotPassword from './Components/UserAuthentication/ForgotPassword/ForgotPassword';
+import VerifyEmail from './Components/UserAuthentication/VerifyPassword/VerifyEmail';
+import ChangePassword from './Components/UserAuthentication/ChangePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DetectivePage from './Components/DetectivePage/DetectivePage';
 import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';

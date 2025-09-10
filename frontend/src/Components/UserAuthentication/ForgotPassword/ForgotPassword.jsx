@@ -28,7 +28,7 @@ import {
 } from "@chakra-ui/react";
 
 // Import authentication handler for email verification
-import { emailExists } from './AuthHandler';
+import { emailExists } from '../AuthHandler';
 
 
 
