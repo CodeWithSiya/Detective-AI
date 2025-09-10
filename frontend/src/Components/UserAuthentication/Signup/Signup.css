@@ -108,3 +108,16 @@ input:focus{
     transform: translateY(-2px);
     box-shadow: 0 15px 40px rgba(30, 41, 59, 0.4);
 }
+
+.signup-footer{
+    text-align: center;
+    margin-top: 1rem;
+    color: #64748b;
+}
+
+.login-link{
+    color: 1e293b;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
