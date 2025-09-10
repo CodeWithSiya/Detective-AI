@@ -92,7 +92,7 @@ const Signup = () => {
         // Main container
         <div className="signup-container">
             <div className="signup-card">
-                <img src={Logo} alt="Logo" className="signup-logo" />
+                {/*<img src={Logo} alt="Logo" className="signup-logo" />*/}
                 
                 <h1 className="signup-title">
                     <Typewriter
