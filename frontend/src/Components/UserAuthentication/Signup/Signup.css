@@ -138,3 +138,15 @@ input:focus{
     transition: width 0.4s ease, background 0.3s ease;
 }
 
+.password-strength-fill.weak {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.password-strength-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #facc15);
+}
+
+.password-strength-fill.strong {
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+}
+
