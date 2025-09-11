@@ -26,7 +26,7 @@ class UserService:
 
     @staticmethod
     @transaction.atomic
-    def create_user_with_verification(username: str, email: str, password: str, first_name: str, last_name: str, user_type: str = "REGISTERED"):
+    def create_user_with_verification(username: str, email: str, password: str, first_name: str, last_name: str, is_admin: bool = False):
         """
         Create a new user account that requires email verification.
 
@@ -35,7 +35,7 @@ class UserService:
         :param password: User's password.
         :param first_name: First name of the user.
         :param last_name: Last name of the user.
-        :param user_type: Type of user (default is "REGISTERED").
+        :param is_admin: Whether to create as admin user.
         :returns: Tuple of (User instance, verification_code)
         """
         # Check for existing users.
@@ -55,9 +55,10 @@ class UserService:
             password=password,
             first_name=first_name,
             last_name=last_name,
-            user_type=user_type,
             is_active=False,    # Inactive until verified.
             is_email_verified=False,
+            is_staff=is_admin,
+            is_superuser=is_admin,
             verification_code_expires_at=expires_at
         )
 
@@ -67,8 +68,35 @@ class UserService:
 
         logger.info(f"User created with verification required: {user.pk} ({user.email})")
         
-        # Return plain verification code for email.
+        # Return plain verification code for verification email.
         return user, verification_code
+    
+    @staticmethod
+    @transaction.atomic
+    def create_admin_user(username: str, email: str, password: str, first_name: str, last_name: str):
+        """
+        Create an admin user without email verification requirement.
+        """
+        if User.objects.filter(email=email).exists():
+            raise ValueError("A user with this email already exists.")
+        
+        if User.objects.filter(username=username).exists():
+            raise ValueError("A user with this username already exists.")
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            is_active=True,
+            is_email_verified=True,
+            is_staff=True,
+            is_superuser=True
+        )
+
+        logger.info(f"Admin user created: {user.pk} ({user.email})")
+        return user
     
     @staticmethod
     @transaction.atomic
@@ -180,11 +208,14 @@ class UserService:
         try:
             user = User.objects.get(email=email)
 
-            # Check if email is verified.
-            if not user.is_email_verified:
+            # Check if email is verified and account is active.
+            if not user.is_email_verified or not user.is_active:
                 return None, None
             
             if user.check_password(password):
+                # Update last login.
+                user.update_last_login()
+                
                 # Get or create token for the user.
                 token, created = Token.objects.get_or_create(user=user)
                 logger.info(f"User authenticated: {user.pk} ({user.email})")

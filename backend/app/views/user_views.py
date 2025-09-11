@@ -66,7 +66,7 @@ def register_user(request):
             password=data['password'],
             first_name=data['first_name'],
             last_name=data['last_name'],
-            user_type=data.get('user_type', 'REGISTERED')
+            is_admin=False
         )
 
         # Send verification code email.
@@ -341,7 +341,7 @@ def get_user_profile(request, user_id: str):
         )
     
     # User can only view their own profile unless admin.
-    if not request.user.is_admin_user() and str(request.user.id) != user_id:
+    if not request.user.is_staff and str(request.user.id) != user_id:
         return create_json_response(
             success=False,
             error='Permission denied',
@@ -377,7 +377,7 @@ def update_user_profile(request, user_id: str):
     PUT /api/users/{user_id}/update/
     """
     # Only admins or the user themselves can update profile.
-    if not request.user.is_admin_user() and str(request.user.id) != user_id:
+    if not request.user.is_staff and str(request.user.id) != user_id:
         return create_json_response(
             success=False,
             error='Permission denied',
@@ -428,7 +428,7 @@ def change_user_password(request, user_id: str):
     PUT /api/users/{user_id}/change-password/
     """
     # Only admins or the user themselves can change password.
-    if not request.user.is_admin_user() and str(request.user.id) != user_id:
+    if not request.user.is_staff and str(request.user.id) != user_id:
         return create_json_response(
             success=False,
             error='Permission denied',
@@ -487,7 +487,7 @@ def delete_user(request, user_id: str):
     DELETE /api/users/{user_id}/delete
     """
     # Only admins or the user themselves can delete
-    if not request.user.is_admin_user() and str(request.user.id) != user_id:
+    if not request.user.is_staff and str(request.user.id) != user_id:
         return create_json_response(
             success=False,
             error='Permission denied',
