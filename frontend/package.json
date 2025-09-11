@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@chakra-ui/form-control": "^2.2.0",
-    "@chakra-ui/react": "^3.24.2",
+    "@chakra-ui/react": "^3.26.0",
     "@emotion/react": "^11.14.0",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",

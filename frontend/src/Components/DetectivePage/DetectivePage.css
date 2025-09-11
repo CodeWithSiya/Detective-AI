@@ -287,6 +287,7 @@ body {
     padding: 1rem 2rem;
     max-width: 1400px;
     margin: auto;
+    max-height: 40px;
 }
 
 .header-left {
@@ -296,10 +297,10 @@ body {
 }
 
 .detective-logo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    position: relative;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    position: absolute !important;
 }
 
 .detective-logo-icon {
@@ -360,6 +361,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin-bottom: -15px;
 }
 
 .detective-subtitle { 
@@ -408,12 +410,11 @@ body {
 .sidebar-logo-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .sidebar-title {
@@ -618,24 +619,24 @@ body {
 
 /* Menu Toggle Button */
 .menu-toggle {
-    position: static;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1001;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    color: #ffffff;
-    padding: 0.75rem;
+    position: absolute !important;
+    top: 1rem !important;
+    left: 1rem !important;
+    z-index: 1001 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #ffffff !important;
+    padding: 0.75rem !important;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
 }
 
 .menu-toggle:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.05);
+    background: rgba(0, 0, 0, 0.9) !important;
+    transform: scale(1.05) !important;
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
 }
 
