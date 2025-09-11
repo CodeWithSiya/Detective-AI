@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoConfig, AutoModel, PreTrainedModel
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Tuple
+from threading import Lock
+from functools import lru_cache
+import hashlib
 from .ai_model import AiModel
 
 class DetectionModel(PreTrainedModel):
@@ -71,24 +74,71 @@ class DetectionModel(PreTrainedModel):
 class AiTextModel(AiModel):
     """
     Text analysis model for AI generated content.
+    Implemented as a thread-safe singleton with simple LRU caching for Django applications.
 
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 22/08/2025
     """
+    
+    _instance = None
+    _lock = Lock()
+
+    def __new__(cls, model_name: str = "desklib/ai-text-detector-v1.01", device: Optional[str] = None):
+        """
+        Create or return the singleton instance.
+        
+        :param model_name: Hugging Face model name
+        :param device: "cpu" or "cuda". Defaults to GPU if available.
+        :return: Singleton instance
+        """
+        if cls._instance is None:
+            with cls._lock:
+                # Double-check locking pattern
+                if cls._instance is None:
+                    cls._instance = super(AiTextModel, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self, model_name: str = "desklib/ai-text-detector-v1.01", device: Optional[str] = None):
         """
-        Create an instance of the AI text analysis model.
+        Initialize the AI text analysis model (only once).
 
         :param model_name: Hugging Face model name
         :param device: "cpu" or "cuda". Defaults to GPU if available.
         """
+        # Prevent re-initialization of the singleton instance
+        if self._initialized:
+            return
+            
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-        super().__init__(model_name = model_name, device = device)
+        super().__init__(model_name=model_name, device=device)
 
         self.device = device  
         self.threshold = 0.5
+        self._initialized = True
+        
+    @classmethod
+    def get_instance(cls, model_name: str = "desklib/ai-text-detector-v1.01", device: Optional[str] = None):
+        """
+        Alternative method to get the singleton instance.
+        
+        :param model_name: Hugging Face model name
+        :param device: "cpu" or "cuda". Defaults to GPU if available.
+        :return: Singleton instance
+        """
+        return cls(model_name=model_name, device=device)
+    
+    @classmethod
+    def reset_instance(cls):
+        """
+        Reset the singleton instance. Useful for testing or reinitializing with different parameters.
+        """
+        with cls._lock:
+            # Clear the cache before resetting instance
+            if cls._instance is not None and hasattr(cls._instance, '_cached_predict'):
+                cls._instance._cached_predict.cache_clear()
+            cls._instance = None
         
     def load(self) -> None:
         """
@@ -103,15 +153,31 @@ class AiTextModel(AiModel):
 
         except Exception as e:
             raise RuntimeError(f"Failed to load model {self.model_name}: {str(e)}")
-        
-    def predict(self, text: str) -> Dict[str, Any]:
+
+    def _normalize_text(self, text: str) -> str:
         """
-        :param text: Input text to analyse.
-        :return: Dictionary containing probability and prediction
+        Normalize text for consistent caching.
+        
+        :param text: Input text
+        :return: Normalized text
+        """
+        # Strip whitespace and normalize newlines for consistent caching
+        return text.strip().replace('\r\n', '\n').replace('\r', '\n')
+
+    @lru_cache(maxsize=512)
+    def _cached_predict(self, text_hash: str, text: str) -> Tuple[float, bool, float]:
+        """
+        Internal cached prediction method.
+        Uses text hash as first parameter to ensure cache uniqueness.
+        
+        :param text_hash: SHA256 hash of the text (for cache key)
+        :param text: Input text to analyse
+        :return: Tuple of (probability, is_ai_generated, confidence)
         """
         if not self.is_loaded():
             raise RuntimeError("Model not loaded. Call load() first.")
         
+        # Perform prediction
         encoded = self.tokenizer(
             text,
             padding='max_length',
@@ -131,8 +197,48 @@ class AiTextModel(AiModel):
         is_ai_generated = probability >= self.threshold
         confidence = probability if is_ai_generated else (1 - probability)
 
+        return probability, is_ai_generated, confidence
+
+    def predict(self, text: str) -> Dict[str, Any]:
+        """
+        :param text: Input text to analyse.
+        :return: Dictionary containing probability and prediction
+        """
+        # Normalize text for consistent results
+        normalized_text = self._normalize_text(text)
+        
+        # Create hash for caching
+        text_hash = hashlib.sha256(normalized_text.encode('utf-8')).hexdigest()
+        
+        # Get cached result
+        probability, is_ai_generated, confidence = self._cached_predict(text_hash, normalized_text)
+        
         return {
             'probability': probability,
             'is_ai_generated': is_ai_generated,
             'confidence': confidence
         }
+    
+    def clear_cache(self):
+        """
+        Clear the prediction cache.
+        """
+        if hasattr(self, '_cached_predict'):
+            self._cached_predict.cache_clear()
+    
+    def get_cache_info(self) -> Dict[str, Any]:
+        """
+        Get cache statistics.
+        
+        :return: Dictionary with cache information
+        """
+        if hasattr(self, '_cached_predict'):
+            cache_info = self._cached_predict.cache_info()
+            return {
+                'hits': cache_info.hits,
+                'misses': cache_info.misses,
+                'current_size': cache_info.currsize,
+                'max_size': cache_info.maxsize,
+                'hit_rate': cache_info.hits / (cache_info.hits + cache_info.misses) if (cache_info.hits + cache_info.misses) > 0 else 0.0
+            }
+        return {'error': 'Cache not initialized'}
