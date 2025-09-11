@@ -1,11 +1,11 @@
 from django.conf import settings
 from app.models.text_analysis_result import TextAnalysisResult
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch, cm
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from io import BytesIO
 from datetime import datetime
 import logging
@@ -93,7 +93,7 @@ class ReportService:
             story = []
 
             # Main Report Content.
-            title = Paragraph("AI Content Detection Report", self.styles['CustomTitle'])
+            title = Paragraph("Detective AI Analysis Report", self.styles['CustomTitle'])
             story.append(title)
             story.append(Spacer(1, 20))
 
@@ -136,7 +136,7 @@ class ReportService:
                 ['Generated For:', html.escape(user_email)],
                 ['Analysis Date:', created_at_str],
                 ['Report Generated:', datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')],
-                ['Processing Time:', f"{processing_time}ms"]
+                ['Processing Time:', f"{int(processing_time) / 1000} s"]  # Maybe in seconds to improve understandability
             ]
 
             table = Table(metadata_data, colWidths=[2*inch, 4*inch])
@@ -270,7 +270,7 @@ class ReportService:
         try:
             submission = getattr(analysis_result, 'submission', None)
             if submission and hasattr(submission, 'content'):
-                story.append(Paragraph("Analyzed Text Sample", self.styles['SectionHeader']))
+                story.append(Paragraph("Analysed Text Sample", self.styles['SectionHeader']))
                 
                 # Safely get content
                 content = getattr(submission, 'content', '')
