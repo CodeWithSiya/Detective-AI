@@ -4,6 +4,7 @@ from app.views import analysis_views
 from app.views import feedback_views
 from app.views import report_views
 from app.views import submission_history_views
+from app.views import admin_views
 
 urlpatterns = [
     # Text analysis
@@ -38,6 +39,12 @@ urlpatterns = [
     
     # Admin feedback management
     path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin'),
+
+    # Admin dashboard and statistics
+    path('admin/statistics/', admin_views.get_system_statistics, name='get_system_statistics'),
+    path('admin/activity/', admin_views.get_recent_activity, name='get_recent_activity'),
+    path('admin/performance/', admin_views.get_performance_metrics, name='get_performance_metrics'),
+    path('admin/dashboard/', admin_views.get_admin_dashboard_data, name='get_admin_dashboard_data'),
 
     # Analysis report download and email management
     path('reports/analysis/<str:analysis_id>/download/', report_views.download_report, name='download_report'),
