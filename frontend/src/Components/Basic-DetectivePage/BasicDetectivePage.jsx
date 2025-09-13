@@ -50,15 +50,15 @@ const BasicDetectivePage = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showTooltip, setShowTooltip] = useState(null);
 
-    const WORD_LIMIT = 250;
+    const CHARACTER_LIMIT = 250;
 
-    //count words in text
-    const getWordCount = () => {
-      return textContent.trim() ? textContent.trim().split(/\s+/).length : 0;
+    //count characters in text
+    const getCharacterCount = () => {
+      return textContent.length;
     };
 
     const isOverLimit = () => {
-      return getWordCount() > WORD_LIMIT;
+      return getCharacterCount() > CHARACTER_LIMIT;
     };
 
     //sidebar toggle
@@ -389,7 +389,7 @@ const BasicDetectivePage = () => {
                     <div className="interface-header">
                         <h1 className="interface-title">AI Content Detection</h1>
                         <p className="interface-subtitle">
-                            Try our AI detection with up to 250 words. Sign in for unlimited access.
+                            Try our AI detection with up to 250 characters. Sign in for unlimited access.
                         </p>
                     </div>
 
@@ -401,7 +401,7 @@ const BasicDetectivePage = () => {
                           <FileText className="icon-lg" />
                         </div>
                         <h3 className="card-title">Text Detection</h3>
-                        <p className="card-description">Analyze text up to 250 words for AI-generated patterns.</p>
+                        <p className="card-description">Analyze text up to 250 characters for AI-generated patterns.</p>
                       </div>
 
                       {/* Image detection - Disabled */}
@@ -450,12 +450,12 @@ const BasicDetectivePage = () => {
                       <div className="text-input-wrapper">
                         <textarea
                             className={`text-area ${isOverLimit() ? 'over-limit' : ''}`}
-                            placeholder="Paste or type your text here for AI detection analysis (up to 250 words)..."
+                            placeholder="Paste or type your text here for AI detection analysis (up to 250 characters)..."
                             value={textContent}
                             onChange={(e) => setTextContent(e.target.value)}
                         />
                         <div className={`word-counter ${isOverLimit() ? 'over-limit' : ''}`}>
-                          {getWordCount()} / {WORD_LIMIT} words
+                          {getCharacterCount()} / {CHARACTER_LIMIT} characters
                           {isOverLimit() && <span className="limit-warning"> - Limit exceeded</span>}
                         </div>
                       </div>
@@ -534,7 +534,7 @@ const BasicDetectivePage = () => {
                                   <FileText className="icon-md" />
                               </div>
                               <h4>Unlimited Text Analysis</h4>
-                              <p>Analyze texts of any length without word limits</p>
+                              <p>Analyze texts of any length without character limits</p>
                           </div>
                           <div className="feature-card">
                               <div className="feature-icon">
