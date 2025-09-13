@@ -47,6 +47,9 @@ import jsPDF from 'jspdf';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
 const DetectivePage = () => {
+    // API Configuration.
+    const API_BASE_URL = 'http://localhost:8000';
+    
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentView, setCurrentView] = useState('main');
@@ -153,8 +156,8 @@ const DetectivePage = () => {
         const highlights = [];
         
         // Collect all found items with their types
-        if (analysisDetails.found_keywords?.length > 0) {
-            analysisDetails.found_keywords.forEach(keyword => {
+        if (analysisDetails.foundKeywords?.length > 0) {
+            analysisDetails.foundKeywords.forEach(keyword => {
                 highlights.push({
                     text: keyword,
                     type: 'keyword',
@@ -163,8 +166,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.found_patterns?.length > 0) {
-            analysisDetails.found_patterns.forEach(pattern => {
+        if (analysisDetails.foundPatterns?.length > 0) {
+            analysisDetails.foundPatterns.forEach(pattern => {
                 highlights.push({
                     text: pattern,
                     type: 'suspicious',
@@ -173,8 +176,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.found_transitions?.length > 0) {
-            analysisDetails.found_transitions.forEach(transition => {
+        if (analysisDetails.foundTransitions?.length > 0) {
+            analysisDetails.foundTransitions.forEach(transition => {
                 highlights.push({
                     text: transition,
                     type: 'transition',
@@ -183,8 +186,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.found_jargon?.length > 0) {
-            analysisDetails.found_jargon.forEach(jargon => {
+        if (analysisDetails.foundJargon?.length > 0) {
+            analysisDetails.foundJargon.forEach(jargon => {
                 highlights.push({
                     text: jargon,
                     type: 'jargon',
@@ -193,8 +196,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.found_buzzwords?.length > 0) {
-            analysisDetails.found_buzzwords.forEach(buzzword => {
+        if (analysisDetails.foundBuzzwords?.length > 0) {
+            analysisDetails.foundBuzzwords.forEach(buzzword => {
                 highlights.push({
                     text: buzzword,
                     type: 'buzzword',
@@ -203,8 +206,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.found_human_indicators?.length > 0) {
-            analysisDetails.found_human_indicators.forEach(indicator => {
+        if (analysisDetails.foundHumanIndicators?.length > 0) {
+            analysisDetails.foundHumanIndicators.forEach(indicator => {
                 highlights.push({
                     text: indicator,
                     type: 'human',
@@ -229,44 +232,86 @@ const DetectivePage = () => {
 
     const performTextAnalysis = async (text) => {
         try {
-            const response = await fetch('/api/analyze/text', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    input_text: text,
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!data.success) {
-                throw new Error(data.error || 'Analysis failed');
+            // Check if user is authenticated.
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if user is authenticated.
+            if (token) {
+                headers['Authorization'] = `Token ${token}`;
             }
-            
-            // Generate highlighted text from API data
+
+            // Fetch data from the API.
+            const response = await fetch(`${API_BASE_URL}/api/analysis/text/`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    text: text,
+                }),
+            });
+
+            // Check if the response is okay.
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Analysis failed');
+            }
+
+            // Fetches data from the API response.
+            const data = await response.json();
+
+            // Generate highlighted text from API data.
             const highlightedText = generateHighlightedText(
-                text, 
+                text,
                 data.data.analysis_result.analysis.analysis_details
             );
-            
+
+            // Extract data from the response structure.
+            const analysisData = data.data.analysis_result;
+            const prediction = analysisData.prediction;
+            const analysis = analysisData.analysis;
+            const statistics = analysisData.statistics;
+            const analysisDetails = analysis.analysis_details;
+            const submission = data.data.submission; // This might be undefined
+
             return {
-                isAI: data.data.analysis_result.prediction.is_ai_generated,
-                confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
-                detectionReasons: data.data.analysis_result.analysis.detection_reasons,
-                statistics: data.data.analysis_result.statistics,
-                analysisDetails: data.data.analysis_result.analysis.analysis_details,
+                isAI: prediction.is_ai_generated,
+                confidence: Math.round(prediction.confidence * 100),
                 highlightedText: highlightedText,
-                submissionId: data.data.submission.id,
-                analysisId: data.data.analysis_result.analysis_id
+                detectionReasons: analysis.detection_reasons || [],
+                statistics: {
+                    totalWords: statistics.total_words,
+                    sentences: statistics.sentences,
+                    avgSentenceLength: statistics.avg_sentence_length,
+                    aiKeywordsCount: statistics.ai_keywords_count,
+                    transitionWordsCount: statistics.transition_words_count,
+                    corporateJargonCount: statistics.corporate_jargon_count,
+                    buzzwordsCount: statistics.buzzwords_count,
+                    suspiciousPatternsCount: statistics.suspicious_patterns_count,
+                    humanIndicatorsCount: statistics.human_indicators_count,
+                },
+                analysisDetails: {
+                    foundKeywords: analysisDetails.found_keywords,
+                    foundPatterns: analysisDetails.found_patterns,
+                    foundTransitions: analysisDetails.found_transitions,
+                    foundJargon: analysisDetails.found_jargon,
+                    foundBuzzwords: analysisDetails.found_buzzwords,
+                    foundHumanIndicators: analysisDetails.found_human_indicators,
+                },
+                analysisId: data.data.analysis_result.analysis_id,
+                // Only include submission if it exists in the response
+                submission: submission ? {
+                    submissionId: submission.id,
+                    submissionName: submission.name,
+                } : null,
             };
         } catch (error) {
             console.error('Analysis failed:', error);
             throw error;
         }
     };
-
+    
     /* OLD MOCKED ANALYSIS LOGIC - COMMENTED OUT
     const performTextAnalysis = (text) => {
         const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
@@ -1038,7 +1083,7 @@ const DetectivePage = () => {
         {
             id: 'text',
             title: 'Text Detection',
-            description: 'Analyze text content for AI-generated patterns and signatures.',
+            description: 'Analyse text content for AI-generated patterns and signatures.',
             icon: <FileText className="icon-lg"/>
         },
         {
@@ -1276,7 +1321,7 @@ const DetectivePage = () => {
                                                     ) : (
                                                         <>
                                                             <Eye className="icon-sm" />
-                                                            Analyze Text
+                                                            Analyse Text
                                                         </>
                                                     )}
                                                 </button>
