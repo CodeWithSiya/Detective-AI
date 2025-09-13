@@ -1,0 +1,26 @@
+Welcome to Detective AI!
+========================
+
+Dear {{ user_name }},
+
+Thank you for joining Detective AI, the leading platform for AI content detection.
+
+Your account has been successfully created and you're ready to start analysing content with our advanced detection technology.
+
+WHAT YOU CAN DO WITH DETECTIVE AI:
+- Advanced Detection: State-of-the-art AI models for accurate content analysis
+- Detailed Reports: Comprehensive analysis with confidence scores and reasoning  
+- Email Reports: Get detailed PDF reports sent directly to your inbox
+- History Tracking: Keep track of all your analysis submissions and results
+
+GETTING STARTED:
+You can now log in to your account and start analysing your first piece of content. Our intuitive interface makes it easy to get accurate results in seconds.
+
+Need help? Our support team is available to assist you with any questions about using Detective AI effectively.
+
+Welcome aboard!
+The Detective AI Team
+
+---
+© 2025 Detective AI. All rights reserved.
+This is an automated message from Detective AI. Please do not reply to this email.

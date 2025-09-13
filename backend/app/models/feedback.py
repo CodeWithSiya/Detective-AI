@@ -76,3 +76,15 @@ class Feedback(models.Model):
         Returns a string representation of this feedback.
         """
         return f"{self.user.username} | {self.rating} | {self.created_at}"
+    
+    @property
+    def submission_name(self):
+        """
+        Get the submission name from the related analysis.
+        """
+        try:
+            if self.submission and hasattr(self.submission, 'submission'):
+                return self.submission.submission.name or "Unnamed Submission"
+            return "Unknown Submission"
+        except:
+            return "Unknown Submission"

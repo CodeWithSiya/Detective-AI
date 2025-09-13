@@ -2,34 +2,34 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import Login from './Components/UserAuthentication/Login/Login'
+import Signup from './Components/UserAuthentication/Signup/Signup';
+import ForgotPassword from './Components/UserAuthentication/ForgotPassword/ForgotPassword';
+import VerifyEmail from './Components/UserAuthentication/VerifyPassword/VerifyEmail';
+import ChangePassword from './Components/UserAuthentication/ChangePassword/ChangePassword'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import DetectivePage from './Components/DetectivePage/DetectivePage';
+import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
+import Team from './Components/Team/Team';
+import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
+import BasicDetectivePage from './Components/Basic-DetectivePage/BasicDetectivePage';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+    <ScrollToTop/>
+      <Routes>
+        <Route path="/" element={<DemoLandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<VerifyEmail />}/>
+        <Route path="/change-password" element={<ChangePassword/>}/>
+        <Route path="/detective" element={<DetectivePage />} />
+        <Route path="/team" element={<Team />} />
+        <Route path="/basic-detective" element={<BasicDetectivePage />} />
+      </Routes>
+    </Router>
   )
 }
-
 export default App
