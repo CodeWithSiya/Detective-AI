@@ -132,7 +132,7 @@ class AiTextModel(AiModel):
     @classmethod
     def reset_instance(cls):
         """
-        Reset the singleton instance. Useful for testing or reinitializing with different parameters.
+        Reset the singleton instance.
         """
         with cls._lock:
             # Clear the cache before resetting instance
