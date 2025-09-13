@@ -8,12 +8,12 @@
  */
 
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import "./ForgotPassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
-// Import authentication handler for email verification
-import { emailExists } from '../AuthHandler';
+// Import authentication handler for forgot password API call
+import { forgotPassword } from '../AuthHandler';
 
 let emailValue = null;
 
@@ -43,11 +43,59 @@ const ForgotPassword = () => {
 
     //Create ref to access email input field
     const emailRef = useRef();
+    
+    // State for loading and error handling
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     /**
      * Function gets called when the submit button gets pressed
      * @param {Event} e 
      */
+    const handleSubmit = async (e) => {
+        //prevents default submission behaviour
+        e.preventDefault();
+        
+        // Clear previous messages
+        setErrorMessage('');
+        setSuccessMessage('');
+        setIsLoading(true);
+
+        const email = emailRef.current.value;
+
+        try {
+            // Check if the entered email exists in the system via API
+            const result = await forgotPassword(email);
+
+            if (result.success) {
+                // If successful, store email for next step and show success message
+                setEmail(email);
+                setSuccessMessage(result.message);
+                
+                // Navigate to verify email after showing success message
+                setTimeout(() => {
+                    navigate('/verify-email');
+                }, 2000);
+            } else {
+                // Error message if not found/invalid
+                setErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            setErrorMessage('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // COMMENTED OUT: Original synchronous forgot password handler
+    /*
+    /**
+     * Function gets called when the submit button gets pressed
+     * @param {Event} e 
+     */
+    /*
     const handleSubmit = (e) => {
         //prevents default submission behaviour
         e.preventDefault();
@@ -66,6 +114,7 @@ const ForgotPassword = () => {
             alert(result.message);
         }
     }
+    */
 
     return (
         <div className="forgot-container">
@@ -87,6 +136,34 @@ const ForgotPassword = () => {
                 </p>
 
                 <form className="forgot-form" onSubmit={handleSubmit}>
+                {errorMessage && (
+                    <div style={{ 
+                        color: '#ef4444', 
+                        backgroundColor: '#fef2f2', 
+                        border: '1px solid #fecaca',
+                        padding: '0.75rem', 
+                        borderRadius: '0.375rem', 
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem'
+                    }}>
+                        {errorMessage}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div style={{ 
+                        color: '#059669', 
+                        backgroundColor: '#ecfdf5', 
+                        border: '1px solid #a7f3d0',
+                        padding: '0.75rem', 
+                        borderRadius: '0.375rem', 
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem'
+                    }}>
+                        {successMessage}
+                    </div>
+                )}
+                
                 <div className="form-group">
                     <label>Email<span className="required">*</span></label>
                     <input
@@ -97,8 +174,8 @@ const ForgotPassword = () => {
                     />
                 </div>
 
-                <button type="submit" className="forgot-button">
-                    Request Reset
+                <button type="submit" className="forgot-button" disabled={isLoading}>
+                    {isLoading ? 'Sending Reset Link...' : 'Request Reset'}
                 </button>
                 </form>
             </div>
