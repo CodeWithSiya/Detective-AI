@@ -1,8 +1,6 @@
 """
 Services package initialisation.
 """
-# Initialising text extraction service.
-from .text_extractor import TextExtractor
 
 # Initialising analysis extraction services.
 from .ai_analyser import AiAnalyser
