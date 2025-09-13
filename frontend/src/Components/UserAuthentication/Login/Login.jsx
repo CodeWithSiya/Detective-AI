@@ -29,10 +29,57 @@ const Login = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
     /**
      * Gets called when submit button is clicked
      * @param {Event} e 
      */
+    const handleSubmit = async (e) => {
+
+        //prevent default behaviour
+        e.preventDefault();
+        
+        // Clear previous error messages
+        setErrorMessage('');
+        setIsLoading(true);
+
+        //Extract current values from input fields
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
+
+        try {
+            //API call for user authentication
+            const result = await login(email, password);
+
+            //move to next page if login successful
+            if (result.success){
+                // Store remember me preference if needed
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                }
+                navigate("/detective");
+            }
+            else{
+                //Error message
+                setErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // COMMENTED OUT: Original synchronous login handler
+    /*
+    /**
+     * Gets called when submit button is clicked
+     * @param {Event} e 
+     */
+    /*
     const handleSubmit = (e) => {
 
         //prevent default behaviour
@@ -54,6 +101,7 @@ const Login = () => {
             alert(result.message);
         }
     };
+    */
 
     return (
         <div className="login-container">
@@ -81,6 +129,20 @@ const Login = () => {
                 <p className="login-subtitle">Log in to your account</p>
 
                 <form className="login-form" onSubmit={handleSubmit}>
+                {errorMessage && (
+                    <div style={{ 
+                        color: '#ef4444', 
+                        backgroundColor: '#fef2f2', 
+                        border: '1px solid #fecaca',
+                        padding: '0.75rem', 
+                        borderRadius: '0.375rem', 
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem'
+                    }}>
+                        {errorMessage}
+                    </div>
+                )}
+                
                 <div className="form-group">
                     <label>Email<span className="required">*</span></label>
                     <input type="email" placeholder="e.g. me@example.com" ref={emailRef} required />
@@ -128,8 +190,8 @@ const Login = () => {
                     </RouterLink>
                 </div>
 
-                <button type="submit" className="login-button">
-                    Log In
+                <button type="submit" className="login-button" disabled={isLoading}>
+                    {isLoading ? 'Logging in...' : 'Log In'}
                 </button>
 
                 <p className="login-footer">
