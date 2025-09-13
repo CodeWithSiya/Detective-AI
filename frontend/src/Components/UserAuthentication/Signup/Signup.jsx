@@ -35,6 +35,9 @@ const Signup = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordMatch, setPasswordMatch] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
@@ -66,6 +69,65 @@ const Signup = () => {
      * Handles form submission when the "Sign up" button is clicked
      * @param {Event} e 
      */
+    const handleSubmit = async (e) => {
+        // Prevents default submit behaviour
+        e.preventDefault();
+        
+        // Clear previous messages
+        setErrorMessage('');
+        setSuccessMessage('');
+        setIsLoading(true);
+
+        //Extract current values from fields
+        const firstName = nameRef.current.value;
+        const lastName = lastNameRef.current.value;
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
+        const confirmPassword = confirmPasswordRef.current.value;
+        const userName = userNameRef.current.value;
+
+        //Validate password
+        if (password !== confirmPassword) {
+            setErrorMessage("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
+
+        // Check password strength
+        if (passwordStrength < 75) {
+            setErrorMessage("Please choose a stronger password (should contain uppercase letters, numbers, and special characters)");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            //Attempt to create a new user via API
+            const result = await signUp(email, password, firstName, lastName, userName);
+
+            if (result.success) {
+                setSuccessMessage(result.message);
+                // Navigate to login page after a short delay to show success message
+                setTimeout(() => {
+                    navigate("/login");
+                }, 2000);
+            } else {
+                setErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            setErrorMessage('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // COMMENTED OUT: Original synchronous signup handler
+    /*
+    /**
+     * Handles form submission when the "Sign up" button is clicked
+     * @param {Event} e 
+     */
+    /*
     const handleSubmit = (e) => {
         // Prevents default submit behaviour
         e.preventDefault();
@@ -97,6 +159,7 @@ const Signup = () => {
             alert("Passwords do not match");
         }
     };
+    */
 
     return (
         // Main container
@@ -119,6 +182,34 @@ const Signup = () => {
                 <p className="signup-subtitle">Create your account </p>
 
                 <form className="signup-form" onSubmit={handleSubmit}>
+                    {errorMessage && (
+                        <div style={{ 
+                            color: '#ef4444', 
+                            backgroundColor: '#fef2f2', 
+                            border: '1px solid #fecaca',
+                            padding: '0.75rem', 
+                            borderRadius: '0.375rem', 
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem'
+                        }}>
+                            {errorMessage}
+                        </div>
+                    )}
+                    
+                    {successMessage && (
+                        <div style={{ 
+                            color: '#059669', 
+                            backgroundColor: '#ecfdf5', 
+                            border: '1px solid #a7f3d0',
+                            padding: '0.75rem', 
+                            borderRadius: '0.375rem', 
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem'
+                        }}>
+                            {successMessage}
+                        </div>
+                    )}
+
                     <div className="form-row">
 
                         <div className="form-group">
@@ -226,8 +317,8 @@ const Signup = () => {
                         )}
                     </div>
 
-                    <button type="submit" className="signup-button">
-                        Sign up
+                    <button type="submit" className="signup-button" disabled={isLoading || !passwordMatch || passwordStrength < 50}>
+                        {isLoading ? 'Creating Account...' : 'Sign up'}
                     </button>
 
                     <p className="signup-footer">
