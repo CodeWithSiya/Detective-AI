@@ -9,22 +9,20 @@
 
 import React, { useRef, useState } from 'react';
 import "./Login.css";
-import Logo from '../../Assets/Logo.jpg';
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {Eye, EyeOff} from 'lucide-react';
 import { login } from '../AuthHandler';
 
 /**
- * Function that renders the main login page
- * @returns {JSX.Element} Login Component
+ * Function that renders the main login page.
  */
 const Login = () => {
-    //store references for email and password
+    // Store references for email and password.
     const emailRef = useRef();
     const passwordRef = useRef();
 
-    //Initialise navigation between routes
+    // Initialise navigation between routes.
     const navigate = useNavigate();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -33,37 +31,36 @@ const Login = () => {
     const [errorMessage, setErrorMessage] = useState('');
 
     /**
-     * Gets called when submit button is clicked
-     * @param {Event} e 
+     * Gets called when submit button is clicked.
      */
     const handleSubmit = async (e) => {
-
-        //prevent default behaviour
+        // Prevent default behaviour.
         e.preventDefault();
         
-        // Clear previous error messages
+        // Clear previous error messages.
         setErrorMessage('');
         setIsLoading(true);
 
-        //Extract current values from input fields
+        // Extract current values from input fields.
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
         try {
-            //API call for user authentication
+            // API call for user authentication.
             const result = await login(email, password);
 
-            //move to next page if login successful
-            if (result.success){
+            // Move to next page if login successful
+            if (result.success) {
                 // Store remember me preference if needed
                 if (rememberMe) {
                     localStorage.setItem('rememberMe', 'true');
                 }
+                
+                console.log('Login successful:', result.user);
                 navigate("/detective");
-            }
-            else{
-                //Error message
-                setErrorMessage(result.message);
+            } else {
+                // Display login error message
+                setErrorMessage(result.message || 'Invalid email or password. Please try again.');
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -72,36 +69,6 @@ const Login = () => {
             setIsLoading(false);
         }
     };
-
-    // COMMENTED OUT: Original synchronous login handler
-    /*
-    /**
-     * Gets called when submit button is clicked
-     * @param {Event} e 
-     */
-    /*
-    const handleSubmit = (e) => {
-
-        //prevent default behaviour
-        e.preventDefault();
-
-        //Extract current values from input fields
-        const email = emailRef.current.value;
-        const password = passwordRef.current.value;
-
-        //Mock backend behaviour by attempting to autheticate user
-        const result = login(email, password);
-
-        //move to next page if login successful
-        if (result.success){
-            navigate("/detective");
-        }
-        else{
-            //Error message
-            alert(result.message);
-        }
-    };
-    */
 
     return (
         <div className="login-container">
@@ -113,8 +80,8 @@ const Login = () => {
                     words={[
                     "Welcome back!",
                     "Let’s get started!",
-                    "Case files await, Detective.",
-                    "Mystery ahead. Stay sharp.",
+                    "Case files await!",
+                    "Mystery ahead!",
                     "Time to catch AI!"
                     ]}
                     loop
