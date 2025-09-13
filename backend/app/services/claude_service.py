@@ -132,6 +132,7 @@ class ClaudeService:
         - Always include arrays, even if empty
         - Make sure reasons match the category type
         - Do not use academic or formal terms like 'pedagogical' or 'didactic'.' Instead, explain things in plain, everyday language that sounds natural to a general audience.
+        - When extracting AI patterns, quote each one briefly in 3 to 4 words that capture the essence of the pattern if it is too long, using clear, everyday language.
         """
     
     def parse_claude_response(self, response_text: str) -> Dict[str, Any]:
