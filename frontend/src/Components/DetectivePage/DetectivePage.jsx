@@ -156,8 +156,8 @@ const DetectivePage = () => {
         const highlights = [];
         
         // Collect all found items with their types
-        if (analysisDetails.foundKeywords?.length > 0) {
-            analysisDetails.foundKeywords.forEach(keyword => {
+        if (analysisDetails.found_keywords?.length > 0) {
+            analysisDetails.found_keywords.forEach(keyword => {
                 highlights.push({
                     text: keyword,
                     type: 'keyword',
@@ -166,8 +166,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.foundPatterns?.length > 0) {
-            analysisDetails.foundPatterns.forEach(pattern => {
+        if (analysisDetails.found_patterns?.length > 0) {
+            analysisDetails.found_patterns.forEach(pattern => {
                 highlights.push({
                     text: pattern,
                     type: 'suspicious',
@@ -176,8 +176,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.foundTransitions?.length > 0) {
-            analysisDetails.foundTransitions.forEach(transition => {
+        if (analysisDetails.found_transitions?.length > 0) {
+            analysisDetails.found_transitions.forEach(transition => {
                 highlights.push({
                     text: transition,
                     type: 'transition',
@@ -186,8 +186,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.foundJargon?.length > 0) {
-            analysisDetails.foundJargon.forEach(jargon => {
+        if (analysisDetails.found_jargon?.length > 0) {
+            analysisDetails.found_jargon.forEach(jargon => {
                 highlights.push({
                     text: jargon,
                     type: 'jargon',
@@ -196,8 +196,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.foundBuzzwords?.length > 0) {
-            analysisDetails.foundBuzzwords.forEach(buzzword => {
+        if (analysisDetails.found_buzzwords?.length > 0) {
+            analysisDetails.found_buzzwords.forEach(buzzword => {
                 highlights.push({
                     text: buzzword,
                     type: 'buzzword',
@@ -206,8 +206,8 @@ const DetectivePage = () => {
             });
         }
         
-        if (analysisDetails.foundHumanIndicators?.length > 0) {
-            analysisDetails.foundHumanIndicators.forEach(indicator => {
+        if (analysisDetails.found_human_indicators?.length > 0) {
+            analysisDetails.found_human_indicators.forEach(indicator => {
                 highlights.push({
                     text: indicator,
                     type: 'human',
@@ -216,15 +216,20 @@ const DetectivePage = () => {
             });
         }
         
-        // Apply highlights to text
-        highlights.forEach(highlight => {
-            const regex = new RegExp(`\\b${highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-            highlightedText = highlightedText.replace(regex, 
-                `<span class="highlight highlight-${highlight.type}">
-                    ${highlight.text}
-                    <span class="tooltip">${highlight.tooltip}</span>
-                </span>`
-            );
+        // Apply highlights to text with staggered tooltip positioning
+        highlights.forEach((highlight, index) => {
+            // Escape special regex characters but preserve the original text case
+            const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Use global flag and case-insensitive, but capture the actual matched text
+            const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
+            
+            // Calculate tooltip offset class to prevent overlap
+            const offsetClass = `tooltip-offset-${index % 4}`;
+            
+            highlightedText = highlightedText.replace(regex, (match) => {
+                return `<span class="highlight highlight-${highlight.type}">${match}<span class="tooltip ${offsetClass}">${highlight.tooltip}</span></span>`;
+            });
         });
         
         return highlightedText;
