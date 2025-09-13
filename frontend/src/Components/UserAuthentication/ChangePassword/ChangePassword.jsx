@@ -12,7 +12,7 @@ import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
 // Import for utility functions for email retrieval and password changing
 import { getEmail } from '../ForgotPassword/ForgotPassword';
-import { changePassword } from '../AuthHandler';
+import { resetPassword } from '../AuthHandler';
 import {Eye, EyeOff} from 'lucide-react';
 /**
  * Function that renders the form for changing password functionality
@@ -28,6 +28,9 @@ const ChangePassword = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [passwordMatch, setPasswordMatch] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     //Initialise navigator for navigation between routes
     const navigate = useNavigate();
@@ -59,6 +62,73 @@ const ChangePassword = () => {
      * Function that gets called when submit button is pressed
      * @param {Event} e - the form submission event
      */
+    const handleSubmit = async (e) => {
+        //prevents default behaviour from an event occuring
+        e.preventDefault();
+
+        // Clear previous messages
+        setErrorMessage('');
+        setSuccessMessage('');
+        setIsLoading(true);
+
+        //extract values form the password input fields
+        const password = passwordRef.current.value;
+        const confirmPassword = confirmPasswordRef.current.value;
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            setErrorMessage("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
+
+        // Check password strength
+        if (passwordStrength < 75) {
+            setErrorMessage("Please choose a stronger password (should contain uppercase letters, numbers, and special characters)");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            // Get the reset token from localStorage (set during email verification)
+            const resetToken = localStorage.getItem('resetToken');
+            
+            if (!resetToken) {
+                setErrorMessage("Invalid session. Please restart the password reset process.");
+                setIsLoading(false);
+                return;
+            }
+
+            // API call to reset password
+            const result = await resetPassword(resetToken, password);
+
+            if (result.success) {
+                setSuccessMessage(result.message);
+                // Clean up stored data
+                localStorage.removeItem('resetToken');
+                
+                // Navigate to login page after showing success message
+                setTimeout(() => {
+                    navigate("/login");
+                }, 2000);
+            } else {
+                setErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Password reset error:', error);
+            setErrorMessage('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // COMMENTED OUT: Original synchronous password change handler
+    /*
+    /**
+     * Function that gets called when submit button is pressed
+     * @param {Event} e - the form submission event
+     */
+    /*
     const handleSubmit = (e) => {
         //prevents default behaviour from an event occuring
         e.preventDefault();
@@ -85,6 +155,7 @@ const ChangePassword = () => {
             alert("Passwords do not match");
         }
     };
+    */
 
     
     return (
@@ -105,6 +176,34 @@ const ChangePassword = () => {
                 <p className="change-subtitle">Don't forget it this time!</p>
 
                 <form className="change-form" onSubmit={handleSubmit}>
+                    {errorMessage && (
+                        <div style={{ 
+                            color: '#ef4444', 
+                            backgroundColor: '#fef2f2', 
+                            border: '1px solid #fecaca',
+                            padding: '0.75rem', 
+                            borderRadius: '0.375rem', 
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem'
+                        }}>
+                            {errorMessage}
+                        </div>
+                    )}
+                    
+                    {successMessage && (
+                        <div style={{ 
+                            color: '#059669', 
+                            backgroundColor: '#ecfdf5', 
+                            border: '1px solid #a7f3d0',
+                            padding: '0.75rem', 
+                            borderRadius: '0.375rem', 
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem'
+                        }}>
+                            {successMessage}
+                        </div>
+                    )}
+
                     <div className="form-group" style={{ position: "relative" }}>
                         <label>New Password<span className="required">*</span></label>
                         <input
@@ -170,8 +269,8 @@ const ChangePassword = () => {
                         )}
                     </div>
 
-                    <button type="submit" className="change-button">
-                        Submit
+                    <button type="submit" className="change-button" disabled={isLoading || !passwordMatch || passwordStrength < 50}>
+                        {isLoading ? 'Changing Password...' : 'Submit'}
                     </button>
                 </form>
             </div>
