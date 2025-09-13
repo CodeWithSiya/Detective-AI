@@ -7,66 +7,11 @@
  * version: 13/09/2025 
  */
 
-// API Configuration
-const API_BASE_URL = 'http://localhost:8000/api'; // Update this to your actual API base URL
-
-// API Helper function for making HTTP requests
-async function apiRequest(endpoint, method = 'GET', data = null) {
-    try {
-        const config = {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-            config.body = JSON.stringify(data);
-        }
-
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-        const result = await response.json();
-
-        if (response.ok) {
-            return { success: true, data: result };
-        } else {
-            return { success: false, message: result.message || 'An error occurred' };
-        }
-    } catch (error) {
-        console.error('API Request Error:', error);
-        return { success: false, message: 'Network error. Please try again.' };
-    }
-}
-
-// COMMENTED OUT: Mock localStorage functions (kept for reference)
-/*
-/**
- * function that gets all users from localStorage
- * @returns array of users / empty array
- */ 
-/*
-export function getUsers(){
-    return JSON.parse(localStorage.getItem("users")) || [];
-}
+// Base API Configuration.
+const API_BASE_URL = 'http://localhost:8000/api'; 
 
 /**
- * Function that saves the users back into localStorage
- * @param {*} users 
- */
-/*
-function saveUsers(users){
-    localStorage.setItem("users", JSON.stringify(users));
-}
-*/
-
-/**
- * Function that signs up (registers) a new user via API
- * @param {string} email 
- * @param {string} password 
- * @param {string} firstName
- * @param {string} lastName
- * @param {string} username
- * @return Promise<{success: boolean, message: string, data?: any}>
+ * Function that signs up (registers) a new user via API with verification.
  */
 export async function signUp(email, password, firstName = '', lastName = '', username = '') {
     const userData = {
@@ -74,120 +19,209 @@ export async function signUp(email, password, firstName = '', lastName = '', use
         password,
         first_name: firstName,
         last_name: lastName,
-        username: username || email.split('@')[0] // Default username from email if not provided
+        username: username || email.split('@')[0]
     };
 
-    const result = await apiRequest('/users/register/', 'POST', userData);
-    
-    if (result.success) {
-        return { success: true, message: 'Registration successful! Please check your email to verify your account.' };
-    } else {
-        return { success: false, message: result.message || 'Registration failed. Please try again.' };
-    }
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/register/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Store user data for verification step.
+            localStorage.setItem('pendingVerification', JSON.stringify({
+                email: result.data?.email,
+                user_id: result.data?.user_id,
+                requires_verification: result.data?.requires_verification
+            }));
+
+            return {
+                success: true,
+                message: result.message || 'Registration successful.',
+                data: result.data,
+                emailSent: result.verification_email?.sent || false,
+                emailStatus: result.verification_email?.status || null
+            };
+        } else {
+            return { 
+                success: false, 
+                message: result.error || result.message || 'Registration failed. Please try again.'
+            };
+        }
+    } catch (error) {
+        console.error('Registration Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }   
 }
-
-// COMMENTED OUT: Mock localStorage signup function (kept for reference)
-/*
-/**
- * Function that signs up (adds) a new user to localStorage
- * @param {*} email 
- * @param {*} password 
- * @return error object
- */
-/*
-export function signUp(email, password){
-    const users = getUsers() //from localStorage
-
-    //check if email already exists
-    if (users.find(user => user.email === email)){
-        return {success: false, message: "Email already exists"}
-    }
-
-    //no matching email
-
-    users.push({ email, password });  //save users array    
-    saveUsers(users); //Store in local Storage
-
-    return {success: true, message: "Signup successful"};
-
-}
-*/
-
 
 /**
  * Function that logs in a user via API
- * @param {string} email 
- * @param {string} password 
- * @returns Promise<{success: boolean, message: string, token?: string, user?: object}>
  */
 export async function login(email, password) {
-    const loginData = {
+    const loginData = { email, password };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/login/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Store authentication token and user data.
+            const token = result.data.token;
+            const userData = { ...result.data };
+            delete userData.token; // Remove token from user data before storing.
+            
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(userData));
+            localStorage.removeItem('pendingVerification'); // Clear any pending verification.
+            
+            return { 
+                success: true, 
+                message: result.message,
+                token: token,
+                user: userData
+            };
+        } else {
+            // Handle email verification required case
+            if (response.status === 403 && result.data?.requires_verification) {
+                localStorage.setItem('pendingVerification', JSON.stringify({
+                    email: result.data.email,
+                    requires_verification: true
+                }));
+                
+                return {
+                    success: false,
+                    message: result.error,
+                    requiresVerification: true,
+                    email: result.data.email
+                };
+            }
+            
+            return { 
+                success: false, 
+                message: result.error || 'Invalid email or password'
+            };
+        }
+    } catch (error) {
+        console.error('Login Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+/**
+ * Function that verifies email with verification code.
+ */
+export async function verifyEmail(email, verificationCode) {
+    const verifyData = {
         email,
-        password
+        verification_code: verificationCode
     };
 
-    const result = await apiRequest('/users/login/', 'POST', loginData);
-    
-    if (result.success) {
-        // Store authentication token if provided
-        if (result.data.token) {
-            localStorage.setItem('authToken', result.data.token);
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/verify-email/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(verifyData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Store authentication token and user data
+            const token = result.data.token;
+            const userData = { ...result.data };
+            delete userData.token;
+            
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(userData));
+            localStorage.removeItem('pendingVerification');
+            
+            return { 
+                success: true, 
+                message: result.message,
+                token: token,
+                user: userData,
+                welcomeEmailSent: result.welcome_email?.sent || false
+            };
+        } else {
+            return { 
+                success: false, 
+                message: result.error || 'Invalid verification code.'
+            };
         }
-        // Store user data if provided
-        if (result.data.user) {
-            localStorage.setItem('userData', JSON.stringify(result.data.user));
-        }
-        
-        return { 
-            success: true, 
-            message: 'Login successful!',
-            token: result.data.token,
-            user: result.data.user
-        };
-    } else {
-        return { success: false, message: result.message || 'Invalid email or password' };
+    } catch (error) {
+        console.error('Email Verification Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
 }
 
-// COMMENTED OUT: Mock localStorage login function (kept for reference)
-/*
 /**
- * Function that logs in a user that is in localStorage
- * @param {*} email 
- * @param {*} password 
- * @returns error object
+ * Function that resends verification code via API.
  */
-/*
-export function login(email, password){
-    const users = getUsers();   //From localStorage
+export async function resendVerification(email) {
+    const resendData = { email };
 
-    //look for the user in the users array with matching email and password
-    const user = users.find(user => user.email === email && user.password === password);
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/resend-verification/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(resendData)
+        });
 
-    if (user){
-        return {success: true, message: "Login successful"};
+        const result = await response.json();
+
+        return {
+            success: result.success,
+            message: result.message || (result.success ? 'Verification code resent successfully.' : result.error),
+            emailSent: result.verification_email?.sent || false,
+            emailStatus: result.verification_email?.status
+        };
+    } catch (error) {
+        console.error('Resend Verification Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
-
-    //user doesnt exist
-    return {success: false, message: "Invalid email or password" };
 }
-*/
-
 
 /**
- * Function that initiates forgot password process via API
- * @param {string} email 
- * @returns Promise<{success: boolean, message: string}>
+ * Function that initiates forgot password process via API.
  */
 export async function forgotPassword(email) {
     const forgotPasswordData = { email };
 
-    const result = await apiRequest('/users/forgot-password/', 'POST', forgotPasswordData);
-    
-    if (result.success) {
-        return { success: true, message: 'Password reset link has been sent to your email.' };
-    } else {
-        return { success: false, message: result.message || 'Email does not exist in our system.' };
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/forgot-password/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(forgotPasswordData)
+        });
+
+        const result = await response.json();
+
+        return { 
+            success: result.success,
+            message: result.message || (result.success ? 'Password reset link sent.' : result.error),
+            emailSent: result.password_reset_email?.sent || false,
+            emailStatus: result.password_reset_email?.status
+        };
+    } catch (error) {
+        console.error('Forgot Password Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
 }
 
@@ -197,70 +231,240 @@ export async function forgotPassword(email) {
  * @param {string} newPassword 
  * @returns Promise<{success: boolean, message: string}>
  */
-export async function resetPassword(token, newPassword) {
+export async function resetPassword(uid, token, newPassword, confirmPassword) {
     const resetData = {
+        uid,
         token,
-        new_password: newPassword
+        new_password: newPassword,
+        confirm_password: confirmPassword
     };
 
-    const result = await apiRequest('/users/reset-password/', 'POST', resetData);
-    
-    if (result.success) {
-        return { success: true, message: 'Password reset successful! You can now login with your new password.' };
-    } else {
-        return { success: false, message: result.message || 'Password reset failed. Please try again.' };
-    }
-}
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/reset-password/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(resetData)
+        });
 
-/**
- * Function that verifies email with verification code via API
- * @param {string} email 
- * @param {string} verificationCode 
- * @returns Promise<{success: boolean, message: string, token?: string}>
- */
-export async function verifyEmail(email, verificationCode) {
-    const verifyData = {
-        email,
-        verification_code: verificationCode
-    };
+        const result = await response.json();
 
-    const result = await apiRequest('/users/verify-email/', 'POST', verifyData);
-    
-    if (result.success) {
         return { 
-            success: true, 
-            message: 'Email verified successfully!',
-            token: result.data.reset_token // Token for password reset
+            success: result.success, 
+            message: result.message || (result.success ? 'Password reset successful!' : result.error)
         };
-    } else {
-        return { success: false, message: result.message || 'Invalid verification code.' };
+    } catch (error) {
+        console.error('Reset Password Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
 }
 
 /**
- * Function that resends verification code via API
- * @param {string} email 
- * @returns Promise<{success: boolean, message: string}>
+ * Function that changes user password via API
  */
-export async function resendVerification(email) {
-    const resendData = { email };
-
-    const result = await apiRequest('/users/resend-verification/', 'POST', resendData);
+export async function changePassword(userId, currentPassword, newPassword, confirmPassword) {
+    const token = localStorage.getItem('authToken');
     
-    if (result.success) {
-        return { success: true, message: 'Verification code has been resent to your email.' };
-    } else {
-        return { success: false, message: result.message || 'Failed to resend verification code.' };
+    if (!token) {
+        return { success: false, message: 'Not authenticated' };
+    }
+    
+    const changeData = {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}/change-password/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            },
+            body: JSON.stringify(changeData)
+        });
+
+        const result = await response.json();
+
+        return {
+            success: result.success,
+            message: result.message || (result.success ? 'Password changed successfully.' : result.error)
+        };
+    } catch (error) {
+        console.error('Change Password Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
 }
 
 /**
- * Function that logs out user by clearing stored data
+ * Function that gets current user profile via API
  */
-export function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    return { success: true, message: 'Logged out successfully.' };
+export async function getCurrentUserProfile() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        return { success: false, message: 'Not authenticated' };
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/me/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update stored user data
+            localStorage.setItem('userData', JSON.stringify(result.data));
+            
+            return {
+                success: true,
+                user: result.data
+            };
+        }
+        
+        // If token is invalid, clear local storage
+        if (response.status === 401) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+        }
+        
+        return {
+            success: false,
+            message: result.error || 'Failed to get user data'
+        };
+    } catch (error) {
+        console.error('Get User Profile Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+/**
+ * Function that updates user profile via API
+ */
+export async function updateUserProfile(userId, updateData) {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        return { success: false, message: 'Not authenticated' };
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}/update/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update stored user data
+            localStorage.setItem('userData', JSON.stringify(result.data));
+            
+            return {
+                success: true,
+                message: result.message,
+                user: result.data
+            };
+        }
+        
+        return {
+            success: false,
+            message: result.error || 'Failed to update profile'
+        };
+    } catch (error) {
+        console.error('Update Profile Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+ 
+/**
+ * Function that logs out user via API and clears stored data
+ */
+export async function logout() {
+    const token = localStorage.getItem('authToken');
+    
+    if (token) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/logout/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                }
+            });
+
+            const result = await response.json();
+            
+            // Clear local storage regardless of API response
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('pendingVerification');
+            
+            return {
+                success: true,
+                message: result.message || 'Logged out successfully.'
+            };
+        } catch (error) {
+            console.error('Logout Error:', error);
+            // Clear local storage even if API call fails
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('pendingVerification');
+            
+            return { success: true, message: 'Logged out successfully.' };
+        }
+    }
+    
+    return { success: true, message: 'Already logged out.' };
+}
+
+/**
+ * Function that deletes user account via API.
+ */
+export async function deleteUserAccount(userId) {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        return { success: false, message: 'Not authenticated' };
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Clear local storage after successful deletion
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('pendingVerification');
+        }
+        
+        return {
+            success: result.success,
+            message: result.message || (result.success ? 'Account deleted successfully.' : result.error)
+        };
+    } catch (error) {
+        console.error('Delete Account Error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
 }
 
 /**
@@ -268,7 +472,9 @@ export function logout() {
  * @returns {boolean}
  */
 export function isAuthenticated() {
-    return !!localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData');
+    return !!(token && userData);
 }
 
 /**
@@ -276,49 +482,31 @@ export function isAuthenticated() {
  * @returns {object|null}
  */
 export function getCurrentUser() {
-    const userData = localStorage.getItem('userData');
-    return userData ? JSON.parse(userData) : null;
+    try {
+        const userData = localStorage.getItem('userData');
+        return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        return null;
+    }
 }
 
-// COMMENTED OUT: Mock localStorage functions (kept for reference)
-/*
 /**
- * Function that changes the password of a user
- * @param {*} email 
- * @param {*} newPassword 
- * @returns error object
+ * Function that gets auth token from localStorage
  */
-/*
-export function changePassword(email, newPassword){
-    const users = getUsers(); //from localStorage
-
-    //find the index of the user in the array
-    const index = users.findIndex(user => user.email === email);
-
-    if (index !== -1){
-        //user found
-
-        users[index].password = newPassword; //change the users password
-        saveUsers(users); //save updated users to localStorage
-
-        return {success: true, message: "Password changed"};
-    }
-
-    //user not found
-    return { success: false, message: "User not found" };
+export function getAuthToken() {
+    return localStorage.getItem('authToken');
 }
 
-export function emailExists(email){
-    const users = getUsers(); //from localStorage
-
-    //look for user
-    const user = users.find(user => user.email === email);
-
-    //check if user exists
-    if (user){
-        return { success: true, message: "User found" };
+/**
+ * Function that gets pending verification data from localStorage
+ */
+export function getPendingVerification() {
+    try {
+        const pending = localStorage.getItem('pendingVerification');
+        return pending ? JSON.parse(pending) : null;
+    } catch (error) {
+        console.error('Error parsing pending verification data:', error);
+        return null;
     }
-
-    return { success: false, message: "Email does not exist" };
 }
-*/
