@@ -10,6 +10,10 @@ from typing import Any, Dict, Optional
 import time
 import re
 
+# TODO: Figure Out Basic Image Analysis - Last thing I need to do.
+# TODO: Improve response time, very slow right now for analysis. (Probably due to the external API calls)
+# TODO: Continue with unit testing
+
 class AiTextAnalyser(AiAnalyser):
     """
     Service class for AI text analysis logic.
