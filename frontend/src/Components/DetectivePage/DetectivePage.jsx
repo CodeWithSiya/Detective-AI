@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -70,34 +70,47 @@ const DetectivePage = () => {
     const reportRef = useRef(null);
 
     //history items state
-    const [historyItems, setHistoryItems] = useState([
-        //sample items
-        {
-            id: 1,
-            type:'text',
-            title: 'Academic Essay Analysis',
-            date: '2 hours ago',
-            content: 'This AI-generated report demonstrates how the field of artificial...',
-            result: {isAI: true, confidence: 87, highlightedText: 'This <span class="highlight">AI-generated<span class="tooltip">Explicit phrase often flagged</span></span> report demonstrates how the field of <span class="highlight">artificial intelligence<span class="tooltip">Suspicious phrase pattern</span></span> has <span class="highlight">revolutionized<span class="tooltip">AI-typical word choice</span></span> and <span class="highlight">transformed<span class="tooltip">Generic overused verb</span></span> countless industries through <span class="highlight">cutting-edge<span class="tooltip">Buzzword frequently used by AI</span></span>, <span class="highlight">state-of-the-art<span class="tooltip">Marketing-style phrasing</span></span>, and profoundly <span class="highlight">innovative<span class="tooltip">Overly polished descriptor</span></span> approaches. The discussion <span class="highlight">delves<span class="tooltip">Unnatural academic phrasing</span></span> into the potential to <span class="highlight">leverage<span class="tooltip">Corporate jargon flagged by detectors</span></span> data, <span class="highlight">optimize<span class="tooltip">Common AI buzzword</span></span> processes, and <span class="highlight">facilitate<span class="tooltip">Inflated word choice</span></span> decision-making in ways that were previously unimaginable. <span class="highlight">Furthermore<span class="tooltip">Overused transition word</span></span>, research in <span class="highlight">machine learning<span class="tooltip">Suspicious phrase pattern</span></span> has <span class="highlight">consequently<span class="tooltip">Formulaic connector</span></span> accelerated breakthroughs across science, healthcare, and technology. <span class="highlight">Moreover<span class="tooltip">Repetitive transition marker</span></span>, the integration of these methods has <span class="highlight">additionally<span class="tooltip">Stacked connector often in AI text</span></span> created opportunities for businesses to thrive in highly competitive environments. <span class="highlight">Furthermore<span class="tooltip">Overused transition word</span></span>, by adopting such strategies, organizations can <span class="highlight">leverage<span class="tooltip">Corporate jargon flagged again</span></span> insights, <span class="highlight">optimize<span class="tooltip">Repetitive buzzword</span></span> resources, and <span class="highlight">facilitate<span class="tooltip">Artificially formal phrasing</span></span> growth. <span class="highlight">Moreover<span class="tooltip">Repetitive transition marker</span></span>, the evolution of algorithms has <span class="highlight">additionally<span class="tooltip">Stacked connector again</span></span> reshaped human interaction with digital ecosystems, ultimately underscoring how <span class="highlight">state-of-the-art<span class="tooltip">Buzzword repeated</span></span> innovations continue to transform society.'}
-        },
-        {
-            id: 2,
-            type:'text',
-            title: 'Report Review',
-            date: '2 days ago',
-            content: 'Abstract—This practical investigates the computational performance of the STM32F0...',
-            result: {isAI: false, confidence: 92, highlightedText: 'Abstract—This practical investigates the computational performance of the STM32F0 microcontroller through implementation and benchmarking of Mandelbrot set calculations. Two numerical approaches were evaluated: Fixed-Point Arithmetic and Double-Precision Floating-Point operations across multiple image resolutions (128x128 to 256×256 pixels). The study demonstrates the trade-offs between computational accuracy and execution speed in embedded systems, with Fixed-Point Arithmetic achieving great performance while maintaining acceptable accuracy within 1% tolerance of reference Python implementations (Mandelbrot.py).'}
-        }
-    ]);
+    const [historyItems, setHistoryItems] = useState([]);
 
-    //quick stats and recent activities
-    const [recentStats] = useState([
-        {label: 'Today', value: '24', change: '+12%'},
-        {label: 'This Week', value: '156', change: '+8%'},
-        {label: 'Accuracy', value: '94.2%', change: '+2.1%'},
-        {label: 'Avg Time', value: '8.3s', change: '-1.2s%'},
-    ]);
+    // Fetch user history on component mount
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const response = await fetch('/api/user/submissions', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`, // If using auth
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Transform API data to match your component format
+                    const transformedHistory = data.data.map(item => ({
+                        id: item.submission.id,
+                        type: 'text', // or determine from item data
+                        title: item.submission.name,
+                        date: new Date(item.submission.created_at).toLocaleString(),
+                        content: item.input_text.substring(0, 100) + '...',
+                        result: {
+                            isAI: item.analysis_result.prediction.is_ai_generated,
+                            confidence: Math.round(item.analysis_result.prediction.confidence * 100),
+                            highlightedText: item.input_text, // Will be processed by generateHighlightedText when viewed
+                            detectionReasons: item.analysis_result.analysis.detection_reasons,
+                            statistics: item.analysis_result.statistics,
+                            analysisDetails: item.analysis_result.analysis.analysis_details
+                        }
+                    }));
+                    setHistoryItems(transformedHistory);
+                }
+            } catch (error) {
+                console.error('Failed to fetch history:', error);
+            }
+        };
+        
+        fetchHistory();
+    }, []);
 
+    /* REMOVED - RECENT ACTIVITY WILL BE IN ADMIN PAGE
     const [recentActivity] = useState([
         {
             id: 1,
@@ -121,21 +134,7 @@ const DetectivePage = () => {
             type: 'text'
         }
     ]);
-
-    const [feedbackList, setFeedbackList] = useState([
-        {
-            id: 1,
-            query: 'Academic Essay Analysis',
-            feedback: 'The detection seemed inaccurate. The highlighted words appear to be normal academic language.',
-            date: '2 hours ago'
-        },
-        {
-            id: 2,
-            query: 'Blog Post Detection',
-            feedback: 'Great accuracy! The AI detection was spot on and helped me verify the content.',
-            date: '1 day ago'
-        }
-    ]);
+    */
 
     //sidebar toggle
     const toggleSidebar = () => {
@@ -143,8 +142,132 @@ const DetectivePage = () => {
     };
 
     //------------------------
-    //mock AI detection logic
+    // API-based AI detection logic
     //-------------------------
+    
+    // Helper function to generate highlighted text from API data
+    const generateHighlightedText = (originalText, analysisDetails) => {
+        if (!analysisDetails) return originalText;
+        
+        let highlightedText = originalText;
+        const highlights = [];
+        
+        // Collect all found items with their types
+        if (analysisDetails.found_keywords?.length > 0) {
+            analysisDetails.found_keywords.forEach(keyword => {
+                highlights.push({
+                    text: keyword,
+                    type: 'keyword',
+                    tooltip: 'AI-typical keyword detected'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_patterns?.length > 0) {
+            analysisDetails.found_patterns.forEach(pattern => {
+                highlights.push({
+                    text: pattern,
+                    type: 'suspicious',
+                    tooltip: 'Suspicious AI pattern detected'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_transitions?.length > 0) {
+            analysisDetails.found_transitions.forEach(transition => {
+                highlights.push({
+                    text: transition,
+                    type: 'transition',
+                    tooltip: 'Overused transition word'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_jargon?.length > 0) {
+            analysisDetails.found_jargon.forEach(jargon => {
+                highlights.push({
+                    text: jargon,
+                    type: 'jargon',
+                    tooltip: 'Corporate jargon flagged by detectors'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_buzzwords?.length > 0) {
+            analysisDetails.found_buzzwords.forEach(buzzword => {
+                highlights.push({
+                    text: buzzword,
+                    type: 'buzzword',
+                    tooltip: 'Buzzword frequently used by AI'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_human_indicators?.length > 0) {
+            analysisDetails.found_human_indicators.forEach(indicator => {
+                highlights.push({
+                    text: indicator,
+                    type: 'human',
+                    tooltip: 'Human writing indicator'
+                });
+            });
+        }
+        
+        // Apply highlights to text
+        highlights.forEach(highlight => {
+            const regex = new RegExp(`\\b${highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+            highlightedText = highlightedText.replace(regex, 
+                `<span class="highlight highlight-${highlight.type}">
+                    ${highlight.text}
+                    <span class="tooltip">${highlight.tooltip}</span>
+                </span>`
+            );
+        });
+        
+        return highlightedText;
+    };
+
+    const performTextAnalysis = async (text) => {
+        try {
+            const response = await fetch('/api/analyze/text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    input_text: text,
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Analysis failed');
+            }
+            
+            // Generate highlighted text from API data
+            const highlightedText = generateHighlightedText(
+                text, 
+                data.data.analysis_result.analysis.analysis_details
+            );
+            
+            return {
+                isAI: data.data.analysis_result.prediction.is_ai_generated,
+                confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
+                detectionReasons: data.data.analysis_result.analysis.detection_reasons,
+                statistics: data.data.analysis_result.statistics,
+                analysisDetails: data.data.analysis_result.analysis.analysis_details,
+                highlightedText: highlightedText,
+                submissionId: data.data.submission.id,
+                analysisId: data.data.analysis_result.analysis_id
+            };
+        } catch (error) {
+            console.error('Analysis failed:', error);
+            throw error;
+        }
+    };
+
+    /* OLD MOCKED ANALYSIS LOGIC - COMMENTED OUT
     const performTextAnalysis = (text) => {
         const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
         const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
@@ -378,7 +501,38 @@ const DetectivePage = () => {
             }
         };
     };
+    */
 
+    const performImageAnalysis = async (file) => {
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await fetch('/api/analyze/image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Image analysis failed');
+            }
+            
+            return {
+                isAI: data.data.analysis_result.prediction.is_ai_generated,
+                confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
+                submissionId: data.data.submission.id,
+                analysisId: data.data.analysis_result.analysis_id,
+                highlightedText: '' // Images don't have highlighted text
+            };
+        } catch (error) {
+            console.error('Image analysis failed:', error);
+            throw error;
+        }
+    };
+
+    /* OLD MOCKED IMAGE ANALYSIS - COMMENTED OUT
     const performImageAnalysis = (filename) => {
         //mock logic based on filename
         const lower = filename.toLowerCase();
@@ -391,10 +545,29 @@ const DetectivePage = () => {
 
         return {isAI: Math.random() > 0.5, confidence: 85, highlightedText: ''}
     };
+    */
 
     //---------------------------
     //handlers for user actions
     //--------------------------
+    const handleTextAnalysis = async () => {
+        if (!textContent.trim()) return;
+
+        setIsAnalyzing(true);
+
+        try {
+            const result = await performTextAnalysis(textContent);
+            setAnalysisResult(result);
+            saveToHistory(result); // Save to history after successful analysis
+        } catch (error) {
+            console.error('Text analysis failed:', error);
+            alert('Analysis failed. Please try again.');
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    /* OLD MOCKED TEXT ANALYSIS HANDLER - COMMENTED OUT
     const handleTextAnalysis = async () => {
         if (!textContent.trim()) return;
 
@@ -406,7 +579,59 @@ const DetectivePage = () => {
             setIsAnalyzing(false);
         }, 2000);   //simulate api delay
     };
+    */
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const fileType = file.type;
+        const fileName = file.name.toLowerCase();
+
+        if (activeDetectionType === 'text') {
+            if (!fileType.includes('pdf')) {
+                alert('Please upload only PDF files for text analysis.');
+                return;
+            }
+
+            setIsAnalyzing(true);
+
+            try {
+                //read PDF text using pdfjs
+                const reader = new FileReader();
+                reader.onload = async function () {
+                    try {
+                        const typedArray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
+                        }
+
+                        // Perform real API analysis on extracted text
+                        const result = await performTextAnalysis(fullText);
+                        setAnalysisResult({ ...result, filename: file.name });
+                        saveToHistory({ ...result, filename: file.name });
+                    } catch (error) {
+                        console.error('PDF analysis failed:', error);
+                        alert('PDF analysis failed. Please try again.');
+                    } finally {
+                        setIsAnalyzing(false);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } catch (error) {
+                console.error('File upload failed:', error);
+                alert('File upload failed. Please try again.');
+                setIsAnalyzing(false);
+            }
+        }
+    };
+
+    /* OLD MOCKED FILE UPLOAD HANDLER - COMMENTED OUT
     const handleFileUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -443,7 +668,44 @@ const DetectivePage = () => {
             reader.readAsArrayBuffer(file);
         }
     };
+    */
 
+    const handleImageUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const fileType = file.type;
+
+        if (!fileType.includes('image')){
+            alert('Please upload only PNG or JPEG images.');
+            return;
+        }
+
+        if (!fileType.includes('png') && !fileType.includes('jpeg') && !fileType.includes('jpg')){
+            alert('Please Upload only PNG or JPEG');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            setUploadedImage(e.target?.result);
+
+            setIsAnalyzing(true);
+            try {
+                const result = await performImageAnalysis(file);
+                setAnalysisResult({...result, filename: file.name, isImage: true});
+                saveToHistory({...result, filename: file.name, isImage: true});
+            } catch (error) {
+                console.error('Image analysis failed:', error);
+                alert('Image analysis failed. Please try again.');
+            } finally {
+                setIsAnalyzing(false);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    /* OLD MOCKED IMAGE UPLOAD HANDLER - COMMENTED OUT
     const handleImageUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -473,11 +735,45 @@ const DetectivePage = () => {
         };
         reader.readAsDataURL(file);
     };
+    */
 
     const handleThumbsDown = () => {
         setShowFeedback(true);
     };
 
+    const submitFeedback = async () => {
+        if (!feedbackText.trim()) return;
+        
+        try {
+            const response = await fetch('/api/feedback/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    analysis_id: analysisResult?.analysisId,
+                    submission_id: analysisResult?.submissionId,
+                    feedback_text: feedbackText,
+                    query: analysisResult?.filename || 'Current Analysis'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                setFeedbackText('');
+                setShowFeedback(false);
+                alert('Feedback submitted successfully!');
+            } else {
+                throw new Error(data.error || 'Failed to submit feedback');
+            }
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+            alert('Failed to submit feedback. Please try again.');
+        }
+    };
+
+    /* OLD MOCKED FEEDBACK SUBMISSION - COMMENTED OUT
     const submitFeedback = () =>{
         if (!feedbackText.trim()) return;
         const newFeedback = {
@@ -490,10 +786,53 @@ const DetectivePage = () => {
         setFeedbackText('');
         setShowFeedback(false);
     };
+    */
 
     //-------------------
     //history management
     //-------------------
+    const saveToHistory = async (analysisData) => {
+        // Add to local state for immediate UI update
+        const newHistoryItem = {
+            id: analysisData.submissionId || Date.now(),
+            type: activeDetectionType,
+            title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
+            date: new Date().toLocaleString(),
+            content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
+            result: analysisData
+        };
+        setHistoryItems(prev => [newHistoryItem, ...prev]);
+    };
+
+    const viewHistoryItem = (item) => {
+        // Generate highlighted text if not already available
+        if (item.result.analysisDetails && !item.result.highlightedText.includes('<span class="highlight"')) {
+            const originalText = item.content.endsWith('...') ? 
+                item.content.substring(0, item.content.length - 3) : item.content;
+            item.result.highlightedText = generateHighlightedText(originalText, item.result.analysisDetails);
+        }
+        setSelectedHistoryItem(item);
+        setCurrentView('history-detail');
+    };
+
+    const deleteHistoryItem = async (id) => {
+        try {
+            const response = await fetch(`/api/submissions/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                setHistoryItems(prev => prev.filter(item => item.id !== id));
+            } else {
+                throw new Error('Failed to delete history item');
+            }
+        } catch (error) {
+            console.error('Failed to delete history item:', error);
+            alert('Failed to delete history item. Please try again.');
+        }
+    };
+
+    /* OLD MOCKED HISTORY MANAGEMENT - COMMENTED OUT
     const saveToHistory = () => {
         if (!analysisResult || analysisResult.isImage) return;
         const newHistoryItem = {
@@ -515,6 +854,7 @@ const DetectivePage = () => {
     const deleteHistoryItem = (id) => {
         setHistoryItems(prev => prev.filter(item => item.id !== id));
     };
+    */
 
     const exportResults = (format) => {
         if (format === 'pdf'){
@@ -825,8 +1165,7 @@ const DetectivePage = () => {
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="detective-header-inner">
-
-                    <div className="header-left"></div>
+                    <div className="header-left">
                         {/*Menu toggle button*/}
                         <button
                             className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
@@ -847,6 +1186,7 @@ const DetectivePage = () => {
                                 <p className="detective-subtitle">Content Detection</p>
                             </div>
                         </div>
+                    </div>
                     {/*Sign in button*/}
                     {/*<button className="btn-signin">
                         <span>Sign In</span>
@@ -867,23 +1207,6 @@ const DetectivePage = () => {
                                     <p className="interface-subtitle">
                                         Upload your content for instant AI detection analysis
                                     </p>
-                                </div>
-
-                                {/*quick stats*/}
-                                <div className="stats-dashboard">
-                                    {recentStats.map((stat, index) => (
-                                        <div key={index} className="stat-card-mini">
-                                            <div className="stat-value">{stat.value}</div>
-                                            <div className="stat-label">{stat.label}</div>
-                                            <div style={{ 
-                                                fontSize: '0.75rem', 
-                                                color: stat.change.startsWith('+') ? '#10b981' : '#ef4444',
-                                                marginTop: '0.5rem'
-                                            }}>
-                                                {stat.change}
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
 
                                 {/* Detection Type Options */}
@@ -1096,8 +1419,8 @@ const DetectivePage = () => {
                                                     <button 
                                                         className="action-btn" 
                                                         onClick={() => {
-                                                            saveToHistory();
-                                                            alert('Results saved to history!');
+                                                            // Results are already saved automatically during analysis
+                                                            alert('Thank you for your feedback!');
                                                         }}
                                                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
                                                     >
@@ -1115,7 +1438,7 @@ const DetectivePage = () => {
                                 )}
 
                                 {/* Recent Activity */}
-                                <div className="recent-activity">
+                                {/*<div className="recent-activity">
                                     <div className="activity-header">
                                         <div className="activity-icon">
                                             <Activity className="icon-md text-white" />
@@ -1146,23 +1469,7 @@ const DetectivePage = () => {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-
-                                {/* Feedback List (Admin View for Prototype) */}
-                                {feedbackList.length > 0 && (
-                                    <div className="feedback-list">
-                                        <h3 style={{ marginBottom: '1.5rem', color: '#d1d5db' }}>User Feedback (Admin View)</h3>
-                                        {feedbackList.map((feedback) => (
-                                            <div key={feedback.id} className="feedback-item">
-                                                <div className="feedback-header">
-                                                    <div className="feedback-query">{feedback.query}</div>
-                                                    <div className="feedback-date">{feedback.date}</div>
-                                                </div>
-                                                <div className="feedback-content">"{feedback.feedback}"</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                </div>*/}
                             </div>
                         </>
                     ) : (
@@ -1220,22 +1527,19 @@ const DetectivePage = () => {
                 </div>
             </main>
 
-            {/* Feedback Modal */}
+            {/* FEEDBACK MODAL - Still present but will be moved to admin page */}
             {showFeedback && (
-                <div className="modal-overlay">
-                    <div className="modal">
+                <div className="modal-overlay" onClick={() => setShowFeedback(false)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 className="modal-title">Help Us Improve</h3>
+                            <h3 className="modal-title">Provide Feedback</h3>
                             <button className="modal-close" onClick={() => setShowFeedback(false)}>
                                 <X className="icon-sm" />
                             </button>
                         </div>
-                        <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
-                            We're sorry the results weren't accurate. Please let us know what went wrong:
-                        </p>
                         <textarea
                             className="feedback-textarea"
-                            placeholder="Please describe what was inaccurate about the detection..."
+                            placeholder="Help us improve by describing what was incorrect about this analysis..."
                             value={feedbackText}
                             onChange={(e) => setFeedbackText(e.target.value)}
                         />

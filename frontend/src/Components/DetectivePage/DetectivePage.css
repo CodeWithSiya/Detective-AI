@@ -286,13 +286,48 @@ body {
     align-items: center;
     padding: 1rem 2rem;
     max-width: 1400px;
-    margin: auto;
+    margin: 0 auto; /* changed from auto to ensure centering */
+    width: 100%; /* ensure full width */
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 1rem; /* space between menu button and logo */
+  flex: 1; /* take up available space to push items to left */
+}
+
+/* Override global menu-toggle styles for proper alignment */
+.detective-header .menu-toggle {
+    position: relative !important; /* override any global position: static */
+    top: auto !important;
+    left: auto !important;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    margin: 0; /* ensure no margin is applied */
+    flex-shrink: 0; /* prevent shrinking */
+}
+
+.detective-header .menu-toggle:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+.detective-header .menu-toggle.sidebar-open {
+    background: rgba(59, 130, 246, 0.8);
+}
+
+.detective-header .menu-toggle.sidebar-open:hover {
+    background: rgba(59, 130, 246, 0.9);
 }
 
 .detective-logo {
@@ -300,6 +335,8 @@ body {
     align-items: center;
     gap: 1rem;
     position: relative;
+    flex-shrink: 0; /* prevent shrinking */
+    margin: 0; /* ensure no margin is applied */
 }
 
 .detective-logo-icon {
@@ -616,7 +653,7 @@ body {
     margin: 0 auto;
 }
 
-/* Menu Toggle Button */
+/* OLD Menu Toggle Button Styles - Commented out to prevent conflicts with header-scoped styles
 .menu-toggle {
     position: static;
     top: 1rem;
@@ -647,6 +684,7 @@ body {
 .menu-toggle.sidebar-open:hover {
     background: rgba(59, 130, 246, 0.9);
 }
+*/
 
 /* Detection Interface */
 .detection-interface {
@@ -1287,6 +1325,11 @@ body {
 .highlight-buzzword {
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(147, 51, 234, 0.3) 100%);
     border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.highlight-human {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.3) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .highlight:hover {
