@@ -7,12 +7,10 @@
  * version: 10/09/2025
  */
 
-
 import React, { useRef, useState } from 'react';
 import "./ForgotPassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
-// Import authentication handler for forgot password API call
 import { forgotPassword } from '../AuthHandler';
 
 let emailValue = null;
@@ -75,8 +73,8 @@ const ForgotPassword = () => {
                 
                 // Navigate to verify email after showing success message
                 setTimeout(() => {
-                    navigate('/verify-email');
-                }, 2000);
+                    navigate('/login');
+                }, 5000);
             } else {
                 // Error message if not found/invalid
                 setErrorMessage(result.message);
@@ -88,33 +86,6 @@ const ForgotPassword = () => {
             setIsLoading(false);
         }
     };
-
-    // COMMENTED OUT: Original synchronous forgot password handler
-    /*
-    /**
-     * Function gets called when the submit button gets pressed
-     * @param {Event} e 
-     */
-    /*
-    const handleSubmit = (e) => {
-        //prevents default submission behaviour
-        e.preventDefault();
-
-        // Check if the entered email exists in the sytem
-        const result = emailExists(emailRef.current.value);
-
-        if (result.success){
-            //If found
-            setEmail(emailRef.current.value);
-
-            navigate('/verify-email');
-        }
-        else{
-            //Error message if not found/invalid
-            alert(result.message);
-        }
-    }
-    */
 
     return (
         <div className="forgot-container">
@@ -183,5 +154,3 @@ const ForgotPassword = () => {
     );
 };
 export default ForgotPassword;
-
-
