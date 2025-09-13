@@ -2,7 +2,6 @@ from django.db import models
 from django.core.validators import FileExtensionValidator
 from typing import Optional
 from .submission import Submission
-from app.services.text_extractor import TextExtractor
 import os
 
 def file_upload_path(instance: 'FileSubmission', filename: str) -> str:
@@ -75,9 +74,6 @@ class FileSubmission(Submission):
                 # Extract file type.
                 self.file_type = self.file.name.split('.')[-1].lower()
 
-                # Extract text content based on file type.
-                self.extracted_text = self.extract_text_content()
-
                 # Calculate character count.
                 if self.extracted_text:
                     self.character_count = len(self.extracted_text)
@@ -102,23 +98,6 @@ class FileSubmission(Submission):
                 os.remove(self.file.path)
 
         return super().delete(*args, **kwargs)
-    
-    def extract_text_content(self) -> Optional[str]:
-        """
-        Extract text content from the uploaded file.
-
-        :returns: Extracted text content from the uploaded file.
-        """
-        if not self.file or not self.file_type:
-            return None
-        
-        try:
-            file_path = self.file.path
-            file_type = self.file_type
-            return TextExtractor.extract_text(file_path, file_type)
-        
-        except Exception:
-            return None
     
     def __str__(self) -> str:
         """

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4; 
+        }
+        .email-container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white; 
+            border: 1px solid #ddd;
+        }
+        .header { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 25px 20px; 
+            text-align: center; 
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .subtitle {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content { 
+            padding: 25px; 
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .result-box { 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 25px 0; 
+            background: #f9f9f9; 
+        }
+        .ai-detected { 
+            border-color: #e74c3c; 
+            background: #fdf2f2; 
+        }
+        .human-detected { 
+            border-color: #27ae60; 
+            background: #f2fdf2; 
+        }
+        .result-header {
+            margin-bottom: 15px;
+        }
+        .result-header h3 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .result-detail {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .result-detail strong {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .result-detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .report-info {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .report-info h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .report-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .report-info li {
+            margin-bottom: 8px;
+        }
+        .contact-section {
+            background: #f0f0f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .svg-container {
+            background: #fafafa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .svg-placeholder {
+            color: #999;
+            font-size: 14px;
+            font-style: italic;
+        }
+        .signature {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .footer { 
+            background: #ecf0f1; 
+            padding: 20px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .content { 
+                padding: 20px; 
+            }
+            .result-box { 
+                margin: 20px 0; 
+            }
+            .result-details {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Detective AI - Analysis Report</h1>
+            <p class="subtitle">AI Content Detection Results</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Hello {{ recipient_name }},</div>
+            
+            <p>Your AI content detection analysis has been completed. Please find the detailed results below and the comprehensive report attached to this email.</p>
+            
+            <div class="result-box {% if analysis_result.detection_result == 'AI_GENERATED' %}ai-detected{% else %}human-detected{% endif %}">
+                <div class="result-header">
+                    <h3>
+                        {% if analysis_result.detection_result == 'AI_GENERATED' %}
+                            🤖 AI Generated Content
+                        {% else %}
+                            ✍️ Human Written Content
+                        {% endif %}
+                    </h3>
+                </div>
+                
+                <div class="result-details">
+                    <div class="result-detail">
+                        <strong>Confidence Level</strong>
+                        <div class="result-detail-value">{{ confidence_percent }}%</div>
+                    </div>
+                    <div class="result-detail">
+                        <strong>Analysis Date</strong>
+                        <div class="result-detail-value">{{ report_date }}</div>
+                    </div>
+                    <div class="result-detail">
+                        <strong>Status</strong>
+                        <div class="result-detail-value">Complete</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-info">
+                <h3>📋 Detailed Report Contents:</h3>
+                <ul>
+                    <li>Complete analysis results and reasoning</li>
+                    <li>Text statistics and patterns detected</li>
+                    <li>Detailed explanations of findings</li>            
+                </ul>
+            </div>
+            
+            <div class="contact-section">
+                <p><strong>Questions about your results?</strong><br>
+                Our support team is available to help explain your analysis and answer any questions.</p>
+            </div>
+            
+            <div class="signature">
+                <p>Best Regards,<br>The Detective AI Team</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 Detective AI. All rights reserved.</strong></p>
+            <p>Advanced AI Detection Technology • Trusted by Professionals Worldwide</p>
+        </div>
+    </div>
+</body>
+</html>
