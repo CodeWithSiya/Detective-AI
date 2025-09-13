@@ -10,7 +10,6 @@
 
 import React, { useRef, useState } from 'react';
 import "./Signup.css";
-import Logo from '../../Assets/Logo.jpg';
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
@@ -23,7 +22,7 @@ import { Eye, EyeOff } from 'lucide-react';
  * @returns {JSX.Element} Signup Component
  */
 const Signup = () => {
-    //Access field values
+    // Access field values
     const nameRef = useRef();
     const emailRef = useRef();
     const passwordRef = useRef();
@@ -39,7 +38,7 @@ const Signup = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    //Initialise navigator for navigation between routes
+    // Initialise navigator for navigation between routes
     const navigate = useNavigate();
 
     const handlePasswordChange = (e) => {
@@ -78,7 +77,7 @@ const Signup = () => {
         setSuccessMessage('');
         setIsLoading(true);
 
-        //Extract current values from fields
+        // Extract current values from fields
         const firstName = nameRef.current.value;
         const lastName = lastNameRef.current.value;
         const email = emailRef.current.value;
@@ -86,7 +85,7 @@ const Signup = () => {
         const confirmPassword = confirmPasswordRef.current.value;
         const userName = userNameRef.current.value;
 
-        //Validate password
+        // Validate password
         if (password !== confirmPassword) {
             setErrorMessage("Passwords do not match");
             setIsLoading(false);
@@ -105,13 +104,25 @@ const Signup = () => {
             const result = await signUp(email, password, firstName, lastName, userName);
 
             if (result.success) {
-                setSuccessMessage(result.message);
-                // Navigate to login page after a short delay to show success message
+                // Show success message with verification info
+                const message = result.emailSent 
+                    ? "Account created successfully! Please check your email for a verification code."
+                    : "Account created successfully! Please wait while we send you a verification email.";
+                
+                setSuccessMessage(message);
+                
+                // Navigate to email verification page after showing success message.
                 setTimeout(() => {
-                    navigate("/login");
+                    navigate("/verify-email", { 
+                        state: { 
+                            email: email,
+                            message: "Please enter the 6-digit verification code sent to your email.",
+                            fromSignup: true
+                        }
+                    });
                 }, 2000);
             } else {
-                setErrorMessage(result.message);
+                setErrorMessage(result.message || 'Registration failed. Please try again.');
             }
         } catch (error) {
             console.error('Signup error:', error);
@@ -120,46 +131,6 @@ const Signup = () => {
             setIsLoading(false);
         }
     };
-
-    // COMMENTED OUT: Original synchronous signup handler
-    /*
-    /**
-     * Handles form submission when the "Sign up" button is clicked
-     * @param {Event} e 
-     */
-    /*
-    const handleSubmit = (e) => {
-        // Prevents default submit behaviour
-        e.preventDefault();
-
-        //Extract current values from fields
-        const firstName = nameRef.current.value;
-        const lastName = lastNameRef.current.value;
-        const email = emailRef.current.value;
-        const password = passwordRef.current.value;
-        const confirmPassword = confirmPasswordRef.current.value;
-        const userName = userNameRef.current.value;
-
-        //Validate password
-        if (password === confirmPassword){
-
-            //Attempt to create a new user
-            const result = signUp(email, password);
-
-            //Display result message to user
-            alert(result.message)
-
-            // If success, navigate to main page
-            if (result.success){
-                navigate("/login")
-            }
-        }
-        else{
-            //Error
-            alert("Passwords do not match");
-        }
-    };
-    */
 
     return (
         // Main container
