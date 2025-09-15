@@ -945,25 +945,47 @@ body {
     box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.showcase-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.showcase-image,
+.showcase-video-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    transition: opacity 0.3s, transform 0.3s;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    opacity: 1;
+}
+
 .showcase-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.3s;
 }
 
 .showcase-card:hover .showcase-video {
     opacity: 1;
+    pointer-events: auto;
 }
 
-.showcase-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 16px;
-    transition: all 0.3s ease;
+.showcase-card:hover .showcase-video-poster {
+    opacity: 0;
 }
 
 .showcase-card:hover .showcase-image {
