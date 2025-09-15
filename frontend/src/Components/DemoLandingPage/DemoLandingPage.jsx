@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
 import Logo from '../Assets/Logo.png';
-import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon } from 'lucide-react';
+import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";
 
@@ -40,6 +40,37 @@ const DemoLandingPage = () => {
         { number: "<15%", label: "False Positive", icon: <Shield className="icon-md" /> },
         { number: "10s", label: "Analysis Time", icon: <Clock className="icon-md" /> },
         { number: "1000+", label: "Daily Analyses", icon: <Users className="icon-md" /> }
+    ];
+
+    const showcaseFeatures = [
+        {
+            icon: <History className="icon-md" />,
+            title: "Analysis History",
+            description: "Track all your previous detections with organized sidebar history",
+            type: "video",
+            content: "/path-to-history-sidebar-video.mp4"
+        },
+        {
+            icon: <Target className="icon-md" />,
+            title: "Keyword Highlighting",
+            description: "AI-generated content highlighted with intelligent keyword detection",
+            type: "video", 
+            content: "/path-to-keyword-highlighting-video.mp4"
+        },
+        {
+            icon: <FileSearch className="icon-md" />,
+            title: "Detailed Analysis",
+            description: "Comprehensive breakdown of detection results and explanations",
+            type: "image",
+            content: "/path-to-detailed-analysis-image.jpg"
+        },
+        {
+            icon: <BarChart3 className="icon-md" />,
+            title: "Confidence Score",
+            description: "Visual confidence indicators showing detection accuracy levels",
+            type: "image",
+            content: "/path-to-confidence-score-image.jpg"
+        }
     ];
 
     const demoContent = [
@@ -193,6 +224,78 @@ const DemoLandingPage = () => {
                                 <div className={`feature-icon ${feature.gradient}`}>{feature.icon}</div>
                                 <h3 className="feature-title">{feature.title}</h3>
                                 <p className="feature-text">{feature.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Features Showcase Section */}
+            <section className="features-showcase">
+                <div className="features-showcase-inner">
+                    <div className="features-header">
+                        <h2 className="section-heading">
+                            Experience Our Powerful Features
+                        </h2>
+                        <p className="section-subtext">
+                            Discover the comprehensive tools that make Detective AI the most trusted content detection platform
+                        </p>
+                    </div>
+
+                    <div className="showcase-grid">
+                        {showcaseFeatures.map((feature, i) => (
+                            <div key={i} className="showcase-card">
+                                <div className="showcase-header">
+                                    <div className="showcase-icon">
+                                        {feature.icon}
+                                    </div>
+                                    <h3 className="showcase-title">{feature.title}</h3>
+                                </div>
+                                
+                                <p className="showcase-description">
+                                    {feature.description}
+                                </p>
+                                
+                                <div className="showcase-content">
+                                    {feature.type === 'video' ? (
+                                        <video 
+                                            className="showcase-video"
+                                            muted 
+                                            loop
+                                            playsInline
+                                            onMouseEnter={(e) => e.target.play()}
+                                            onMouseLeave={(e) => {
+                                                e.target.pause();
+                                                e.target.currentTime = 0;
+                                            }}
+                                        >
+                                            <source src={feature.content} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    ) : feature.type === 'image' ? (
+                                        <img 
+                                            className="showcase-image"
+                                            src={feature.content}
+                                            alt={feature.title}
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    
+                                    {/* Fallback placeholder */}
+                                    <div className="showcase-placeholder" style={{ display: 'none' }}>
+                                        <div className="placeholder-content">
+                                            <div className="placeholder-icon">
+                                                {feature.icon}
+                                            </div>
+                                            <div className="placeholder-text">
+                                                {feature.type === 'video' ? 'Video Preview' : 'Image Preview'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
