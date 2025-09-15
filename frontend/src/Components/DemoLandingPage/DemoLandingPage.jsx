@@ -137,6 +137,43 @@ const DemoLandingPage = () => {
                 </div>
             </section>
 
+            {/* Video Showcase Section */}
+            <section className="video-showcase">
+                <div className="video-showcase-inner">
+                    <div className="video-stack">
+                        {/* Top Video - Fully Visible */}
+                        <div className="video-container top">
+                            <video 
+                                className="demo-video"
+                                autoPlay 
+                                muted 
+                                loop
+                                playsInline
+                            >
+                                <source src="/text-vid.mp4" type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                            <div className="video-overlay"></div>
+                        </div>
+                        
+                        {/* Bottom Video - Partially Hidden */}
+                        <div className="video-container bottom">
+                            <video 
+                                className="demo-video"
+                                autoPlay 
+                                muted 
+                                loop
+                                playsInline
+                            >
+                                <source src="/image-vid.mp4" type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                            <div className="video-overlay"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/*feature section*/}
             <section className="features">
                 <div className="features-inner">
