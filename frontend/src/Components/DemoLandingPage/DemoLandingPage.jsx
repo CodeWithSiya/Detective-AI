@@ -69,9 +69,6 @@ const DemoLandingPage = () => {
                                 <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                                 {/*<Search className="icon-md text-white" />*/}
                             </div>
-                            <div className="demo-logo-badge">
-                                <Eye className="icon-xs text-white" />
-                            </div>
                         </div>
                         <div>
                             <h1 className="demo-title">Detective AI</h1>
@@ -169,7 +166,7 @@ const DemoLandingPage = () => {
             <section className="demo-preview">
                 <div className="demo-preview-inner">
                     <div className="features-header">
-                        <h2 className="section-header">
+                        <h2 className="section-heading">
                             See Detective AI in Action
                         </h2>
                         <p className="section-subtext">
