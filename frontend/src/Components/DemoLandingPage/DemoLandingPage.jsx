@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
 import Logo from '../Assets/Logo.png';
+import DetectiveBg from '../Assets/vecteezy.jpg';
 import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";
@@ -120,49 +121,62 @@ const DemoLandingPage = () => {
 
             {/*hero section */}
             <section className="hero">
-                <div className={`hero-inner ${isVisible ? 'visible' : 'hidden'}`}>
-                    <div className="hero-badge">
-                        <Shield className="icon-sm text-blue" />
-                        <span>Trusted by UCT & Academic Institutions</span>
-                    </div>
-                        
-                    <h1 className="hero-heading">
-                        Detect AI-Generated
-                        <span className="hero-heading-gradient">
-                            Content with Precision
-                        </span>
-                    </h1>
-                        
-                    <p className="hero-text">
-                        Advanced AI detection technology that identifies machine-generated text and images. 
-                        Built for students, educators, and professionals who demand reliability.
-                    </p>
-                    
-                    {/* Action Buttons */}
-                    <div className="hero-buttons">
-                        <RouterLink to="/detective">
-                            <button className="btn-primary">
-                                <Eye className="icon-sm" />
-                                <span>Enter Detective Mode</span>
-                                <ChevronRight className="icon-sm" />
+                <div className={`hero-inner ${isVisible ? 'visible' : 'hidden'}`} style={{position: 'relative', overflow: 'hidden'}}>
+                    {/* Detective background image */}
+                    <img 
+                        src={DetectiveBg} 
+                        alt="Detective background" 
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            opacity: 0.07,
+                            zIndex: 0,
+                            pointerEvents: 'none',
+                        }}
+                    />
+                    <div style={{position: 'relative', zIndex: 1}}>
+                        <div className="hero-badge">
+                            <Shield className="icon-sm text-blue" />
+                            <span>Trusted by UCT & Academic Institutions</span>
+                        </div>
+                        <h1 className="hero-heading">
+                            Detect AI-Generated
+                            <span className="hero-heading-gradient">
+                                Content with Precision
+                            </span>
+                        </h1>
+                        <p className="hero-text">
+                            Advanced AI detection technology that identifies machine-generated text and images. 
+                            Built for students, educators, and professionals who demand reliability.
+                        </p>
+                        {/* Action Buttons */}
+                        <div className="hero-buttons">
+                            <RouterLink to="/detective">
+                                <button className="btn-primary">
+                                    <Eye className="icon-sm" />
+                                    <span>Enter Detective Mode</span>
+                                    <ChevronRight className="icon-sm" />
+                                </button>
+                            </RouterLink>
+                            <button className="btn-secondary">
+                                <Play className="icon-sm" />
+                                <span>Watch Demo</span>
                             </button>
-                        </RouterLink>
-                        
-                        <button className="btn-secondary">
-                            <Play className="icon-sm" />
-                            <span>Watch Demo</span>
-                        </button>
-                    </div>
-
-                    {/* Performance Stats */}
-                    <div className="stats-grid">
-                        {stats.map((stat, i) => (
-                            <div key={i} className={`stat-card ${isVisible ? 'visible' : 'hidden'}`} style={{transitionDelay: `${i * 100}ms`}}>
-                                <div className="stat-icon">{stat.icon}</div>
-                                <div className="stat-number">{stat.number}</div>
-                                <div className="stat-label">{stat.label}</div>
-                            </div>
-                        ))}
+                        </div>
+                        {/* Performance Stats */}
+                        <div className="stats-grid">
+                            {stats.map((stat, i) => (
+                                <div key={i} className={`stat-card ${isVisible ? 'visible' : 'hidden'}`} style={{transitionDelay: `${i * 100}ms`}}>
+                                    <div className="stat-icon">{stat.icon}</div>
+                                    <div className="stat-number">{stat.number}</div>
+                                    <div className="stat-label">{stat.label}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
