@@ -1,49 +1,13 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './Team.css';
 import siyaImg from '../Assets/siya.jpg';
 import lindoImg from '../Assets/lindo.jpg';
 import ethanImg from '../Assets/ethan.jpg';
 import Logo from '../Assets/Logo.png';
 import { Link as RouterLink } from "react-router-dom";
-import{
-    Search,
-    Eye,
-    X,
-    ChevronRight,
-    ArrowLeft,
-    Mail,
-    Github,
-    Linkedin,
-    Users,
-    Code,
-    Brain,
-    Palette,
-    Coffee,
-    Music,
-    Gamepad2,
-    Book,
-    Camera,
-    Headphones,
-    Dumbbell,
-    Plane,
-    Plus,
-    FileText,
-    Image as ImageIcon,
-    BarChart3,
-    Play,
-    History,
-    Share,
-    Trash2
-} from 'lucide-react';
+import { ArrowLeft, Mail, Github, Linkedin } from 'lucide-react';
 
-const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
-    const [navigationItems] = useState([
-        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>},
-        {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>, active: true},
-        {id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="icon-sm"/>},
-        {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
-    ]);
-
+const Team = ({ onBackToDetective }) => {
     const teamMembers = [
         {
             id: 1,
@@ -55,8 +19,8 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
             description: "Strong leadership qualities with excellent time management skills. Leads project coordination, backend development, and API integration while ensuring seamless collaboration across the team.",
             interests: ["Leadership", "Backend Development", "APIs", "Database Design", "Project Management"],
             email: "MDNSIY014@myuct.ac.za",
-            github: "siyabonga-madondo",
-            linkedin: "siyabonga-madondo"
+            github: "CodeWithSiya",
+            linkedin: "siyabongamadondo"
         },
         {
             id: 2,
@@ -81,8 +45,8 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
             description: "Excellent communication skills and attention to detail in documentation. Specializes in AI model research and integration while managing stakeholder communications.",
             interests: ["AI/ML", "Documentation", "Communication", "Model Integration", "Research"],
             email: "NWETH001@myuct.ac.za",
-            github: "ethan-ngwetjana",
-            linkedin: "ethan-ngwetjana"
+            github: "EpicE88",
+            linkedin: "ethan-ngwetjana-69430a35a"
         }
     ];
 
@@ -93,129 +57,14 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
         {number: "2026", label: "Graduation Year"}
     ];
 
-    const handleNavigation = (itemId) => {
-        if (itemId === 'detector'){
-            onBackToDetective();
-        }
-        //other navigation items
-    };
-
     return (
         <div className="team-container">
-            {/*menu toggle button*/}
-            <button
-                className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
-                onClick={toggleSidebar}
-                style={{
-                    position: 'fixed',
-                    top: '1rem',
-                    left: sidebarOpen ? '300px' : '1rem',
-                    zIndex: 70,
-                    background: 'linear-gradient(to-right, #1f2937, #7c3aed)',
-                    border: "none",
-                    color: 'white',
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                }}
-            >
-                <X className="icon-md"/>
-            </button>
-
-            {/*sidebar*/}
-            <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                <div className="sidebar-header">
-                    <div className="sidebar-logo">
-                        <div className="sidebar-logo-icon">
-                            {/*<Search className="icon-sm text-white"/>*/}
-                            <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
-                        </div>
-                        <span className="sidebar-title">Detective AI</span>
-                    </div>
-                    <button className="close-sidebar" onClick={toggleSidebar}>
-                        <X className="icon-sm"/>
-                    </button>
-                </div>
-
-                {/*new detection button*/}
-                <button className="new-detection" onClick={() => handleNavigation('detector')}>
-                    <Plus className="icon-sm"/>
-                    <span>New Detection</span>
-                </button>
-
-                {/*navigation*/}
-                <nav className="sidebar-nav">
-                    <div className="nav-section">
-                        <div className="nav-section-title">Navigation</div>
-                        {navigationItems.map((item) => (
-                            <button
-                                key={item.id}
-                                className={`nav-item ${item.active ? 'active' : ''}`}
-                                onClick={() => handleNavigation(item.id)}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                                <ChevronRight className="icon-xs" style={{ marginLeft: 'auto'}}/>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* History Section */}
-                    <div className="nav-section history-section">
-                        <div className="nav-section-title">Recent Detections</div>
-                        <div className="history-item">
-                            <div className="history-content">
-                                <FileText className="icon-xs"/>
-                                <div>
-                                    <div className="history-text">Academic Essay Analysis</div>
-                                    <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
-                                        2 hours ago
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="history-actions">
-                                <button className="history-action">
-                                    <Share className="icon-xs"/>
-                                </button>
-                                <button className="history-action">
-                                    <Trash2 className="icon-xs"/>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-
-            {/*sidebar overlay*/}
-            <div
-                className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
-                onClick={toggleSidebar}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.3)',
-                    zIndex: 55,
-                    opacity: sidebarOpen ? 1 : 0,
-                    visibility: sidebarOpen ? 'visible' : 'hidden',
-                    transition: 'all 0.3s ease'
-                }}
-            />
-
             {/* Header */}
-            <header className={`team-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
+            <header className="team-header">
                 <div className="team-header-inner">
                     {/* Logo */}
                     <div className="team-logo">
                         <div className="team-logo-icon">
-                            {/*<Search className="icon-md text-white"/>*/}
                             <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
                         <div>
@@ -223,17 +72,11 @@ const Team = ({ onBackToDetective, sidebarOpen, toggleSidebar }) => {
                             <p className="team-subtitle">Meet Our Team</p>
                         </div>
                     </div>
-                    
-                    {/* Sign in button */}
-                    {/*<button className="btn-signin">
-                        <span>Sign In</span>
-                        <ChevronRight className="icon-sm"/>
-                    </button>*/}
                 </div>
             </header>
 
             {/*main content*/}
-            <main className={`team-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
+            <main className="team-main">
                 <div className="team-content">
                     {/*back button*/}
                     <RouterLink to="/detective">
