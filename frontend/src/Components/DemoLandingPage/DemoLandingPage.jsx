@@ -39,7 +39,6 @@ const DemoLandingPage = () => {
         { number: "85%+", label: "Accuracy Rate", icon: <Award className="icon-md"/>},
         { number: "<15%", label: "False Positive", icon: <Shield className="icon-md" /> },
         { number: "10s", label: "Analysis Time", icon: <Clock className="icon-md" /> },
-        { number: "1000+", label: "Daily Analyses", icon: <Users className="icon-md" /> }
     ];
 
     const showcaseFeatures = [
@@ -135,8 +134,8 @@ const DemoLandingPage = () => {
                     </h1>
                         
                     <p className="hero-text">
-                        Advanced AI detection technology that identifies machine-generated text and images 
-                        with industry-leading accuracy. Built for students, educators, and professionals who demand reliability.
+                        Advanced AI detection technology that identifies machine-generated text and images. 
+                        Built for students, educators, and professionals who demand reliability.
                     </p>
                     
                     {/* Action Buttons */}
@@ -238,7 +237,7 @@ const DemoLandingPage = () => {
                             Experience Our Powerful Features
                         </h2>
                         <p className="section-subtext">
-                            Discover the comprehensive tools that make Detective AI the most trusted content detection platform
+                            Discover the comprehensive tools that make Detective AI one of the the best content detection platforms.
                         </p>
                     </div>
 
