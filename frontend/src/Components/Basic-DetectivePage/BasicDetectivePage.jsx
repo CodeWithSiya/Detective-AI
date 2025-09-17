@@ -401,7 +401,7 @@ const BasicDetectivePage = () => {
                           <FileText className="icon-lg" />
                         </div>
                         <h3 className="card-title">Text Detection</h3>
-                        <p className="card-description">Analyze text up to 250 characters for AI-generated patterns.</p>
+                        <p className="card-description">Analyse text up to 250 characters for AI-generated patterns.</p>
                       </div>
 
                       {/* Image detection - Disabled */}
@@ -468,12 +468,12 @@ const BasicDetectivePage = () => {
                         {isAnalyzing ? (
                             <>
                                 <Loader className="icon-sm animate-spin" />
-                                Analyzing...
+                                Analysing...
                             </>
                         ) : (
                             <>
                                 <Eye className="icon-sm" />
-                                Analyze Text
+                                Analyse Text
                             </>
                         )}
                       </button>
@@ -483,7 +483,7 @@ const BasicDetectivePage = () => {
                     {isAnalyzing && (
                         <div className="loading-container">
                             <div className="loading-spinner"></div>
-                            <div className="loading-text">Analyzing text patterns...</div>
+                            <div className="loading-text">Analysing text patterns...</div>
                         </div>
                     )}
 
@@ -534,7 +534,7 @@ const BasicDetectivePage = () => {
                                   <FileText className="icon-md" />
                               </div>
                               <h4>Unlimited Text Analysis</h4>
-                              <p>Analyze texts of any length without character limits</p>
+                              <p>Analyse texts of any length without character limits</p>
                           </div>
                           <div className="feature-card">
                               <div className="feature-icon">
