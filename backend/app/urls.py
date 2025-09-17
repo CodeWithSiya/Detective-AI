@@ -22,6 +22,7 @@ urlpatterns = [
     # User verification
     path('users/verify-email/', user_views.verify_email, name='verify_email'),
     path('users/resend-verification/', user_views.resend_verification_code, name='resend_verification'),
+    path('users/validate-token/', user_views.validate_token, name='validate_token'),
 
     # User profile management
     path('users/me/', user_views.get_current_user, name='get_current_user'),
