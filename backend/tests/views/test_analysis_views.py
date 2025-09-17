@@ -414,9 +414,9 @@ class TestAnalysisViews:
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['success'] is False
 
-    def test_analyse_text_malformed_json_request(self, api_factory, authenticated_user):
+    def test_analyse_text_invalid_json_request(self, api_factory, authenticated_user):
         """
-        Test handling of malformed request data.
+        Test handling of invalid request data.
         """
         # Create request with invalid data structure.
         request = api_factory.post('/api/analysis/text/', 'invalid json', content_type='application/json')
