@@ -1,3 +1,5 @@
+// For DOCX parsing
+import mammoth from "mammoth";
 import React, {useState, useRef, useEffect} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
@@ -38,7 +40,8 @@ import {
     TrendingUp,
     Brain,
     FileCheck,
-    Info
+    Info,
+    Home
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 import html2canvas from 'html2canvas';
@@ -639,44 +642,92 @@ const DetectivePage = () => {
         const fileName = file.name.toLowerCase();
 
         if (activeDetectionType === 'text') {
-            if (!fileType.includes('pdf')) {
-                alert('Please upload only PDF files for text analysis.');
+            if (!fileType.includes('pdf') && !fileType.includes('msword') && !fileType.includes('officedocument.wordprocessingml.document') && !fileType.includes('plain') && !fileName.endsWith('.docx') && !fileName.endsWith('.txt')) {
+                alert('Please upload only PDF, DOCX, or TXT files for text analysis.');
                 return;
             }
 
             setIsAnalyzing(true);
 
-            try {
-                //read PDF text using pdfjs
-                const reader = new FileReader();
-                reader.onload = async function () {
-                    try {
-                        const typedArray = new Uint8Array(this.result);
-                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                        let fullText = "";
-
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
+            // PDF
+            if (fileType.includes('pdf')) {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async function () {
+                        try {
+                            const typedArray = new Uint8Array(this.result);
+                            const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                            let fullText = "";
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
+                            }
+                            const result = await performTextAnalysis(fullText);
+                            setAnalysisResult({ ...result, filename: file.name });
+                            saveToHistory({ ...result, filename: file.name });
+                        } catch (error) {
+                            console.error('PDF analysis failed:', error);
+                            alert('PDF analysis failed. Please try again.');
+                        } finally {
+                            setIsAnalyzing(false);
                         }
-
-                        // Perform real API analysis on extracted text
-                        const result = await performTextAnalysis(fullText);
-                        setAnalysisResult({ ...result, filename: file.name });
-                        saveToHistory({ ...result, filename: file.name });
-                    } catch (error) {
-                        console.error('PDF analysis failed:', error);
-                        alert('PDF analysis failed. Please try again.');
-                    } finally {
-                        setIsAnalyzing(false);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } catch (error) {
-                console.error('File upload failed:', error);
-                alert('File upload failed. Please try again.');
-                setIsAnalyzing(false);
+                    };
+                    reader.readAsArrayBuffer(file);
+                } catch (error) {
+                    console.error('File upload failed:', error);
+                    alert('File upload failed. Please try again.');
+                    setIsAnalyzing(false);
+                }
+            }
+            // DOCX
+            else if (fileType.includes('officedocument.wordprocessingml.document') || fileType.includes('msword') || fileName.endsWith('.docx')) {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async function () {
+                        try {
+                            const arrayBuffer = this.result;
+                            const { value } = await mammoth.extractRawText({ arrayBuffer });
+                            const result = await performTextAnalysis(value);
+                            setAnalysisResult({ ...result, filename: file.name });
+                            saveToHistory({ ...result, filename: file.name });
+                        } catch (error) {
+                            console.error('DOCX analysis failed:', error);
+                            alert('DOCX analysis failed. Please try again.');
+                        } finally {
+                            setIsAnalyzing(false);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                } catch (error) {
+                    console.error('File upload failed:', error);
+                    alert('File upload failed. Please try again.');
+                    setIsAnalyzing(false);
+                }
+            }
+            // TXT
+            else if (fileType.includes('plain') || fileName.endsWith('.txt')) {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async function () {
+                        try {
+                            const text = this.result;
+                            const result = await performTextAnalysis(text);
+                            setAnalysisResult({ ...result, filename: file.name });
+                            saveToHistory({ ...result, filename: file.name });
+                        } catch (error) {
+                            console.error('TXT analysis failed:', error);
+                            alert('TXT analysis failed. Please try again.');
+                        } finally {
+                            setIsAnalyzing(false);
+                        }
+                    };
+                    reader.readAsText(file);
+                } catch (error) {
+                    console.error('File upload failed:', error);
+                    alert('File upload failed. Please try again.');
+                    setIsAnalyzing(false);
+                }
             }
         }
     };
@@ -1103,7 +1154,7 @@ const DetectivePage = () => {
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
         
-        {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
+        {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
     ];
 
     // PDF export function
@@ -1128,8 +1179,8 @@ const DetectivePage = () => {
             {/*sidebar*/}
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
-                    <div className="sidebar-logo">
-                        <div className="sidebar-logo-icon">
+                    <div className="detective-logo">
+                        <div className="logo-icon">
                             {/*<Search className="icon-sm text-white"/>*/}
                             <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
@@ -1206,11 +1257,7 @@ const DetectivePage = () => {
                 </nav>
             </div>
 
-            {/*sidebar overlay */}
-            <div
-                className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
-                onClick={toggleSidebar}
-            />
+
 
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -1226,7 +1273,7 @@ const DetectivePage = () => {
 
                         {/*logo*/}
                         <div className="detective-logo">
-                            <div className="detective-logo-icon">
+                            <div className="logo-icon">
                                 {/*<Search className="icon-md text-white"/>*/}
                                 <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                                 
@@ -1338,7 +1385,7 @@ const DetectivePage = () => {
                                                 </div>
                                                 <h3 className="upload-title">Upload Document</h3>
                                                 <p className="upload-description">
-                                                    Click here or drag and drop PDF or DOCX files (up to 25MB)
+                                                    Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
                                                 </p>
                                                 <button className="upload-button">
                                                     <Upload className="icon-sm" />
@@ -1348,7 +1395,7 @@ const DetectivePage = () => {
                                                     ref={fileInputRef}
                                                     type="file"
                                                     className="file-input"
-                                                    accept=".pdf,.docx"
+                                                    accept=".pdf,.docx,.txt"
                                                     onChange={handleFileUpload}
                                                 />
                                             </div>
