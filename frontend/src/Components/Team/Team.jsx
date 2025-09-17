@@ -106,12 +106,14 @@ const Team = ({ onBackToDetective }) => {
             <header className={`team-header${sidebarOpen ? ' sidebar-open' : ''}`}>
                 <div className="team-header-inner">
                     <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <button
-                            className={`menu-toggle${sidebarOpen ? ' sidebar-open' : ''}`}
-                            onClick={toggleSidebar}
-                        >
-                            <Menu className="icon-sm"/>
-                        </button>
+                        {!sidebarOpen && (
+                            <button
+                                className={`menu-toggle`}
+                                onClick={toggleSidebar}
+                            >
+                                <Menu className="icon-sm"/>
+                            </button>
+                        )}
                         <div className="team-logo">
                             <div className="team-logo-icon">
                                 <img src={Logo} alt="Detective AI Logo" className="logo-img"/>

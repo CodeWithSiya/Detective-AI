@@ -1264,13 +1264,14 @@ const DetectivePage = () => {
                 <div className="detective-header-inner">
                     <div className="header-left">
                         {/*Menu toggle button*/}
-                        <button
-                            className={`menu-toggle ${sidebarOpen ? 'sidebar-open' : ''}`}
-                            onClick={toggleSidebar}
-                        >
-                            <Menu className="icon-sm"/>
-                        </button>
-
+                        {!sidebarOpen && (
+                            <button
+                                className={`menu-toggle`}
+                                onClick={toggleSidebar}
+                            >
+                                <Menu className="icon-sm"/>
+                            </button>
+                        )}
                         {/*logo*/}
                         <div className="detective-logo">
                             <div className="logo-icon">
