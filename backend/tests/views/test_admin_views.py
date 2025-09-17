@@ -38,7 +38,6 @@ class TestAdminViews:
         user.is_authenticated = True
         return user
     
-
     @pytest.fixture
     def mock_regular_user(self):
         """
