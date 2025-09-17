@@ -1,5 +1,5 @@
 import React, {useState, useRef} from 'react';
-import './BasicDetectivePage.css';
+import './DetectiveBasic.css';
 import Logo from "../Assets/Logo.png";
 import {
     Search,
@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
-const BasicDetectivePage = () => {
+const DetectiveBasic = () => {
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -291,7 +291,6 @@ const BasicDetectivePage = () => {
     return (
         <div className="basic-detective-container">
             
-
             {/*sidebar*/}
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
@@ -558,4 +557,4 @@ const BasicDetectivePage = () => {
         </div>
     );
 };
-export default BasicDetectivePage;
+export default DetectiveBasic;
