@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Team.css';
 import siyaImg from '../Assets/siya.jpg';
 import lindoImg from '../Assets/lindo.jpg';
@@ -6,8 +6,19 @@ import ethanImg from '../Assets/ethan.jpg';
 import Logo from '../Assets/Logo.png';
 import { Link as RouterLink } from "react-router-dom";
 import { ArrowLeft, Mail, Github, Linkedin } from 'lucide-react';
+import { Menu, ChevronRight, Users, Play, Search, Home } from 'lucide-react';
 
 const Team = ({ onBackToDetective }) => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const navigationItems = [
+        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, to: '/detective'},
+        {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>, to: '/team', active: true},
+        {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>, to: ''},
+    ];
+
+    const toggleSidebar = () => setSidebarOpen((open) => !open);
+
     const teamMembers = [
         {
             id: 1,
@@ -58,25 +69,64 @@ const Team = ({ onBackToDetective }) => {
     ];
 
     return (
-        <div className="team-container">
-            {/* Header */}
-            <header className="team-header">
-                <div className="team-header-inner">
-                    {/* Logo */}
-                    <div className="team-logo">
-                        <div className="team-logo-icon">
+        <div className={`team-container${sidebarOpen ? ' sidebar-open' : ''}`}>
+            {/* Sidebar */}
+            <div className={`sidebar${sidebarOpen ? ' open' : ''}`}>
+                <div className="sidebar-header">
+                    <div className="detective-logo">
+                        <div className="logo-icon">
                             <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
                         </div>
-                        <div>
-                            <h1 className="team-title">Detective AI</h1>
-                            <p className="team-subtitle">Meet Our Team</p>
+                        <span className="sidebar-title">Detective AI</span>
+                    </div>
+                    <button className="close-sidebar" onClick={toggleSidebar}>
+                        <Menu className="icon-sm"/>
+                    </button>
+                </div>
+                <nav className="sidebar-nav">
+                    <div className="nav-section">
+                        <div className="nav-section-title">Navigation</div>
+                        {navigationItems.map((item) => (
+                            <RouterLink
+                                key={item.id}
+                                to={item.to}
+                                className={`nav-item${item.active ? ' active' : ''}`}
+                                onClick={() => item.id !== 'team' && setSidebarOpen(false)}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                                <ChevronRight className="icon-xs" style={{ marginLeft: 'auto'}}/>
+                            </RouterLink>
+                        ))}
+                    </div>
+                </nav>
+            </div>
+
+            {/* Header */}
+            <header className={`team-header${sidebarOpen ? ' sidebar-open' : ''}`}>
+                <div className="team-header-inner">
+                    <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <button
+                            className={`menu-toggle${sidebarOpen ? ' sidebar-open' : ''}`}
+                            onClick={toggleSidebar}
+                        >
+                            <Menu className="icon-sm"/>
+                        </button>
+                        <div className="team-logo">
+                            <div className="team-logo-icon">
+                                <img src={Logo} alt="Detective AI Logo" className="logo-img"/>
+                            </div>
+                            <div>
+                                <h1 className="team-title">Detective AI</h1>
+                                <p className="team-subtitle">Meet Our Team</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/*main content*/}
-            <main className="team-main">
+            {/* Main Content */}
+            <main className={`team-main${sidebarOpen ? ' sidebar-open' : ''}`}>
                 <div className="team-content">
                     {/*back button*/}
                     <RouterLink to="/detective">
