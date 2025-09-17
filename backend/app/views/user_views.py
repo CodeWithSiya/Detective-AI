@@ -397,20 +397,73 @@ def update_user_profile(request, user_id: str):
         )
     
     try:
-        user = UserService.update_user_profile(user_id, update_data)
+        result = UserService.update_user_profile(user_id, update_data)
         
-        if not user:
+        if not result:
             return create_json_response(
                 success=False,
                 error='User not found',
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        return create_json_response(
-            success=True,
-            message='User profile updated successfully',
-            data=UserSerializer(user).data
-        )
+        user = result['user']
+        user_data = UserSerializer(user).data
+        
+        # If email was changed, send verification email and provide instructions
+        if result.get('email_changed'):
+            try:
+                # Send verification email to new address
+                email_service = EmailService()
+                user_name = f"{user.first_name}".strip()
+                if not user_name:
+                    user_name = user.username
+
+                email_result = email_service.send_verification_code_email(
+                    user.email, user_name, result['verification_code']
+                )
+                
+                return create_json_response(
+                    success=True,
+                    message='Profile updated. Please verify your new email address to reactivate your account.',
+                    data={
+                        'user': user_data,
+                        'email_verification_required': True,
+                        'new_email': user.email,
+                        'original_email': result['original_email']
+                    },
+                    verification_email={
+                        'sent': email_result['success'],
+                        'status': email_result.get('message', 'Verification email sent') if email_result['success']
+                                 else email_result.get('error', 'Failed to send verification email')
+                    },
+                    instructions={
+                        'message': 'Your account has been temporarily deactivated. Please check your new email for a verification code.',
+                        'next_steps': [
+                            'Check your new email address for a verification code',
+                            'Use the existing /api/users/verify-email/ endpoint to verify your new email',
+                            'Or use /api/users/resend-verification/ if you need a new code'
+                        ]
+                    }
+                )
+                
+            except Exception as e:
+                logger.error(f"Failed to send verification email: {str(e)}")
+                return create_json_response(
+                    success=True,
+                    message='Profile updated but verification email failed to send. Please use the resend verification endpoint.',
+                    data={
+                        'user': user_data,
+                        'email_verification_required': True,
+                        'new_email': user.email
+                    },
+                    error='Verification email failed to send'
+                )
+        else:
+            return create_json_response(
+                success=True,
+                message='User profile updated successfully',
+                data={'user': user_data}
+            )
     
     except ValueError as e:
         return create_json_response(
@@ -645,4 +698,40 @@ def reset_password(request):
             success=False,
             error='An error occurred while resetting your password',
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def validate_token(request):
+    """
+    Validate authentication token.
+
+    POST /api/users/validate-token/
+    """
+    data = request.data
+    token = data.get('token')
+
+    if not token:
+        return create_json_response(
+            success=False,
+            error='Token is required',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    result = UserService.validate_user_token(token)
+    
+    if result['valid']:
+        user_data = dict(UserSerializer(result['user']).data)
+        user_data['token'] = result['token']
+        
+        return create_json_response(
+            success=True,
+            message='Token is valid',
+            data=user_data
+        )
+    else:
+        return create_json_response(
+            success=False,
+            error=result['error'],
+            status_code=status.HTTP_401_UNAUTHORIZED
         )

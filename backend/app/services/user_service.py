@@ -17,13 +17,50 @@ class UserService:
     :version: 10/09/2025
     """
 
+    # Token expiration settings (tokens expire after 24 hours).
+    TOKEN_EXPIRY_HOURS = 24
+
     @staticmethod
     def generate_verification_code() -> str:
         """
         Generate a 6-digit verification code.
         """
         return str(secrets.randbelow(900000) + 100000)
-
+    
+    @staticmethod
+    def is_token_valid(token: Token) -> bool:
+        """
+        Check if a token is still valid (not expired).
+        
+        :param token: Token instance to check
+        :return: True if token is valid, False if expired
+        """
+        if not hasattr(token, 'created') or not token.created:
+            return False
+            
+        expiry_time = token.created + timedelta(hours=UserService.TOKEN_EXPIRY_HOURS)
+        return timezone.now() < expiry_time
+    
+    @staticmethod
+    def refresh_token_if_needed(token: Token) -> Token:
+        """
+        Refresh token if it's close to expiry (within 2 hours).
+        
+        :param token: Current token
+        :return: New token if refreshed, original token if not needed
+        """
+        refresh_threshold = token.created + timedelta(hours=UserService.TOKEN_EXPIRY_HOURS - 2)
+        
+        if timezone.now() > refresh_threshold:
+            # Delete old token and create new one
+            user = token.user
+            token.delete()
+            new_token = Token.objects.create(user=user)
+            logger.info(f"Token refreshed for user: {user.pk} ({user.email})")
+            return new_token
+            
+        return token
+ 
     @staticmethod
     @transaction.atomic
     def create_user_with_verification(username: str, email: str, password: str, first_name: str, last_name: str, is_admin: bool = False):
@@ -208,23 +245,31 @@ class UserService:
         try:
             user = User.objects.get(email=email)
 
-            # Check if email is verified and account is active.
             if not user.is_email_verified or not user.is_active:
                 return None, None
             
             if user.check_password(password):
-                # Update last login.
                 user.update_last_login()
                 
-                # Get or create token for the user.
+                # Get existing token or create new one
                 token, created = Token.objects.get_or_create(user=user)
+                
+                # Check if token is still valid, refresh if needed
+                if not created and not UserService.is_token_valid(token):
+                    token.delete()
+                    token = Token.objects.create(user=user)
+                    logger.info(f"Token recreated for user: {user.pk} ({user.email})")
+                else:
+                    token = UserService.refresh_token_if_needed(token)
+                
                 logger.info(f"User authenticated: {user.pk} ({user.email})")
                 return user, token.key
+                
             return None, None
         
         except User.DoesNotExist:
             return None, None
-        
+               
     @staticmethod
     def logout_user(user) -> bool:
         """
@@ -234,13 +279,14 @@ class UserService:
         :return: True if logout successful.
         """
         try:
+            # Delete the user's current token
             Token.objects.filter(user=user).delete()
             logger.info(f"User logged out: {user.pk} ({user.email})")
             return True
         except Exception as e:
             logger.error(f"Error logging out user {user.pk}: {str(e)}")
             return False
-    
+            
     @staticmethod
     def get_user_by_id(user_id: str):
         """
@@ -277,18 +323,34 @@ class UserService:
 
         :param user_id: The ID of the user to update.
         :param update_data: Dictionary containing fields to update.
-        :return: Updated User instance or None if not found.
+        :return: Dictionary with user and verification info if email changed.
         """
         try:
             user = User.objects.get(id=user_id)
+            original_email = user.email  # Store original email
 
             # Define allowable fields for update.
             allowed_fields = ['first_name', 'last_name', 'email', 'username']
+            email_changed = False
+            verification_code = None
 
             # Check for duplicate email if email is being updated.
             if 'email' in update_data and update_data['email'] != user.email:
                 if User.objects.filter(email=update_data['email']).exists():
                     raise ValueError("A user with this email already exists.")
+                
+                # Require re-verification when email changes
+                verification_code = UserService.generate_verification_code()
+                expires_at = timezone.now() + timedelta(minutes=15)
+                
+                user.is_email_verified = False
+                user.is_active = False  # Deactivate until new email is verified
+                user.verification_code_expires_at = expires_at
+                user.set_verification_code(verification_code)
+                
+                # Add verification fields to update list
+                allowed_fields.extend(['is_email_verified', 'is_active', 'email_verification_code_hash', 'verification_code_expires_at'])
+                email_changed = True
                 
             # Check for duplicate username if username is being updated.
             if 'username' in update_data and update_data['username'] != user.username:
@@ -310,9 +372,19 @@ class UserService:
                 logger.info(f"User profile updated: {user.pk} ({user.email}) - Fields: {', '.join(updated_fields)}")
             else:
                 logger.info(f"No changes made to user profile: {user.pk} ({user.email})")
-  
-            return user
-        
+
+            # Return result with verification info if needed
+            result = {
+                'user': user,
+                'email_changed': email_changed
+            }
+            
+            if email_changed:
+                result['verification_code'] = verification_code
+                result['original_email'] = original_email
+                
+            return result
+            
         except User.DoesNotExist:
             return None
         
@@ -338,6 +410,9 @@ class UserService:
             # Set new password.
             user.set_password(new_password)
             user.save(update_fields=['password'])
+
+            # Invalidate all existing tokens for security.
+            Token.objects.filter(user=user).delete()
             
             logger.info(f"Password changed for user: {user.pk} ({user.email})")
             return True
@@ -362,3 +437,37 @@ class UserService:
         
         except (User.DoesNotExist, ValueError):
             return False
+        
+    @staticmethod
+    def validate_user_token(token_key: str) -> dict:
+        """
+        Validate a token and return user data if valid.
+        
+        :param token_key: Token string to validate
+        :return: Dictionary with validation result
+        """
+        try:
+            token = Token.objects.select_related('user').get(key=token_key)
+            
+            if not UserService.is_token_valid(token):
+                token.delete()
+                logger.info(f"Expired token deleted for user: {token.user.pk}")
+                return {
+                    'valid': False,
+                    'error': 'Token expired'
+                }
+            
+            # Refresh token if needed
+            token = UserService.refresh_token_if_needed(token)
+            
+            return {
+                'valid': True,
+                'user': token.user,
+                'token': token.key
+            }
+            
+        except Token.DoesNotExist:
+            return {
+                'valid': False,
+                'error': 'Invalid token'
+            }
