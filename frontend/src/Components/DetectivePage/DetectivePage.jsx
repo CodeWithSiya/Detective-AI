@@ -384,20 +384,6 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED TEXT ANALYSIS HANDLER - COMMENTED OUT
-    const handleTextAnalysis = async () => {
-        if (!textContent.trim()) return;
-
-        setIsAnalyzing(true);
-
-        setTimeout(() => {
-            const result = performTextAnalysis(textContent);
-            setAnalysisResult(result);
-            setIsAnalyzing(false);
-        }, 2000);   //simulate api delay
-    };
-    */
-
     const handleFileUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -1133,7 +1119,7 @@ const DetectivePage = () => {
                                                     {isAnalyzing ? (
                                                         <>
                                                             <Loader className="icon-sm animate-spin" />
-                                                            Analyzing...
+                                                            Analysing...
                                                         </>
                                                     ) : (
                                                         <>
@@ -1197,7 +1183,7 @@ const DetectivePage = () => {
                                     <div className="loading-container">
                                         <div className="loading-spinner"></div>
                                         <div className="loading-text">
-                                            {activeDetectionType === 'text' ? 'Analyzing text patterns...' : 'Processing image...'}
+                                            {activeDetectionType === 'text' ? 'Analysing text patterns...' : 'Processing image...'}
                                         </div>
                                     </div>
                                 )}
