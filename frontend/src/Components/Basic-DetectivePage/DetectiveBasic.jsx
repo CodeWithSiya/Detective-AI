@@ -38,7 +38,7 @@ import {
     FileCheck,
     Info
 } from 'lucide-react';
-import { Link as RouterLink } from "react-router-dom";
+import { Router, Link as RouterLink } from "react-router-dom";
 
 const DetectiveBasic = () => {
     //sidebar and view state
@@ -369,14 +369,15 @@ const DetectiveBasic = () => {
                         <p className="detective-subtitle">Content Detection</p>
                       </div>
                     </div>
-                  </div>
-                    
+                  </div>   
                     
                     {/* Right side: sign in */}
-                    <button className="btn-signin">
-                      <span>Sign In</span>
-                      <ChevronRight className="icon-sm"/>
-                    </button>
+                  <RouterLink to="/login">
+                     <button className="btn-signin">
+                     <span>Sign In</span>
+                     <ChevronRight className="icon-sm"/>
+                     </button>
+                  </RouterLink>
                   </div>
             </header>
 
@@ -518,7 +519,9 @@ const DetectiveBasic = () => {
                               <h4>Want More Detailed Analysis?</h4>
                               <p>Sign in to unlock advanced features, unlimited analysis, and detailed reports.</p>
                             </div>
-                            <button className="signin-btn">Sign In</button>
+                            <RouterLink to="/login">
+                                <button className="signin-btn">Sign In</button>
+                            </RouterLink>
                           </div>
                         </div>
                       </div>
