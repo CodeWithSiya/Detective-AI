@@ -121,42 +121,6 @@ const ChangePassword = () => {
             setIsLoading(false);
         }
     };
-
-    // COMMENTED OUT: Original synchronous password change handler
-    /*
-    /**
-     * Function that gets called when submit button is pressed
-     * @param {Event} e - the form submission event
-     */
-    /*
-    const handleSubmit = (e) => {
-        //prevents default behaviour from an event occuring
-        e.preventDefault();
-
-        //extract values form the password input fields
-        const password = passwordRef.current.value;
-        const confirmPassword = confirmPasswordRef.current.value;
-
-        //only change password if passwords match
-        if (password === confirmPassword){
-
-            //Mock backend behaviour by attempting to change the password
-            const result = changePassword(getEmail(), password);
-
-            alert(result.message); //alert message
-
-            //move to main page when password is changed successfully
-            if (result.success){
-                navigate("/login");
-            }
-        }
-        else{
-            //Error for when passwords don't match
-            alert("Passwords do not match");
-        }
-    };
-    */
-
     
     return (
         <div className="change-container">

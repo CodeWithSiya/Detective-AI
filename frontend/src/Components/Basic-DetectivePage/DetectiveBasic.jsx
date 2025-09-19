@@ -1,5 +1,5 @@
-import React, {useState, useRef} from 'react';
-import './BasicDetectivePage.css';
+import React, {useState, useEffect } from 'react';
+import './DetectiveBasic.css';
 import Logo from "../Assets/Logo.png";
 import {
     Search,
@@ -38,9 +38,25 @@ import {
     FileCheck,
     Info
 } from 'lucide-react';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { isAuthenticated } from '../UserAuthentication/AuthHandler';
 
-const BasicDetectivePage = () => {
+const DetectiveBasic = () => {
+    // API Configuration.
+    const API_BASE_URL = 'http://localhost:8000';
+    const navigate = useNavigate();
+
+    // Get authentication data.
+    const isUserAuthenticated = isAuthenticated();
+
+    // Redirect to detective page if authenticated.
+    useEffect(() => {
+        if (isUserAuthenticated) {
+            navigate('/detective', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
+
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -66,101 +82,172 @@ const BasicDetectivePage = () => {
         setSidebarOpen(!sidebarOpen);
     };
 
-    //------------------------
-    //mock AI detection logic
-    //-------------------------
-    const performBasicTextAnalysis = (text) => {
-        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
-        const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
-        const transitionWords = ['furthermore', 'moreover', 'additionally', 'consequently', 'therefore', 'nevertheless', 'however'];
+    const performTextAnalysis = async (text) => {
+        try {
+            // Check if user is authenticated.
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+            };
 
-        let isAI = false;
-        let confidence = 0;
-        const detectionReasons = [];
-
-        //check ai keywords
-        const lowerText = text.toLowerCase();
-        const words = text.split(/\s+/).filter(word => word.length > 0);
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-
-        //check for pattern
-        const foundPatterns = suspiciousPatterns.filter(pattern => lowerText.includes(pattern.toLowerCase()));
-        const foundKeywords = aiKeywords.filter(keyword => lowerText.includes(keyword));
-        const foundTransitions = transitionWords.filter(word => lowerText.includes(word));
-
-        //base confidence
-        confidence = 50;
-
-        //analysis logic for AI detection
-        if (foundPatterns.length > 0) {
-            isAI = true;
-            confidence += 35;
-            detectionReasons.push({
-                type: 'critical',
-                title: 'Explicit AI References',
-                description: `Found ${foundPatterns.length} explicit AI-related phrases: ${foundPatterns.join(', ')}`,
-                impact: 'High'
-            });
-        }
-
-        if (foundKeywords.length >= 3) {
-            isAI = true;
-            confidence += 20;
-            detectionReasons.push({
-                type: 'warning',
-                title: 'High AI Keyword Density',
-                description: `Detected ${foundKeywords.length} AI-typical words`,
-                impact: 'High'
-            });
-        }
-
-        if (foundTransitions.length >= 2) {
-            confidence += 15;
-            detectionReasons.push({
-                type: 'info',
-                title: 'Formal Transition Pattern',
-                description: `Multiple formal transitions detected: ${foundTransitions.join(', ')}`,
-                impact: 'Medium'
-            });
-        }
-
-        //final determination
-        if (confidence >= 60) {
-            isAI = true;
-        } else {
-            isAI = false;
-        }
-
-        //ensure confidence is within bounds
-        confidence = Math.min(95, Math.max(5, confidence));
-        
-        //if determined to be human invert confidence
-        if (!isAI) {
-            confidence = 100 - confidence;
-        }
-
-        //generate highlighted text
-        let highlightedText = text;
-
-        [...foundKeywords, ...foundPatterns, ...foundTransitions].forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
-            highlightedText = highlightedText.replace(
-                regex,
-                `<span class="highlight highlight-keyword">${keyword}</span>`
-            );
-        });
-
-        return {
-            isAI,
-            confidence,
-            highlightedText,
-            detectionReasons,
-            statistics:{
-                totalWords: words.length,
-                sentences: sentences.length,
-                avgSentenceLength: sentences.length > 0 ? words.length / sentences.length : 0
+            // Add authorization header if user is authenticated.
+            if (token) {
+                headers['Authorization'] = `Token ${token}`;
             }
-        };
+
+            // Fetch data from the API.
+            const response = await fetch(`${API_BASE_URL}/api/analysis/text/`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    text: text,
+                }),
+            });
+
+            // Check if the response is okay.
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Analysis failed');
+            }
+
+            // Fetches data from the API response.
+            const data = await response.json();
+
+            // Generate highlighted text from API data.
+            const highlightedText = generateHighlightedText(
+                text,
+                data.data.analysis_result.analysis.analysis_details
+            );
+
+            // Extract data from the response structure.
+            const analysisData = data.data.analysis_result;
+            const prediction = analysisData.prediction;
+            const analysis = analysisData.analysis;
+            const statistics = analysisData.statistics;
+            const analysisDetails = analysis.analysis_details;
+            const submission = data.data.submission; // This might be undefined
+
+            return {
+                isAI: prediction.is_ai_generated,
+                confidence: Math.round(prediction.confidence * 100),
+                highlightedText: highlightedText,
+                detectionReasons: analysis.detection_reasons || [],
+                statistics: {
+                    totalWords: statistics.total_words,
+                    sentences: statistics.sentences,
+                    avgSentenceLength: statistics.avg_sentence_length,
+                    aiKeywordsCount: statistics.ai_keywords_count,
+                    transitionWordsCount: statistics.transition_words_count,
+                    corporateJargonCount: statistics.corporate_jargon_count,
+                    buzzwordsCount: statistics.buzzwords_count,
+                    suspiciousPatternsCount: statistics.suspicious_patterns_count,
+                    humanIndicatorsCount: statistics.human_indicators_count,
+                },
+                analysisDetails: {
+                    foundKeywords: analysisDetails.found_keywords,
+                    foundPatterns: analysisDetails.found_patterns,
+                    foundTransitions: analysisDetails.found_transitions,
+                    foundJargon: analysisDetails.found_jargon,
+                    foundBuzzwords: analysisDetails.found_buzzwords,
+                    foundHumanIndicators: analysisDetails.found_human_indicators,
+                },
+                analysisId: data.data.analysis_result.analysis_id,
+                // Only include submission if it exists in the response
+                submission: submission ? {
+                    submissionId: submission.id,
+                    submissionName: submission.name,
+                } : null,
+            };
+        } catch (error) {
+            console.error('Analysis failed:', error);
+            throw error;
+        }
+    };
+
+        const generateHighlightedText = (originalText, analysisDetails) => {
+        if (!analysisDetails) return originalText;
+        
+        let highlightedText = originalText;
+        const highlights = [];
+        
+        // Collect all found items with their types
+        if (analysisDetails.found_keywords?.length > 0) {
+            analysisDetails.found_keywords.forEach(keyword => {
+                highlights.push({
+                    text: keyword,
+                    type: 'keyword',
+                    tooltip: 'AI-typical keyword detected'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_patterns?.length > 0) {
+            analysisDetails.found_patterns.forEach(pattern => {
+                highlights.push({
+                    text: pattern,
+                    type: 'suspicious',
+                    tooltip: 'Suspicious AI pattern detected'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_transitions?.length > 0) {
+            analysisDetails.found_transitions.forEach(transition => {
+                highlights.push({
+                    text: transition,
+                    type: 'transition',
+                    tooltip: 'Overused transition word'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_jargon?.length > 0) {
+            analysisDetails.found_jargon.forEach(jargon => {
+                highlights.push({
+                    text: jargon,
+                    type: 'jargon',
+                    tooltip: 'Corporate jargon flagged by detectors'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_buzzwords?.length > 0) {
+            analysisDetails.found_buzzwords.forEach(buzzword => {
+                highlights.push({
+                    text: buzzword,
+                    type: 'buzzword',
+                    tooltip: 'Buzzword frequently used by AI'
+                });
+            });
+        }
+        
+        if (analysisDetails.found_human_indicators?.length > 0) {
+            analysisDetails.found_human_indicators.forEach(indicator => {
+                highlights.push({
+                    text: indicator,
+                    type: 'human',
+                    tooltip: 'Human writing indicator'
+                });
+            });
+        }
+        
+        // Apply highlights to text with staggered tooltip positioning
+        highlights.forEach((highlight, index) => {
+            // Escape special regex characters but preserve the original text case
+            const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Use global flag and case-insensitive, but capture the actual matched text
+            const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
+            
+            // Calculate tooltip offset class to prevent overlap
+            const offsetClass = `tooltip-offset-${index % 4}`;
+            
+            highlightedText = highlightedText.replace(regex, (match) => {
+                return `<span class="highlight highlight-${highlight.type}">${match}<span class="tooltip ${offsetClass}">${highlight.tooltip}</span></span>`;
+            });
+        });
+        
+        return highlightedText;
     };
 
     //---------------------------
@@ -171,11 +258,15 @@ const BasicDetectivePage = () => {
 
         setIsAnalyzing(true);
 
-        setTimeout(() => {
-            const result = performBasicTextAnalysis(textContent);
+        try {
+            const result = await performTextAnalysis(textContent);
             setAnalysisResult(result);
+        } catch (error) {
+            console.error('Text analysis failed:', error);
+            alert('Analysis failed. Please try again.');
+        } finally {
             setIsAnalyzing(false);
-        }, 2000);   //simulate api delay
+        }
     };
 
     //disabled feature handlers
@@ -291,7 +382,6 @@ const BasicDetectivePage = () => {
     return (
         <div className="basic-detective-container">
             
-
             {/*sidebar*/}
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
@@ -370,14 +460,15 @@ const BasicDetectivePage = () => {
                         <p className="detective-subtitle">Content Detection</p>
                       </div>
                     </div>
-                  </div>
-                    
+                  </div>   
                     
                     {/* Right side: sign in */}
-                    <button className="btn-signin">
-                      <span>Sign In</span>
-                      <ChevronRight className="icon-sm"/>
-                    </button>
+                  <RouterLink to="/login">
+                     <button className="btn-signin">
+                     <span>Sign In</span>
+                     <ChevronRight className="icon-sm"/>
+                     </button>
+                  </RouterLink>
                   </div>
             </header>
 
@@ -401,7 +492,7 @@ const BasicDetectivePage = () => {
                           <FileText className="icon-lg" />
                         </div>
                         <h3 className="card-title">Text Detection</h3>
-                        <p className="card-description">Analyze text up to 250 characters for AI-generated patterns.</p>
+                        <p className="card-description">Analyse text up to 250 characters for AI-generated patterns.</p>
                       </div>
 
                       {/* Image detection - Disabled */}
@@ -468,12 +559,12 @@ const BasicDetectivePage = () => {
                         {isAnalyzing ? (
                             <>
                                 <Loader className="icon-sm animate-spin" />
-                                Analyzing...
+                                Analysing...
                             </>
                         ) : (
                             <>
                                 <Eye className="icon-sm" />
-                                Analyze Text
+                                Analyse Text
                             </>
                         )}
                       </button>
@@ -483,7 +574,7 @@ const BasicDetectivePage = () => {
                     {isAnalyzing && (
                         <div className="loading-container">
                             <div className="loading-spinner"></div>
-                            <div className="loading-text">Analyzing text patterns...</div>
+                            <div className="loading-text">Analysing text patterns...</div>
                         </div>
                     )}
 
@@ -519,7 +610,9 @@ const BasicDetectivePage = () => {
                               <h4>Want More Detailed Analysis?</h4>
                               <p>Sign in to unlock advanced features, unlimited analysis, and detailed reports.</p>
                             </div>
-                            <button className="signin-btn">Sign In</button>
+                            <RouterLink to="/login">
+                                <button className="signin-btn">Sign In</button>
+                            </RouterLink>
                           </div>
                         </div>
                       </div>
@@ -534,7 +627,7 @@ const BasicDetectivePage = () => {
                                   <FileText className="icon-md" />
                               </div>
                               <h4>Unlimited Text Analysis</h4>
-                              <p>Analyze texts of any length without character limits</p>
+                              <p>Analyse texts of any length without character limits</p>
                           </div>
                           <div className="feature-card">
                               <div className="feature-icon">
@@ -558,4 +651,4 @@ const BasicDetectivePage = () => {
         </div>
     );
 };
-export default BasicDetectivePage;
+export default DetectiveBasic;

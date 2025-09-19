@@ -1,6 +1,6 @@
 // For DOCX parsing
 import mammoth from "mammoth";
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -43,7 +43,8 @@ import {
     Info,
     Home
 } from 'lucide-react';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -52,6 +53,22 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 const DetectivePage = () => {
     // API Configuration.
     const API_BASE_URL = 'http://localhost:8000';
+    const navigate = useNavigate();
+
+    // Get auth token and user data.
+    const authToken = getAuthToken();
+    const isUserAuthenticated = isAuthenticated();
+    const currentUser = getCurrentUser();
+
+    const [isExporting, setIsExporting] = useState(false);
+
+    // Redirect to login if not authenticated.
+    useEffect(() => {
+        if (!isUserAuthenticated) {
+            navigate('/', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
     
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -79,77 +96,100 @@ const DetectivePage = () => {
     const [historyItems, setHistoryItems] = useState([]);
 
     // Fetch user history on component mount
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                const response = await fetch('/api/user/submissions', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`, // If using auth
-                    }
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Transform API data to match your component format
-                    const transformedHistory = data.data.map(item => ({
-                        id: item.submission.id,
-                        type: 'text', // or determine from item data
-                        title: item.submission.name,
-                        date: new Date(item.submission.created_at).toLocaleString(),
-                        content: item.input_text.substring(0, 100) + '...',
-                        result: {
-                            isAI: item.analysis_result.prediction.is_ai_generated,
-                            confidence: Math.round(item.analysis_result.prediction.confidence * 100),
-                            highlightedText: item.input_text, // Will be processed by generateHighlightedText when viewed
-                            detectionReasons: item.analysis_result.analysis.detection_reasons,
-                            statistics: item.analysis_result.statistics,
-                            analysisDetails: item.analysis_result.analysis.analysis_details
-                        }
-                    }));
-                    setHistoryItems(transformedHistory);
-                }
-            } catch (error) {
-                console.error('Failed to fetch history:', error);
+    const fetchHistory = useCallback(async () => {
+        try {
+            // Only fetch history if user is authenticated.
+            if (!isUserAuthenticated || !authToken) {
+                console.log('User not authenticated, skipping history fetch');
+                return;
             }
-        };
-        
-        fetchHistory();
-    }, []);
 
-    /* REMOVED - RECENT ACTIVITY WILL BE IN ADMIN PAGE
-    const [recentActivity] = useState([
-        {
-            id: 1,
-            title: 'Text analysis completed',
-            time: '2 minutes ago',
-            status: 'success',
-            type: 'text'
-        },
-        {
-            id: 2,
-            title: 'Image Processing in progress',
-            time: '5 minutes ago',
-            status: 'processing',
-            type: 'image'
-        },
-        {
-            id: 3,
-            title: 'Batch analysis completed',
-            time: '1 hour ago',
-            status: 'success',
-            type: 'text'
+            const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(data);
+            
+            if (data.success) {
+                const transformedHistory = data.data.submissions.map(item => ({
+                    id: item.id,
+                    type: 'text',
+                    title: item.name,
+                    date: new Date(item.created_at).toLocaleString(),
+                    content: 'Click to view details...', 
+                    result: null       // Will be populated when individual submission is fetched.
+                }));
+                setHistoryItems(transformedHistory);
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            if (error.message.includes('401')) {
+                console.log('Authentication failed, user may need to log in again');
+            }
         }
-    ]);
-    */
+    }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
+
+    // Use the extracted function in useEffect
+    useEffect(() => {
+        fetchHistory();
+    }, [fetchHistory]);
+
+    const fetchSubmissionDetails = async (submissionId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const submission = data.data.submission;
+                const analysis = submission.analysis_result;
+                
+                // Update the specific item in your history state with full details
+                setHistoryItems(prev => prev.map(item => 
+                    item.id === submissionId 
+                        ? {
+                            ...item,
+                            content: submission.content?.substring(0, 100) + '...',
+                            isLoaded: true,
+                            result: {
+                                isAI: analysis.detection_result === 'AI_GENERATED',
+                                confidence: Math.round(analysis.confidence * 100),
+                                highlightedText: submission.content,
+                                detectionReasons: analysis.detection_reasons,
+                                statistics: analysis.statistics,
+                                analysisDetails: analysis.analysis_details
+                            }
+                        }
+                        : item
+                ));
+            }
+
+        } catch (error) {
+            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
+        }
+    };
 
     //sidebar toggle
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
-
-    //------------------------
-    // API-based AI detection logic
-    //-------------------------
     
     // Helper function to generate highlighted text from API data
     const generateHighlightedText = (originalText, analysisDetails) => {
@@ -238,18 +278,17 @@ const DetectivePage = () => {
         return highlightedText;
     };
 
-    const performTextAnalysis = async (text) => {
+    const performTextAnalysis = async (text, onSuccess) => {
         try {
-            // Check if user is authenticated.
-            const token = localStorage.getItem('token');
+            // Check if user is authenticated - consistent with exportReportAsPDF
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
             const headers = {
                 'Content-Type': 'application/json',
+                'Authorization': `Token ${authToken}`,
             };
-
-            // Add authorization header if user is authenticated.
-            if (token) {
-                headers['Authorization'] = `Token ${token}`;
-            }
 
             // Fetch data from the API.
             const response = await fetch(`${API_BASE_URL}/api/analysis/text/`, {
@@ -283,7 +322,7 @@ const DetectivePage = () => {
             const analysisDetails = analysis.analysis_details;
             const submission = data.data.submission; // This might be undefined
 
-            return {
+            const result =  {
                 isAI: prediction.is_ai_generated,
                 confidence: Math.round(prediction.confidence * 100),
                 highlightedText: highlightedText,
@@ -314,248 +353,23 @@ const DetectivePage = () => {
                     submissionName: submission.name,
                 } : null,
             };
+
+            if (onSuccess && result.submission) {
+                try {
+                    await onSuccess(result);
+                } catch (callbackError) {
+                    console.error('Success callback failed:', callbackError);
+                }
+            }
+
+            return result;
+
         } catch (error) {
             console.error('Analysis failed:', error);
             throw error;
         }
     };
     
-    /* OLD MOCKED ANALYSIS LOGIC - COMMENTED OUT
-    const performTextAnalysis = (text) => {
-        const aiKeywords = ['revolutionized', 'transformed', 'cutting-edge', 'state-of-the-art', 'innovative', 'delves', 'leverage', 'optimize', 'facilitate', 'profoundly', 'countless', 'unimaginable', 'accelerated', 'breakthroughs', 'integration', 'thrive', 'competitive', 'environments', 'strategies', 'organizations', 'insights', 'resources', 'evolution', 'algorithms', 'reshaped', 'interaction', 'ecosystems', 'ultimately', 'underscoring', 'innovations'];
-        const suspiciousPatterns = ['AI-generated', 'machine learning', 'aritificial intelligence'];
-        const transitionWords = ['furthermore', 'moreover', 'additionally', 'consequently', 'therefore', 'nevertheless', 'however'];
-        const corporateJargon = ['leverage', 'optimize', 'facilitate', 'streamline', 'synergize', 'paradigm'];
-        const buzzwords = ['cutting-edge', 'state-of-the-art', 'revolutionary', 'groundbreaking', 'innovative', 'profoundly'];
-        const humanIndicators = ['hi', 'my name is', 'i am', 'yah', 'from', 'student', 'towards', 'degree', 'majoring'];
-
-        let isAI = false;
-        let confidence = 0;
-        const detectionReasons = [];
-        const statistics = {
-            totalWords: 0,
-            sentences: 0,
-            avgSentenceLength: 0,
-            aiKeywordsCount: 0,
-            transitionWordsCount: 0,
-            corporateJargonCount: 0,
-            buzzwordsCount: 0,
-            suspiciousPatternsCount: 0,
-            humanIndicatorsCount: 0
-        };
-
-        //check for ai keywords
-        const lowerText = text.toLowerCase();
-
-        //calculate basic stats
-        const words = text.split(/\s+/).filter(word => word.length > 0);
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-
-        statistics.totalWords = words.length;
-        statistics.sentences = sentences.length;
-        statistics.avgSentenceLength = sentences.length > 0 ? words.length / sentences.length : 0;
-        
-        //check for ai keywords
-        const foundKeywords = aiKeywords.filter(keyword => lowerText.includes(keyword));
-        statistics.aiKeywordsCount = foundKeywords.length;
-
-        //check for transition words
-        const foundTransitions = transitionWords.filter(word => lowerText.includes(word));
-        statistics.transitionWordsCount = foundTransitions.length;
-
-        //check for corporate jargon
-        const foundJargon = corporateJargon.filter(word => lowerText.includes(word));
-        statistics.corporateJargonCount = foundJargon.length;
-
-        //check for buzzwords
-        const foundBuzzwords = buzzwords.filter(word => lowerText.includes(word));
-        statistics.buzzwordsCount = foundBuzzwords.length;
-
-        //check for suspicious patterns
-        const foundPatterns = suspiciousPatterns.filter(pattern => lowerText.includes(pattern.toLowerCase()));
-        statistics.suspiciousPatternsCount = foundPatterns.length;
-
-        //check for human indicators
-        const foundHumanIndicators = humanIndicators.filter(indicator => lowerText.includes(indicator));
-        statistics.humanIndicatorsCount = foundHumanIndicators.length;
-
-        //base confidence
-        confidence = 50;
-
-        //analysis logic for AI detection
-        if (foundPatterns.length > 0) {
-            isAI = true;
-            confidence += 35;
-            detectionReasons.push({
-                type: 'critical',
-                title: 'Explicit AI References',
-                description: `Found ${foundPatterns.length} explicit AI-related phrases: ${foundPatterns.join(', ')}`,
-                impact: 'High'
-            });
-        }
-
-        if (foundKeywords.length >= 5) {
-            isAI = true;
-            confidence += 20;
-            detectionReasons.push({
-                type: 'warning',
-                title: 'High AI Keyword Density',
-                description: `Detected ${foundKeywords.length} AI-typical words (${((foundKeywords.length / words.length) * 100).toFixed(1)}% of text)`,
-                impact: 'High'
-            });
-        }
-
-        if (foundTransitions.length >= 3) {
-            isAI = true;
-            confidence += 15;
-            detectionReasons.push({
-                type: 'warning',
-                title: 'Excessive Formal Transitions',
-                description: `High frequency of formal transition words: ${foundTransitions.length} instances (${foundTransitions.join(', ')})`,
-                impact: 'Medium'
-            });
-        }
-
-        if (foundJargon.length >= 3) {
-            isAI = true;
-            confidence += 10;
-            detectionReasons.push({
-                type: 'info',
-                title: 'Corporate Jargon Pattern',
-                description: `Business terminology suggests AI generation: ${foundJargon.join(', ')}`,
-                impact: 'Medium'
-            });
-        }
-
-        if (statistics.avgSentenceLength > 20) {
-            confidence += 5;
-            detectionReasons.push({
-                type: 'info',
-                title: 'Complex Sentence Structure',
-                description: `Average sentence length of ${statistics.avgSentenceLength.toFixed(1)} words suggests formal AI writing`,
-                impact: 'Low'
-            });
-        }
-
-        //human indicators (reduce AI confidence)
-        if (foundHumanIndicators.length >= 3) {
-            confidence -= 30;
-            detectionReasons.push({
-                type: 'success',
-                title: 'Personal/Conversational Language',
-                description: `Found ${foundHumanIndicators.length} human-style indicators: ${foundHumanIndicators.slice(0, 5).join(', ')}`,
-                impact: 'Positive'
-            });
-        }
-
-        if (statistics.avgSentenceLength < 15 && foundTransitions.length <= 1) {
-            confidence -= 20;
-            detectionReasons.push({
-                type: 'success',
-                title: 'Natural Sentence Structure',
-                description: 'Short, natural sentences with minimal formal transitions',
-                impact: 'Positive'
-            });
-        }
-
-        if (foundKeywords.length === 0 && foundPatterns.length === 0) {
-            confidence -= 25;
-            detectionReasons.push({
-                type: 'success',
-                title: 'No AI-typical Patterns',
-                description: 'No AI buzzwords or suspicious patterns detected',
-                impact: 'Positive'
-            });
-        }
-
-        //check for informal language patterns
-        const informalPatterns = ['!', 'yah', 'hi', 'my name', 'i am', 'cool'];
-        const foundInformal = informalPatterns.filter(pattern => lowerText.includes(pattern));
-        if (foundInformal.length >= 2) {
-            confidence -= 15;
-            detectionReasons.push({
-                type: 'success',
-                title: 'Informal/Personal Tone',
-                description: 'Casual language and personal expressions detected',
-                impact: 'Positive'
-            });
-        }
-
-        //final determination
-        if (confidence >= 60) {
-            isAI = true;
-        } else {
-            isAI = false;
-        }
-
-        //ensure confidence is within bounds
-        confidence = Math.min(95, Math.max(5, confidence));
-        
-        //if determined to be human invert confidence
-        if (!isAI) {
-            confidence = 100 - confidence;
-        }
-
-        //generate highlighted text
-        let highlightedText = text;
-
-        // Helper for group highlighting
-        const highlightGroups = [
-            {
-                words: aiKeywords,
-                className: "highlight-keyword",
-                tooltip: "AI keyword: frequently used in AI-generated content"
-            },
-            {
-                words: suspiciousPatterns,
-                className: "highlight-suspicious",
-                tooltip: "Explicit AI-related phrase"
-            },
-            {
-                words: transitionWords,
-                className: "highlight-transition",
-                tooltip: "Formal transition word: often overused by AI"
-            },
-            {
-                words: corporateJargon,
-                className: "highlight-jargon",
-                tooltip: "Corporate jargon: business/AI terminology"
-            },
-            {
-                words: buzzwords,
-                className: "highlight-buzzword",
-                tooltip: "Buzzword: marketing or hype language"
-            }
-        ];
-
-        // Avoid double-highlighting by replacing in order of least likely overlap
-        highlightGroups.forEach(group => {
-            group.words.forEach(keyword => {
-                const regex = new RegExp(`\\b${keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
-                highlightedText = highlightedText.replace(
-                    regex,
-                    `<span class="highlight ${group.className}">${keyword}<span class="tooltip">${group.tooltip}</span></span>`
-                );
-            });
-        });
-        return {
-            isAI,
-            confidence,
-            highlightedText,
-            detectionReasons,
-            statistics,
-            analysisDetails: {
-                foundKeywords,
-                foundPatterns,
-                foundTransitions,
-                foundJargon,
-                foundBuzzwords,
-                foundHumanIndicators
-            }
-        };
-    };
-    */
-
     const performImageAnalysis = async (file) => {
         try {
             const formData = new FormData();
@@ -585,21 +399,6 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED IMAGE ANALYSIS - COMMENTED OUT
-    const performImageAnalysis = (filename) => {
-        //mock logic based on filename
-        const lower = filename.toLowerCase();
-        if (lower.includes("lindo_ai") || lower.includes("generated")){
-            return {isAI: true, confidence: 90, highlightedText: ''};
-        }
-        else if (lower.includes("lindo_original") || lower.includes("written")){
-            return {isAI: false, confidence: 92, highlightedText: ''};
-        }
-
-        return {isAI: Math.random() > 0.5, confidence: 85, highlightedText: ''}
-    };
-    */
-
     //---------------------------
     //handlers for user actions
     //--------------------------
@@ -609,9 +408,18 @@ const DetectivePage = () => {
         setIsAnalyzing(true);
 
         try {
-            const result = await performTextAnalysis(textContent);
+            const result = await performTextAnalysis(textContent, async (analysisResult) => {
+                // This callback runs after successful analysis with submission
+                console.log('Refreshing history after successful submission...');
+                await fetchHistory();
+            });
+            
             setAnalysisResult(result);
-            saveToHistory(result); // Save to history after successful analysis
+            console.log(result);
+            
+            // Still save to local history for immediate UI updates
+            saveToHistory(result);
+            
         } catch (error) {
             console.error('Text analysis failed:', error);
             alert('Analysis failed. Please try again.');
@@ -619,20 +427,6 @@ const DetectivePage = () => {
             setIsAnalyzing(false);
         }
     };
-
-    /* OLD MOCKED TEXT ANALYSIS HANDLER - COMMENTED OUT
-    const handleTextAnalysis = async () => {
-        if (!textContent.trim()) return;
-
-        setIsAnalyzing(true);
-
-        setTimeout(() => {
-            const result = performTextAnalysis(textContent);
-            setAnalysisResult(result);
-            setIsAnalyzing(false);
-        }, 2000);   //simulate api delay
-    };
-    */
 
     const handleFileUpload = async (event) => {
         const file = event.target.files?.[0];
@@ -732,45 +526,6 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED FILE UPLOAD HANDLER - COMMENTED OUT
-    const handleFileUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const fileType = file.type;
-        const fileName = file.name.toLowerCase();
-
-        if (activeDetectionType === 'text') {
-            if (!fileType.includes('pdf')) {
-                alert('Please upload only PDF files for text analysis in this prototype.');
-                return;
-            }
-
-            setIsAnalyzing(true);
-
-            //read PDF text using pdfjs
-            const reader = new FileReader();
-            reader.onload = async function () {
-                const typedArray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                let fullText = "";
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
-                }
-
-                //perform enhanced analysis on extracted tezt
-                const result = performTextAnalysis(fullText);
-                setAnalysisResult({ ...result, filename: file.name });
-                setIsAnalyzing(false);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    };
-    */
-
     const handleImageUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -805,38 +560,6 @@ const DetectivePage = () => {
         };
         reader.readAsDataURL(file);
     };
-
-    /* OLD MOCKED IMAGE UPLOAD HANDLER - COMMENTED OUT
-    const handleImageUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const fileType = file.type;
-
-        if (!fileType.includes('image')){
-            alert('Please upload only PNG or JPEG images.');
-            return;
-        }
-
-        if (!fileType.includes('png') && !fileType.includes('jpeg') && !fileType.includes('jpg')){
-            alert('Please Upload only PNG or JPEG');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setUploadedImage(e.target?.result);
-
-            setIsAnalyzing(true);
-            setTimeout(() => {
-                const result = performImageAnalysis(file.name);
-                setAnalysisResult({...result, filename: file.name, isImage: true});
-                setIsAnalyzing(false);
-            }, 2500);
-        };
-        reader.readAsDataURL(file);
-    };
-    */
 
     const handleThumbsDown = () => {
         setShowFeedback(true);
@@ -874,35 +597,20 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED FEEDBACK SUBMISSION - COMMENTED OUT
-    const submitFeedback = () =>{
-        if (!feedbackText.trim()) return;
-        const newFeedback = {
-            id: Date.now(),
-            query: analysisResult?.filename || 'Text Analysis',
-            feedback: feedbackText,
-            date: 'Just now'
-        };
-        setFeedbackList(prev => [newFeedback, ...prev]);
-        setFeedbackText('');
-        setShowFeedback(false);
-    };
-    */
-
     //-------------------
     //history management
     //-------------------
     const saveToHistory = async (analysisData) => {
         // Add to local state for immediate UI update
-        const newHistoryItem = {
-            id: analysisData.submissionId || Date.now(),
-            type: activeDetectionType,
-            title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
-            date: new Date().toLocaleString(),
-            content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
-            result: analysisData
-        };
-        setHistoryItems(prev => [newHistoryItem, ...prev]);
+        // const newHistoryItem = {
+        //     id: analysisData.submissionId || Date.now(),
+        //     type: activeDetectionType,
+        //     title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
+        //     date: new Date().toLocaleString(),
+        //     content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
+        //     result: analysisData
+        // };
+        // setHistoryItems(prev => [newHistoryItem, ...prev]);
     };
 
     const viewHistoryItem = (item) => {
@@ -932,30 +640,6 @@ const DetectivePage = () => {
             alert('Failed to delete history item. Please try again.');
         }
     };
-
-    /* OLD MOCKED HISTORY MANAGEMENT - COMMENTED OUT
-    const saveToHistory = () => {
-        if (!analysisResult || analysisResult.isImage) return;
-        const newHistoryItem = {
-            id: Date.now(),
-            type: 'text',
-            title: analysisResult.filename || `Analysis ${new Date().toLocaleTimeString()}`,
-            date: 'Just now',
-            content: textContent,
-            result: analysisResult
-        };
-        setHistoryItems(prev => [newHistoryItem, ...prev]);
-    };
-
-    const viewHistoryItem = (item) => {
-        setSelectedHistoryItem(item);
-        setCurrentView('history-detail');
-    };
-
-    const deleteHistoryItem = (id) => {
-        setHistoryItems(prev => prev.filter(item => item.id !== id));
-    };
-    */
 
     const exportResults = (format) => {
         if (format === 'pdf'){
@@ -1158,18 +842,96 @@ const DetectivePage = () => {
     ];
 
     // PDF export function
-    const exportReportAsPDF = async () => {
-        const input = reportRef.current;
-        if (!input) return;
-        const canvas = await html2canvas(input, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('analysis-report.pdf');
+    const exportReportAsPDF = async (analysisId) => {
+        try {
+            setIsExporting(true);
+            
+            if (!analysisId) {
+                throw new Error('No submission ID provided for export');
+            }
+
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/reports/analysis/${analysisId}/download/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob from the response
+            const blob = await response.blob();
+            
+            // Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Set filename
+            const filename = `analysis-report-${analysisId.slice(0, 8)}.pdf`;
+            link.download = filename;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('Failed to export PDF:', error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // Export Report as Email
+    const exportReportAsEmail = async (analysisId) => {
+        try {
+            setIsExporting(true);
+            
+            if (!analysisId) {
+                throw new Error('No submission ID provided for export');
+            }
+
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/reports/analysis/${analysisId}/email/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('Email sent successfully:', result.message);
+                console.log('Recipient:', result.data.recipient);
+                alert("Sent successfully.")
+            } else {
+                throw new Error(result.error || 'Failed to send email');
+            }
+            
+        } catch (error) {
+            console.error('Failed to send email:', error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -1369,7 +1131,7 @@ const DetectivePage = () => {
                                                     {isAnalyzing ? (
                                                         <>
                                                             <Loader className="icon-sm animate-spin" />
-                                                            Analyzing...
+                                                            Analysing...
                                                         </>
                                                     ) : (
                                                         <>
@@ -1433,7 +1195,7 @@ const DetectivePage = () => {
                                     <div className="loading-container">
                                         <div className="loading-spinner"></div>
                                         <div className="loading-text">
-                                            {activeDetectionType === 'text' ? 'Analyzing text patterns...' : 'Processing image...'}
+                                            {activeDetectionType === 'text' ? 'Analysing text patterns...' : 'Processing image...'}
                                         </div>
                                     </div>
                                 )}
@@ -1495,11 +1257,11 @@ const DetectivePage = () => {
                                                     </div>
                                                     
                                                     <div className="results-actions">
-                                                        <button className="action-btn export" onClick={exportReportAsPDF}>
+                                                        <button className="action-btn export" onClick={() => exportReportAsPDF(analysisResult.analysisId)}>
                                                             <Download className="icon-sm" />
                                                             Export PDF
                                                         </button>
-                                                        <button className="action-btn" onClick={() => exportResults('email')}>
+                                                        <button className="action-btn" onClick={() => exportReportAsEmail(analysisResult.analysisId)}>
                                                             <Mail className="icon-sm" />
                                                             Email
                                                         </button>
@@ -1599,7 +1361,7 @@ const DetectivePage = () => {
                                         </div>
                                         
                                         <div className="results-actions">
-                                            <button className="action-btn export" onClick={exportReportAsPDF}>
+                                            <button className="action-btn export" onClick={exportReportAsPDF(analysisResult.analysisId)}>
                                                 <Download className="icon-sm" />
                                                 Export PDF
                                             </button>

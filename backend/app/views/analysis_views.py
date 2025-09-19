@@ -35,7 +35,7 @@ def analyse_text(request):
     text = data.get('text')
     submission_name = data.get('name', None)
 
-    if not text:
+    if not text or not str(text).strip():
         return create_json_response(
             success=False,
             error='Text field is required',

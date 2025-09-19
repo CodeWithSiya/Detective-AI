@@ -2,11 +2,11 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import Login from './Components/UserAuthentication/Login/Login'
-import Signup from './Components/UserAuthentication/Signup/Signup';
-import ForgotPassword from './Components/UserAuthentication/ForgotPassword/ForgotPassword';
-import VerifyEmail from './Components/UserAuthentication/VerifyPassword/VerifyEmail';
-import ChangePassword from './Components/UserAuthentication/ChangePassword/ChangePassword'
+import Login from './components/UserAuthentication/Login/Login'
+import Signup from './components/UserAuthentication/Signup/Signup';
+import ForgotPassword from './components/UserAuthentication/ForgotPassword/ForgotPassword';
+import VerifyEmail from './components/UserAuthentication/VerifyPassword/VerifyEmail';
+import ChangePassword from './components/UserAuthentication/ChangePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DetectivePage from './Components/DetectivePage/DetectivePage';
 import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';

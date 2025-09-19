@@ -155,7 +155,7 @@ const DemoLandingPage = () => {
                         </p>
                         {/* Action Buttons */}
                         <div className="hero-buttons">
-                            <RouterLink to="/detective">
+                            <RouterLink to="/detective-basic">
                                 <button className="btn-primary">
                                     <Eye className="icon-sm" />
                                     <span>Enter Detective Mode</span>
@@ -363,7 +363,7 @@ const DemoLandingPage = () => {
                     </p>
                 
                     <div className="cta-buttons">
-                        <RouterLink to="/detective">
+                        <RouterLink to="/detective-basic">
                             <button className="btn-primary">
                                 <Search className="icon-sm" />
                                 <span>Start Detection</span>
