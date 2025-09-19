@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useEffect } from 'react';
 import './DetectiveBasic.css';
 import Logo from "../Assets/Logo.png";
 import {
@@ -38,11 +38,24 @@ import {
     FileCheck,
     Info
 } from 'lucide-react';
-import { Router, Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { isAuthenticated } from '../UserAuthentication/AuthHandler';
 
 const DetectiveBasic = () => {
     // API Configuration.
     const API_BASE_URL = 'http://localhost:8000';
+    const navigate = useNavigate();
+
+    // Get authentication data.
+    const isUserAuthenticated = isAuthenticated();
+
+    // Redirect to detective page if authenticated.
+    useEffect(() => {
+        if (isUserAuthenticated) {
+            navigate('/detective', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
 
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
