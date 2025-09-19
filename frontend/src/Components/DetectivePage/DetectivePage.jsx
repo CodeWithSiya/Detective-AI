@@ -142,6 +142,50 @@ const DetectivePage = () => {
         fetchHistory();
     }, [fetchHistory]);
 
+    const fetchSubmissionDetails = async (submissionId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const submission = data.data.submission;
+                const analysis = submission.analysis_result;
+                
+                // Update the specific item in your history state with full details
+                setHistoryItems(prev => prev.map(item => 
+                    item.id === submissionId 
+                        ? {
+                            ...item,
+                            content: submission.content?.substring(0, 100) + '...',
+                            isLoaded: true,
+                            result: {
+                                isAI: analysis.detection_result === 'AI_GENERATED',
+                                confidence: Math.round(analysis.confidence * 100),
+                                highlightedText: submission.content,
+                                detectionReasons: analysis.detection_reasons,
+                                statistics: analysis.statistics,
+                                analysisDetails: analysis.analysis_details
+                            }
+                        }
+                        : item
+                ));
+            }
+
+        } catch (error) {
+            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
+        }
+    };
+
     //sidebar toggle
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
@@ -567,50 +611,6 @@ const DetectivePage = () => {
         //     result: analysisData
         // };
         // setHistoryItems(prev => [newHistoryItem, ...prev]);
-    };
-
-    const fetchSubmissionDetails = async (submissionId) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
-                headers: {
-                    'Authorization': `Token ${authToken}`,
-                    'Content-Type': 'application/json',
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const submission = data.data.submission;
-                const analysis = submission.analysis_result;
-                
-                // Update the specific item in your history state with full details
-                setHistoryItems(prev => prev.map(item => 
-                    item.id === submissionId 
-                        ? {
-                            ...item,
-                            content: submission.content?.substring(0, 100) + '...',
-                            isLoaded: true,
-                            result: {
-                                isAI: analysis.detection_result === 'AI_GENERATED',
-                                confidence: Math.round(analysis.confidence * 100),
-                                highlightedText: submission.content,
-                                detectionReasons: analysis.detection_reasons,
-                                statistics: analysis.statistics,
-                                analysisDetails: analysis.analysis_details
-                            }
-                        }
-                        : item
-                ));
-            }
-
-        } catch (error) {
-            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
-        }
     };
 
     const viewHistoryItem = (item) => {
