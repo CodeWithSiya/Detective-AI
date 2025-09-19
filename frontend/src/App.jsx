@@ -13,6 +13,7 @@ import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
 import Team from './Components/Team/Team';
 import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
 import BasicDetectivePage from './Components/Basic-DetectivePage/BasicDetectivePage';
+import Admin from './Components/Admin/Admin';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/detective" element={<DetectivePage />} />
         <Route path="/team" element={<Team />} />
         <Route path="/basic-detective" element={<BasicDetectivePage />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   )
