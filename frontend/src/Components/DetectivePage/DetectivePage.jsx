@@ -43,7 +43,8 @@ import {
     Info,
     Home
 } from 'lucide-react';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -52,6 +53,20 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 const DetectivePage = () => {
     // API Configuration.
     const API_BASE_URL = 'http://localhost:8000';
+    const navigate = useNavigate();
+
+    // Get auth token and user data.
+    const authToken = getAuthToken();
+    const isUserAuthenticated = isAuthenticated();
+    const currentUser = getCurrentUser();
+
+    // Redirect to login if not authenticated.
+    useEffect(() => {
+        if (!isUserAuthenticated) {
+            navigate('/', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
     
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -82,74 +97,96 @@ const DetectivePage = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const response = await fetch('/api/user/submissions', {
+                // Only fetch history if user is authenticated.
+                if (!isUserAuthenticated || !authToken) {
+                    console.log('User not authenticated, skipping history fetch');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`, // If using auth
+                        'Authorization': `Token ${authToken}`,
+                        'Content-Type': 'application/json',
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log(data);
                 
                 if (data.success) {
-                    // Transform API data to match your component format
-                    const transformedHistory = data.data.map(item => ({
-                        id: item.submission.id,
-                        type: 'text', // or determine from item data
-                        title: item.submission.name,
-                        date: new Date(item.submission.created_at).toLocaleString(),
-                        content: item.input_text.substring(0, 100) + '...',
-                        result: {
-                            isAI: item.analysis_result.prediction.is_ai_generated,
-                            confidence: Math.round(item.analysis_result.prediction.confidence * 100),
-                            highlightedText: item.input_text, // Will be processed by generateHighlightedText when viewed
-                            detectionReasons: item.analysis_result.analysis.detection_reasons,
-                            statistics: item.analysis_result.statistics,
-                            analysisDetails: item.analysis_result.analysis.analysis_details
-                        }
+                    const transformedHistory = data.data.submissions.map(item => ({
+                        id: item.id,
+                        type: 'text',
+                        title: item.name,
+                        date: new Date(item.created_at).toLocaleString(),
+                        content: 'Click to view details...', 
+                        result: null       // Will be populated when individual submission is fetched.
                     }));
                     setHistoryItems(transformedHistory);
                 }
             } catch (error) {
                 console.error('Failed to fetch history:', error);
+                if (error.message.includes('401')) {
+                    console.log('Authentication failed, user may need to log in again');
+                }
             }
         };
         
         fetchHistory();
-    }, []);
+    }, [isUserAuthenticated, authToken]); // Re-run if auth status changes 
 
-    /* REMOVED - RECENT ACTIVITY WILL BE IN ADMIN PAGE
-    const [recentActivity] = useState([
-        {
-            id: 1,
-            title: 'Text analysis completed',
-            time: '2 minutes ago',
-            status: 'success',
-            type: 'text'
-        },
-        {
-            id: 2,
-            title: 'Image Processing in progress',
-            time: '5 minutes ago',
-            status: 'processing',
-            type: 'image'
-        },
-        {
-            id: 3,
-            title: 'Batch analysis completed',
-            time: '1 hour ago',
-            status: 'success',
-            type: 'text'
+    const fetchSubmissionDetails = async (submissionId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const submission = data.data.submission;
+                const analysis = submission.analysis_result;
+                
+                // Update the specific item in your history state with full details
+                setHistoryItems(prev => prev.map(item => 
+                    item.id === submissionId 
+                        ? {
+                            ...item,
+                            content: submission.content?.substring(0, 100) + '...',
+                            isLoaded: true,
+                            result: {
+                                isAI: analysis.detection_result === 'AI_GENERATED',
+                                confidence: Math.round(analysis.confidence * 100),
+                                highlightedText: submission.content,
+                                detectionReasons: analysis.detection_reasons,
+                                statistics: analysis.statistics,
+                                analysisDetails: analysis.analysis_details
+                            }
+                        }
+                        : item
+                ));
+            }
+
+        } catch (error) {
+            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
         }
-    ]);
-    */
+    };
 
     //sidebar toggle
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
-
-    //------------------------
-    // API-based AI detection logic
-    //-------------------------
     
     // Helper function to generate highlighted text from API data
     const generateHighlightedText = (originalText, analysisDetails) => {
@@ -349,21 +386,6 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED IMAGE ANALYSIS - COMMENTED OUT
-    const performImageAnalysis = (filename) => {
-        //mock logic based on filename
-        const lower = filename.toLowerCase();
-        if (lower.includes("lindo_ai") || lower.includes("generated")){
-            return {isAI: true, confidence: 90, highlightedText: ''};
-        }
-        else if (lower.includes("lindo_original") || lower.includes("written")){
-            return {isAI: false, confidence: 92, highlightedText: ''};
-        }
-
-        return {isAI: Math.random() > 0.5, confidence: 85, highlightedText: ''}
-    };
-    */
-
     //---------------------------
     //handlers for user actions
     //--------------------------
@@ -482,45 +504,6 @@ const DetectivePage = () => {
         }
     };
 
-    /* OLD MOCKED FILE UPLOAD HANDLER - COMMENTED OUT
-    const handleFileUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const fileType = file.type;
-        const fileName = file.name.toLowerCase();
-
-        if (activeDetectionType === 'text') {
-            if (!fileType.includes('pdf')) {
-                alert('Please upload only PDF files for text analysis in this prototype.');
-                return;
-            }
-
-            setIsAnalyzing(true);
-
-            //read PDF text using pdfjs
-            const reader = new FileReader();
-            reader.onload = async function () {
-                const typedArray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                let fullText = "";
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
-                }
-
-                //perform enhanced analysis on extracted tezt
-                const result = performTextAnalysis(fullText);
-                setAnalysisResult({ ...result, filename: file.name });
-                setIsAnalyzing(false);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    };
-    */
-
     const handleImageUpload = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -555,38 +538,6 @@ const DetectivePage = () => {
         };
         reader.readAsDataURL(file);
     };
-
-    /* OLD MOCKED IMAGE UPLOAD HANDLER - COMMENTED OUT
-    const handleImageUpload = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const fileType = file.type;
-
-        if (!fileType.includes('image')){
-            alert('Please upload only PNG or JPEG images.');
-            return;
-        }
-
-        if (!fileType.includes('png') && !fileType.includes('jpeg') && !fileType.includes('jpg')){
-            alert('Please Upload only PNG or JPEG');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setUploadedImage(e.target?.result);
-
-            setIsAnalyzing(true);
-            setTimeout(() => {
-                const result = performImageAnalysis(file.name);
-                setAnalysisResult({...result, filename: file.name, isImage: true});
-                setIsAnalyzing(false);
-            }, 2500);
-        };
-        reader.readAsDataURL(file);
-    };
-    */
 
     const handleThumbsDown = () => {
         setShowFeedback(true);
@@ -623,21 +574,6 @@ const DetectivePage = () => {
             alert('Failed to submit feedback. Please try again.');
         }
     };
-
-    /* OLD MOCKED FEEDBACK SUBMISSION - COMMENTED OUT
-    const submitFeedback = () =>{
-        if (!feedbackText.trim()) return;
-        const newFeedback = {
-            id: Date.now(),
-            query: analysisResult?.filename || 'Text Analysis',
-            feedback: feedbackText,
-            date: 'Just now'
-        };
-        setFeedbackList(prev => [newFeedback, ...prev]);
-        setFeedbackText('');
-        setShowFeedback(false);
-    };
-    */
 
     //-------------------
     //history management
