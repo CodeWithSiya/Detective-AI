@@ -1,6 +1,6 @@
 // For DOCX parsing
 import mammoth from "mammoth";
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -60,6 +60,8 @@ const DetectivePage = () => {
     const isUserAuthenticated = isAuthenticated();
     const currentUser = getCurrentUser();
 
+    const [isExporting, setIsExporting] = useState(false);
+
     // Redirect to login if not authenticated.
     useEffect(() => {
         if (!isUserAuthenticated) {
@@ -94,54 +96,15 @@ const DetectivePage = () => {
     const [historyItems, setHistoryItems] = useState([]);
 
     // Fetch user history on component mount
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                // Only fetch history if user is authenticated.
-                if (!isUserAuthenticated || !authToken) {
-                    console.log('User not authenticated, skipping history fetch');
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
-                    headers: {
-                        'Authorization': `Token ${authToken}`,
-                        'Content-Type': 'application/json',
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log(data);
-                
-                if (data.success) {
-                    const transformedHistory = data.data.submissions.map(item => ({
-                        id: item.id,
-                        type: 'text',
-                        title: item.name,
-                        date: new Date(item.created_at).toLocaleString(),
-                        content: 'Click to view details...', 
-                        result: null       // Will be populated when individual submission is fetched.
-                    }));
-                    setHistoryItems(transformedHistory);
-                }
-            } catch (error) {
-                console.error('Failed to fetch history:', error);
-                if (error.message.includes('401')) {
-                    console.log('Authentication failed, user may need to log in again');
-                }
-            }
-        };
-        
-        fetchHistory();
-    }, [isUserAuthenticated, authToken]); // Re-run if auth status changes 
-
-    const fetchSubmissionDetails = async (submissionId) => {
+    const fetchHistory = useCallback(async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+            // Only fetch history if user is authenticated.
+            if (!isUserAuthenticated || !authToken) {
+                console.log('User not authenticated, skipping history fetch');
+                return;
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
                 headers: {
                     'Authorization': `Token ${authToken}`,
                     'Content-Type': 'application/json',
@@ -153,35 +116,31 @@ const DetectivePage = () => {
             }
             
             const data = await response.json();
+            console.log(data);
             
             if (data.success) {
-                const submission = data.data.submission;
-                const analysis = submission.analysis_result;
-                
-                // Update the specific item in your history state with full details
-                setHistoryItems(prev => prev.map(item => 
-                    item.id === submissionId 
-                        ? {
-                            ...item,
-                            content: submission.content?.substring(0, 100) + '...',
-                            isLoaded: true,
-                            result: {
-                                isAI: analysis.detection_result === 'AI_GENERATED',
-                                confidence: Math.round(analysis.confidence * 100),
-                                highlightedText: submission.content,
-                                detectionReasons: analysis.detection_reasons,
-                                statistics: analysis.statistics,
-                                analysisDetails: analysis.analysis_details
-                            }
-                        }
-                        : item
-                ));
+                const transformedHistory = data.data.submissions.map(item => ({
+                    id: item.id,
+                    type: 'text',
+                    title: item.name,
+                    date: new Date(item.created_at).toLocaleString(),
+                    content: 'Click to view details...', 
+                    result: null       // Will be populated when individual submission is fetched.
+                }));
+                setHistoryItems(transformedHistory);
             }
-
         } catch (error) {
-            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
+            console.error('Failed to fetch history:', error);
+            if (error.message.includes('401')) {
+                console.log('Authentication failed, user may need to log in again');
+            }
         }
-    };
+    }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
+
+    // Use the extracted function in useEffect
+    useEffect(() => {
+        fetchHistory();
+    }, [fetchHistory]);
 
     //sidebar toggle
     const toggleSidebar = () => {
@@ -275,18 +234,17 @@ const DetectivePage = () => {
         return highlightedText;
     };
 
-    const performTextAnalysis = async (text) => {
+    const performTextAnalysis = async (text, onSuccess) => {
         try {
-            // Check if user is authenticated.
-            const token = localStorage.getItem('token');
+            // Check if user is authenticated - consistent with exportReportAsPDF
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
             const headers = {
                 'Content-Type': 'application/json',
+                'Authorization': `Token ${authToken}`,
             };
-
-            // Add authorization header if user is authenticated.
-            if (token) {
-                headers['Authorization'] = `Token ${token}`;
-            }
 
             // Fetch data from the API.
             const response = await fetch(`${API_BASE_URL}/api/analysis/text/`, {
@@ -320,7 +278,7 @@ const DetectivePage = () => {
             const analysisDetails = analysis.analysis_details;
             const submission = data.data.submission; // This might be undefined
 
-            return {
+            const result =  {
                 isAI: prediction.is_ai_generated,
                 confidence: Math.round(prediction.confidence * 100),
                 highlightedText: highlightedText,
@@ -351,6 +309,17 @@ const DetectivePage = () => {
                     submissionName: submission.name,
                 } : null,
             };
+
+            if (onSuccess && result.submission) {
+                try {
+                    await onSuccess(result);
+                } catch (callbackError) {
+                    console.error('Success callback failed:', callbackError);
+                }
+            }
+
+            return result;
+
         } catch (error) {
             console.error('Analysis failed:', error);
             throw error;
@@ -395,9 +364,18 @@ const DetectivePage = () => {
         setIsAnalyzing(true);
 
         try {
-            const result = await performTextAnalysis(textContent);
+            const result = await performTextAnalysis(textContent, async (analysisResult) => {
+                // This callback runs after successful analysis with submission
+                console.log('Refreshing history after successful submission...');
+                await fetchHistory();
+            });
+            
             setAnalysisResult(result);
-            saveToHistory(result); // Save to history after successful analysis
+            console.log(result);
+            
+            // Still save to local history for immediate UI updates
+            saveToHistory(result);
+            
         } catch (error) {
             console.error('Text analysis failed:', error);
             alert('Analysis failed. Please try again.');
@@ -580,15 +558,59 @@ const DetectivePage = () => {
     //-------------------
     const saveToHistory = async (analysisData) => {
         // Add to local state for immediate UI update
-        const newHistoryItem = {
-            id: analysisData.submissionId || Date.now(),
-            type: activeDetectionType,
-            title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
-            date: new Date().toLocaleString(),
-            content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
-            result: analysisData
-        };
-        setHistoryItems(prev => [newHistoryItem, ...prev]);
+        // const newHistoryItem = {
+        //     id: analysisData.submissionId || Date.now(),
+        //     type: activeDetectionType,
+        //     title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
+        //     date: new Date().toLocaleString(),
+        //     content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
+        //     result: analysisData
+        // };
+        // setHistoryItems(prev => [newHistoryItem, ...prev]);
+    };
+
+    const fetchSubmissionDetails = async (submissionId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const submission = data.data.submission;
+                const analysis = submission.analysis_result;
+                
+                // Update the specific item in your history state with full details
+                setHistoryItems(prev => prev.map(item => 
+                    item.id === submissionId 
+                        ? {
+                            ...item,
+                            content: submission.content?.substring(0, 100) + '...',
+                            isLoaded: true,
+                            result: {
+                                isAI: analysis.detection_result === 'AI_GENERATED',
+                                confidence: Math.round(analysis.confidence * 100),
+                                highlightedText: submission.content,
+                                detectionReasons: analysis.detection_reasons,
+                                statistics: analysis.statistics,
+                                analysisDetails: analysis.analysis_details
+                            }
+                        }
+                        : item
+                ));
+            }
+
+        } catch (error) {
+            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
+        }
     };
 
     const viewHistoryItem = (item) => {
@@ -618,30 +640,6 @@ const DetectivePage = () => {
             alert('Failed to delete history item. Please try again.');
         }
     };
-
-    /* OLD MOCKED HISTORY MANAGEMENT - COMMENTED OUT
-    const saveToHistory = () => {
-        if (!analysisResult || analysisResult.isImage) return;
-        const newHistoryItem = {
-            id: Date.now(),
-            type: 'text',
-            title: analysisResult.filename || `Analysis ${new Date().toLocaleTimeString()}`,
-            date: 'Just now',
-            content: textContent,
-            result: analysisResult
-        };
-        setHistoryItems(prev => [newHistoryItem, ...prev]);
-    };
-
-    const viewHistoryItem = (item) => {
-        setSelectedHistoryItem(item);
-        setCurrentView('history-detail');
-    };
-
-    const deleteHistoryItem = (id) => {
-        setHistoryItems(prev => prev.filter(item => item.id !== id));
-    };
-    */
 
     const exportResults = (format) => {
         if (format === 'pdf'){
@@ -844,18 +842,96 @@ const DetectivePage = () => {
     ];
 
     // PDF export function
-    const exportReportAsPDF = async () => {
-        const input = reportRef.current;
-        if (!input) return;
-        const canvas = await html2canvas(input, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('analysis-report.pdf');
+    const exportReportAsPDF = async (analysisId) => {
+        try {
+            setIsExporting(true);
+            
+            if (!analysisId) {
+                throw new Error('No submission ID provided for export');
+            }
+
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/reports/analysis/${analysisId}/download/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob from the response
+            const blob = await response.blob();
+            
+            // Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Set filename
+            const filename = `analysis-report-${analysisId.slice(0, 8)}.pdf`;
+            link.download = filename;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('Failed to export PDF:', error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // Export Report as Email
+    const exportReportAsEmail = async (analysisId) => {
+        try {
+            setIsExporting(true);
+            
+            if (!analysisId) {
+                throw new Error('No submission ID provided for export');
+            }
+
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/reports/analysis/${analysisId}/email/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('Email sent successfully:', result.message);
+                console.log('Recipient:', result.data.recipient);
+                alert("Sent successfully.")
+            } else {
+                throw new Error(result.error || 'Failed to send email');
+            }
+            
+        } catch (error) {
+            console.error('Failed to send email:', error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -1181,11 +1257,11 @@ const DetectivePage = () => {
                                                     </div>
                                                     
                                                     <div className="results-actions">
-                                                        <button className="action-btn export" onClick={exportReportAsPDF}>
+                                                        <button className="action-btn export" onClick={() => exportReportAsPDF(analysisResult.analysisId)}>
                                                             <Download className="icon-sm" />
                                                             Export PDF
                                                         </button>
-                                                        <button className="action-btn" onClick={() => exportResults('email')}>
+                                                        <button className="action-btn" onClick={() => exportReportAsEmail(analysisResult.analysisId)}>
                                                             <Mail className="icon-sm" />
                                                             Email
                                                         </button>
@@ -1285,7 +1361,7 @@ const DetectivePage = () => {
                                         </div>
                                         
                                         <div className="results-actions">
-                                            <button className="action-btn export" onClick={exportReportAsPDF}>
+                                            <button className="action-btn export" onClick={exportReportAsPDF(analysisResult.analysisId)}>
                                                 <Download className="icon-sm" />
                                                 Export PDF
                                             </button>
