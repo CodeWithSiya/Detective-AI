@@ -8,11 +8,12 @@ import ForgotPassword from './components/UserAuthentication/ForgotPassword/Forgo
 import VerifyEmail from './components/UserAuthentication/VerifyPassword/VerifyEmail';
 import ChangePassword from './components/UserAuthentication/ChangePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import DetectivePage from './components/DetectivePage/DetectivePage';
-import DemoLandingPage from './components/DemoLandingPage/DemoLandingPage';
-import Team from './components/Team/Team';
-import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import DetectiveBasic from './components/Basic-DetectivePage/DetectiveBasic';
+import DetectivePage from './Components/DetectivePage/DetectivePage';
+import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
+import Team from './Components/Team/Team';
+import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
+import BasicDetectivePage from './Components/Basic-DetectivePage/BasicDetectivePage';
+import Admin from './Components/Admin/Admin';
 
 function App() {
   return (
@@ -27,7 +28,8 @@ function App() {
         <Route path="/change-password" element={<ChangePassword/>}/>
         <Route path="/detective" element={<DetectivePage />} />
         <Route path="/team" element={<Team />} />
-        <Route path="/detective-basic" element={<DetectiveBasic />} />
+        <Route path="/basic-detective" element={<BasicDetectivePage />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   )
