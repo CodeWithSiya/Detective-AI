@@ -99,6 +99,7 @@ const DetectivePage = () => {
 
     //history items state
     const [historyItems, setHistoryItems] = useState([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     
     //search state for filtering history
     const [searchQuery, setSearchQuery] = useState('');
@@ -135,6 +136,8 @@ const DetectivePage = () => {
                 return;
             }
 
+            setIsHistoryLoading(true);
+
             const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
                 headers: {
                     'Authorization': `Token ${authToken}`,
@@ -165,6 +168,8 @@ const DetectivePage = () => {
             if (error.message.includes('401')) {
                 console.log('Authentication failed, user may need to log in again');
             }
+        } finally {
+            setIsHistoryLoading(false);
         }
     }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
 
@@ -1120,7 +1125,18 @@ const DetectivePage = () => {
                             </div>
                         </div>
                         
-                        {filteredHistoryItems.map((item) => (
+                        {/* History Loading Indicator */}
+                        {isHistoryLoading && (
+                            <div className="history-loading">
+                                <div className="history-loading-spinner">
+                                    <Loader className="icon-sm animate-spin" />
+                                </div>
+                                <div className="history-loading-text">Loading detections...</div>
+                            </div>
+                        )}
+                        
+                        {/* History Items */}
+                        {!isHistoryLoading && filteredHistoryItems.map((item) => (
                             <div key={item.id} className="history-item">
                                 <div className="history-content" onClick={() => viewHistoryItem(item)}>
                                     {item.type === 'text' ?
@@ -1148,13 +1164,25 @@ const DetectivePage = () => {
                             </div>
                         ))}
                         
-                        {searchQuery && filteredHistoryItems.length === 0 && (
+                        {/* No Search Results */}
+                        {!isHistoryLoading && searchQuery && filteredHistoryItems.length === 0 && (
                             <div className="no-search-results">
                                 <div className="no-results-icon">
                                     <Search className="icon-sm" />
                                 </div>
                                 <div className="no-results-text">No detections found</div>
                                 <div className="no-results-subtext">Try a different search term</div>
+                            </div>
+                        )}
+                        
+                        {/* Empty State when not loading and no history */}
+                        {!isHistoryLoading && !searchQuery && filteredHistoryItems.length === 0 && (
+                            <div className="no-search-results">
+                                <div className="no-results-icon">
+                                    <History className="icon-sm" />
+                                </div>
+                                <div className="no-results-text">No detections yet</div>
+                                <div className="no-results-subtext">Your analysis history will appear here</div>
                             </div>
                         )}
                     </div>
