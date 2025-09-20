@@ -48,6 +48,7 @@ const Login = () => {
         try {
             // API call for user authentication.
             const result = await login(email, password);
+            console.log(result);
 
             // Move to next page if login successful
             if (result.success) {
@@ -57,7 +58,13 @@ const Login = () => {
                 }
                 
                 console.log('Login successful:', result.user);
-                navigate("/detective");
+                
+                // Redirect based on admin status.
+                if (result.user.is_staff) {
+                    navigate("/admin")
+                } else {
+                    navigate("/detective")
+                }
             } else {
                 // Display login error message
                 setErrorMessage(result.message || 'Invalid email or password. Please try again.');
