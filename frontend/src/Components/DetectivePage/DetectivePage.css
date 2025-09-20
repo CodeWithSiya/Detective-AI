@@ -1221,6 +1221,111 @@ body {
     left: 100%;
 }
 
+/* Upload Success Feedback */
+.upload-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.upload-success-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    animation: successPulse 2s infinite;
+}
+
+@keyframes successPulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+    }
+}
+
+.upload-success-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 1rem;
+}
+
+.upload-file-info {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.file-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    word-break: break-all;
+}
+
+.file-size {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.uploaded-image-preview {
+    margin: 1rem 0 1.5rem 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.preview-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.change-file-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.change-file-button:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
 /* Enhanced Results Area */
 .results-container {
     background: rgba(255, 255, 255, 0.9);

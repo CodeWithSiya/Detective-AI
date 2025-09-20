@@ -82,6 +82,10 @@ const DetectivePage = () => {
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
+    
+    //uploaded file states for feedback
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [isFileUploaded, setIsFileUploaded] = useState(false);
 
     //feedback state
     const [showFeedback, setShowFeedback] = useState(false);
@@ -426,6 +430,14 @@ const DetectivePage = () => {
                 return;
             }
 
+            // Set upload feedback
+            setUploadedFile({
+                name: file.name,
+                size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+                type: file.type
+            });
+            setIsFileUploaded(true);
+
             setIsAnalyzing(true);
 
             // PDF
@@ -529,6 +541,14 @@ const DetectivePage = () => {
             alert('Please Upload only PNG or JPEG');
             return;
         }
+
+        // Set upload feedback
+        setUploadedFile({
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+            type: file.type
+        });
+        setIsFileUploaded(true);
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -741,6 +761,8 @@ const DetectivePage = () => {
         setAnalysisResult(null);
         setTextContent('');
         setUploadedImage(null);
+        setUploadedFile(null);
+        setIsFileUploaded(false);
         if (fileInputRef.current){
             fileInputRef.current.value = '';
         }
@@ -1262,18 +1284,33 @@ const DetectivePage = () => {
                                                 </button>
                                             </>
                                         ) : (
-                                            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                                                <div className="upload-icon">
-                                                    <FileText className="icon-lg" />
-                                                </div>
-                                                <h3 className="upload-title">Upload Document</h3>
-                                                <p className="upload-description">
-                                                    Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
-                                                </p>
-                                                <button className="upload-button">
-                                                    <Upload className="icon-sm" />
-                                                    Choose Document
-                                                </button>
+                                            <div className="upload-area" onClick={!isFileUploaded ? () => fileInputRef.current?.click() : undefined}>
+                                                {!isFileUploaded ? (
+                                                    <>
+                                                        <div className="upload-icon">
+                                                            <FileText className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-title">Upload Document</h3>
+                                                        <p className="upload-description">
+                                                            Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
+                                                        </p>
+                                                        <button className="upload-button">
+                                                            <Upload className="icon-sm" />
+                                                            Choose Document
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <div className="upload-success">
+                                                        <div className="upload-success-icon">
+                                                            <CheckCircle className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-success-title">File Uploaded Successfully!</h3>
+                                                        <div className="upload-file-info">
+                                                            <p className="file-name">{uploadedFile?.name}</p>
+                                                            <p className="file-size">{uploadedFile?.size} MB</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
@@ -1288,18 +1325,38 @@ const DetectivePage = () => {
 
                                 {/* Image Upload Area */}
                                 {activeDetectionType === 'image' && (
-                                    <div className="upload-area" onClick={() => imageInputRef.current?.click()}>
-                                        <div className="upload-icon">
-                                            <ImageIcon className="icon-lg" />
-                                        </div>
-                                        <h3 className="upload-title">Upload Image</h3>
-                                        <p className="upload-description">
-                                            Click here or drag and drop PNG or JPEG images (up to 10MB)
-                                        </p>
-                                        <button className="upload-button">
-                                            <Upload className="icon-sm" />
-                                            Choose Image
-                                        </button>
+                                    <div className="upload-area" onClick={!isFileUploaded ? () => imageInputRef.current?.click() : undefined}>
+                                        {!isFileUploaded ? (
+                                            <>
+                                                <div className="upload-icon">
+                                                    <ImageIcon className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-title">Upload Image</h3>
+                                                <p className="upload-description">
+                                                    Click here or drag and drop PNG or JPEG images (up to 10MB)
+                                                </p>
+                                                <button className="upload-button">
+                                                    <Upload className="icon-sm" />
+                                                    Choose Image
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="upload-success">
+                                                <div className="upload-success-icon">
+                                                    <CheckCircle className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-success-title">Image Uploaded Successfully!</h3>
+                                                <div className="upload-file-info">
+                                                    <p className="file-name">{uploadedFile?.name}</p>
+                                                    <p className="file-size">{uploadedFile?.size} MB</p>
+                                                </div>
+                                                {uploadedImage && (
+                                                    <div className="uploaded-image-preview">
+                                                        <img src={uploadedImage} alt="Uploaded preview" className="preview-image" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <input
                                             ref={imageInputRef}
                                             type="file"
