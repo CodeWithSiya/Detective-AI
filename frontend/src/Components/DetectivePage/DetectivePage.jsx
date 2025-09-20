@@ -41,7 +41,8 @@ import {
     Brain,
     FileCheck,
     Info,
-    Home
+    Home,
+    Settings
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
@@ -951,7 +952,7 @@ const DetectivePage = () => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        
+        {id: 'manage-user', label: 'Manage User', icon: <Settings className="icon-sm"/>},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
     ];
 
