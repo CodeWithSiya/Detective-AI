@@ -29,8 +29,12 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
+import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler';
 
 const AdminPage = () => {
+    // API Configuration.
+    const API_BASE_URL = 'http://localhost:8000';
+
     // State management
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentView, setCurrentView] = useState('dashboard');
@@ -39,76 +43,75 @@ const AdminPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [feedbackFilterType, setFeedbackFilterType] = useState('all');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // Data states
     const [users, setUsers] = useState([]);
     const [feedback, setFeedback] = useState([]);
-    const [analytics, setAnalytics] = useState({});
+    const [statistics, setStatistics] = useState(null);
     const [recentActivity, setRecentActivity] = useState([]);
 
     const reportRef = useRef(null);
 
-    // Fetch admin data on component mount
+    // Get auth token and user data.
+    const authToken = getAuthToken();
+    const isUserAuthenticated = isAuthenticated();
+
+    // Fetch statistics data on component mount
     useEffect(() => {
-        const fetchAdminData = async () => {
+        const fetchStatistics = async () => {
+            if (!isUserAuthenticated || !authToken) {
+                setLoading(false);
+                setError('Authentication required');
+                return;
+            }
+
             setLoading(true);
+            setError(null);
+
             try {
-                // Fetch users
-                const usersResponse = await fetch('/api/admin/users', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/statistics/`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        'Authorization': `Token ${authToken}`,
+                        'Content-Type': 'application/json'
                     }
                 });
-                const usersData = await usersResponse.json();
-                if (usersData.success) {
-                    setUsers(usersData.data);
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized access. Please check your admin privileges.');
+                    } else if (response.status === 403) {
+                        throw new Error('Forbidden. Admin access required.');
+                    } else if (response.status === 404) {
+                        throw new Error('Admin statistics endpoint not found.');
+                    } else {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
                 }
 
-                // Fetch feedback
-                const feedbackResponse = await fetch('/api/admin/feedback', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    }
-                });
-                const feedbackData = await feedbackResponse.json();
-                if (feedbackData.success) {
-                    setFeedback(feedbackData.data);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    setStatistics(result.data);
+                    console.log('Admin statistics loaded:', result.data); // Fixed: use result.data
+                } else {
+                    throw new Error(result.error || 'Failed to fetch statistics');
                 }
 
-                // Fetch analytics
-                const analyticsResponse = await fetch('/api/admin/analytics', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    }
-                });
-                const analyticsData = await analyticsResponse.json();
-                if (analyticsData.success) {
-                    setAnalytics(analyticsData.data);
-                }
-
-                // Fetch recent activity
-                const activityResponse = await fetch('/api/admin/activity', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                    }
-                });
-                const activityData = await activityResponse.json();
-                if (activityData.success) {
-                    setRecentActivity(activityData.data);
-                }
             } catch (error) {
-                console.error('Failed to fetch admin data:', error);
+                console.error('Failed to fetch admin statistics:', error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchAdminData();
-    }, []);
+        fetchStatistics();
+    }, [isUserAuthenticated, authToken, API_BASE_URL]);
 
     // Mock data for development (remove when API is ready)
     useEffect(() => {
-        if (users.length === 0) {
+        if (statistics && users.length === 0) {
             // Mock data
             setUsers([
                 {
@@ -182,19 +185,6 @@ const AdminPage = () => {
                 }
             ]);
 
-            setAnalytics({
-                totalUsers: 1247,
-                activeUsers: 892,
-                totalAnalyses: 15623,
-                analysesToday: 234,
-                analysesThisWeek: 1456,
-                averageAccuracy: 87.5,
-                averageProcessingTime: 2.3,
-                feedbackCount: 45,
-                positiveFeedback: 38,
-                negativeFeedback: 7
-            });
-
             setRecentActivity([
                 {
                     id: 1,
@@ -224,9 +214,11 @@ const AdminPage = () => {
                     analysisType: null
                 }
             ]);
+
+            console.log('Mock data loaded for admin dashboard');
         }
-        setLoading(false);
-    }, [users.length]);
+        
+    }, [statistics, users.length]);
 
     // Handlers
     const toggleSidebar = () => {
@@ -317,6 +309,27 @@ const AdminPage = () => {
         );
     }
 
+    if (error) {
+        return (
+            <div className="admin-container">
+                <div className="error-container">
+                    <div className="error-message">
+                        <AlertTriangle className="icon-lg" />
+                        <h3>Failed to load admin data</h3>
+                        <p>{error}</p>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="action-btn primary"
+                        >
+                            <RefreshCw className="icon-sm" />
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="admin-container">
             {/* Sidebar */}
@@ -387,7 +400,7 @@ const AdminPage = () => {
             {/* Main Content */}
             <main className={`admin-main ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <div className="content-area">
-                    {currentView === 'dashboard' && (
+                    {currentView === 'dashboard' && statistics && (
                         <div className="dashboard-view">
                             <div className="view-header">
                                 <div className="view-header-content">
@@ -400,21 +413,21 @@ const AdminPage = () => {
                             <div className="stats-grid">
                                 <StatCard
                                     title="Total Users"
-                                    value={analytics.totalUsers?.toLocaleString()}
+                                    value={statistics.users.total.toLocaleString()}
                                     change={{ type: 'positive', value: '+12.5%' }}
                                     icon={<Users className="icon-sm" />}
                                     color="blue"
                                 />
                                 <StatCard
                                     title="Analyses Today"
-                                    value={analytics.analysesToday?.toLocaleString()}
+                                    value={statistics.analyses.today.toLocaleString()}
                                     change={{ type: 'positive', value: '+15.3%' }}
                                     icon={<Target className="icon-sm" />}
                                     color="purple"
                                 />
                                 <StatCard
-                                    title="Average Accuracy"
-                                    value={`${analytics.averageAccuracy}%`}
+                                    title="Analysis Success Rate"
+                                    value={`${statistics.analyses.success_rate}%`}
                                     change={{ type: 'positive', value: '+2.1%' }}
                                     icon={<Brain className="icon-sm" />}
                                     color="orange"
@@ -428,7 +441,7 @@ const AdminPage = () => {
                                         <Clock className="icon-sm" />
                                     </div>
                                     <div>
-                                        <div className="quick-stat-value">{analytics.averageProcessingTime}s</div>
+                                        <div className="quick-stat-value">{statistics.performance.avg_processing_time_seconds}s</div>
                                         <div className="quick-stat-label">Avg Processing Time</div>
                                     </div>
                                 </div>
@@ -437,7 +450,7 @@ const AdminPage = () => {
                                         <Calendar className="icon-sm" />
                                     </div>
                                     <div>
-                                        <div className="quick-stat-value">{analytics.analysesThisWeek?.toLocaleString()}</div>
+                                        <div className="quick-stat-value">{statistics.submissions.this_week.toLocaleString()}</div>
                                         <div className="quick-stat-label">Analyses This Week</div>
                                     </div>
                                 </div>
@@ -446,7 +459,7 @@ const AdminPage = () => {
                                         <MessageSquare className="icon-sm" />
                                     </div>
                                     <div>
-                                        <div className="quick-stat-value">{analytics.feedbackCount}</div>
+                                        <div className="quick-stat-value">{statistics.feedback.total}</div>
                                         <div className="quick-stat-label">Total Feedback</div>
                                     </div>
                                 </div>
@@ -455,7 +468,7 @@ const AdminPage = () => {
                                         <ThumbsUp className="icon-sm" />
                                     </div>
                                     <div>
-                                        <div className="quick-stat-value">{Math.round((analytics.positiveFeedback / analytics.feedbackCount) * 100)}%</div>
+                                        <div className="quick-stat-value">{statistics.feedback.satisfaction_rate}%</div>
                                         <div className="quick-stat-label">Positive Feedback</div>
                                     </div>
                                 </div>
@@ -828,7 +841,7 @@ const AdminPage = () => {
                         </div>
                     )}
 
-                    {currentView === 'analytics' && (
+                    {currentView === 'analytics' && statistics && (
                         <div className="analytics-view" ref={reportRef}>
                             <div className="view-header">
                                 <h2 className="view-title">Analytics & Reports</h2>
@@ -844,9 +857,9 @@ const AdminPage = () => {
                                         <div className="metric-card">
                                             <div className="metric-header">
                                                 <Target className="icon-sm" />
-                                                <span>Detection Accuracy</span>
+                                                <span>Analysis Success Rate</span>
                                             </div>
-                                            <div className="metric-value">{analytics.averageAccuracy}%</div>
+                                            <div className="metric-value">{statistics.analyses.success_rate}%</div>
                                             <div className="metric-change positive">+2.1% from last week</div>
                                         </div>
                                         <div className="metric-card">
@@ -854,7 +867,7 @@ const AdminPage = () => {
                                                 <Zap className="icon-sm" />
                                                 <span>Avg Processing Time</span>
                                             </div>
-                                            <div className="metric-value">{analytics.averageProcessingTime}s</div>
+                                            <div className="metric-value">{statistics.performance.avg_processing_time_seconds}s</div>
                                             <div className="metric-change negative">+0.3s from last week</div>
                                         </div>
                                         <div className="metric-card">
@@ -862,7 +875,7 @@ const AdminPage = () => {
                                                 <Users className="icon-sm" />
                                                 <span>User Satisfaction</span>
                                             </div>
-                                            <div className="metric-value">{Math.round((analytics.positiveFeedback / analytics.feedbackCount) * 100)}%</div>
+                                            <div className="metric-value">{statistics.feedback.satisfaction_rate}%</div>
                                             <div className="metric-change positive">+5.2% from last week</div>
                                         </div>
                                     </div>
@@ -877,7 +890,7 @@ const AdminPage = () => {
                                                 <FileText className="icon-sm" />
                                             </div>
                                             <div className="usage-info">
-                                                <div className="usage-value">{Math.round(analytics.totalAnalyses * 0.75)}</div>
+                                                <div className="usage-value">{5}</div>
                                                 <div className="usage-label">Text Analyses</div>
                                                 <div className="usage-percentage">75% of total</div>
                                             </div>
@@ -887,7 +900,7 @@ const AdminPage = () => {
                                                 <ImageIcon className="icon-sm" />
                                             </div>
                                             <div className="usage-info">
-                                                <div className="usage-value">{Math.round(analytics.totalAnalyses * 0.25)}</div>
+                                                <div className="usage-value">{10}</div>
                                                 <div className="usage-label">Image Analyses</div>
                                                 <div className="usage-percentage">25% of total</div>
                                             </div>
@@ -897,9 +910,9 @@ const AdminPage = () => {
                                                 <ThumbsUp className="icon-sm" />
                                             </div>
                                             <div className="usage-info">
-                                                <div className="usage-value">{analytics.positiveFeedback}</div>
+                                                <div className="usage-value">{statistics.feedback.positive}</div>
                                                 <div className="usage-label">Positive Feedback</div>
-                                                <div className="usage-percentage">{Math.round((analytics.positiveFeedback / analytics.feedbackCount) * 100)}% of feedback</div>
+                                                <div className="usage-percentage">{statistics.feedback.satisfaction_rate}% of feedback</div>
                                             </div>
                                         </div>
                                         <div className="usage-stat">
@@ -907,9 +920,9 @@ const AdminPage = () => {
                                                 <AlertTriangle className="icon-sm" />
                                             </div>
                                             <div className="usage-info">
-                                                <div className="usage-value">{analytics.negativeFeedback}</div>
+                                                <div className="usage-value">{statistics.feedback.negative}</div>
                                                 <div className="usage-label">Issues Reported</div>
-                                                <div className="usage-percentage">{Math.round((analytics.negativeFeedback / analytics.feedbackCount) * 100)}% of feedback</div>
+                                                <div className="usage-percentage">{Math.round((statistics.feedback.negative / statistics.feedback.total) * 100)}% of feedback</div>
                                             </div>
                                         </div>
                                     </div>
