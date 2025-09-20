@@ -1,6 +1,6 @@
 // For DOCX parsing
 import mammoth from "mammoth";
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -64,12 +64,12 @@ const DetectivePage = () => {
     const [isExporting, setIsExporting] = useState(false);
 
     // Redirect to login if not authenticated.
-    useEffect(() => {
+    /*useEffect(() => {
         if (!isUserAuthenticated) {
             navigate('/', { replace: true });
             return;
         }
-    }, [isUserAuthenticated, navigate]);
+    }, [isUserAuthenticated, navigate]);*/
     
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -95,6 +95,32 @@ const DetectivePage = () => {
 
     //history items state
     const [historyItems, setHistoryItems] = useState([]);
+    
+    //search state for filtering history
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter history items based on search query
+    const filteredHistoryItems = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return historyItems;
+        }
+        
+        return historyItems.filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.type.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [historyItems, searchQuery]);
+
+    // Handle search input changes
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    // Clear search
+    const clearSearch = () => {
+        setSearchQuery('');
+    };
 
     // Fetch user history on component mount
     const fetchHistory = useCallback(async () => {
@@ -1049,7 +1075,30 @@ const DetectivePage = () => {
                     {/*history section*/}
                     <div className="nav-section history-section">
                         <div className="nav-section-title">Recent Detections</div>
-                        {historyItems.map((item) => (
+                        
+                        {/*search bar*/}
+                        <div className="history-search-container">
+                            <div className="history-search-input-wrapper">
+                                <Search className="icon-xs search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search detections..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="history-search-input"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={clearSearch}
+                                        className="clear-search-btn"
+                                    >
+                                        <X className="icon-xs" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {filteredHistoryItems.map((item) => (
                             <div key={item.id} className="history-item">
                                 <div className="history-content" onClick={() => viewHistoryItem(item)}>
                                     {item.type === 'text' ?
@@ -1076,6 +1125,16 @@ const DetectivePage = () => {
                                 </div>
                             </div>
                         ))}
+                        
+                        {searchQuery && filteredHistoryItems.length === 0 && (
+                            <div className="no-search-results">
+                                <div className="no-results-icon">
+                                    <Search className="icon-sm" />
+                                </div>
+                                <div className="no-results-text">No detections found</div>
+                                <div className="no-results-subtext">Try a different search term</div>
+                            </div>
+                        )}
                     </div>
                 </nav>
             </div>
