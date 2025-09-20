@@ -47,6 +47,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { sub } from "framer-motion/client";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
@@ -137,54 +138,15 @@ const DetectivePage = () => {
         }
     }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
 
-    // Use the extracted function in useEffect
     useEffect(() => {
+        // Only fetch history if user is authenticated
+        if (!isUserAuthenticated || !authToken) {
+            console.log('User not authenticated, skipping history fetch');
+            return;
+        }
+
         fetchHistory();
     }, [fetchHistory]);
-
-    const fetchSubmissionDetails = async (submissionId) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
-                headers: {
-                    'Authorization': `Token ${authToken}`,
-                    'Content-Type': 'application/json',
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const submission = data.data.submission;
-                const analysis = submission.analysis_result;
-                
-                // Update the specific item in your history state with full details
-                setHistoryItems(prev => prev.map(item => 
-                    item.id === submissionId 
-                        ? {
-                            ...item,
-                            content: submission.content?.substring(0, 100) + '...',
-                            isLoaded: true,
-                            result: {
-                                isAI: analysis.detection_result === 'AI_GENERATED',
-                                confidence: Math.round(analysis.confidence * 100),
-                                highlightedText: submission.content,
-                                detectionReasons: analysis.detection_reasons,
-                                statistics: analysis.statistics,
-                                analysisDetails: analysis.analysis_details
-                            }
-                        }
-                        : item
-                ));
-            }
-
-        } catch (error) {
-            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
-        }
-    };
 
     //sidebar toggle
     const toggleSidebar = () => {
@@ -417,9 +379,6 @@ const DetectivePage = () => {
             setAnalysisResult(result);
             console.log(result);
             
-            // Still save to local history for immediate UI updates
-            saveToHistory(result);
-            
         } catch (error) {
             console.error('Text analysis failed:', error);
             alert('Analysis failed. Please try again.');
@@ -457,9 +416,10 @@ const DetectivePage = () => {
                                 const textContent = await page.getTextContent();
                                 fullText += textContent.items.map((item) => item.str).join(" ") + "\n";
                             }
-                            const result = await performTextAnalysis(fullText);
+                            const result = await performTextAnalysis(fullText, async (analysisResult) => {
+                                await fetchHistory();
+                            });
                             setAnalysisResult({ ...result, filename: file.name });
-                            saveToHistory({ ...result, filename: file.name });
                         } catch (error) {
                             console.error('PDF analysis failed:', error);
                             alert('PDF analysis failed. Please try again.');
@@ -482,9 +442,10 @@ const DetectivePage = () => {
                         try {
                             const arrayBuffer = this.result;
                             const { value } = await mammoth.extractRawText({ arrayBuffer });
-                            const result = await performTextAnalysis(value);
+                            const result = await performTextAnalysis(value, async (analysisResult) => {
+                                await fetchHistory();
+                            });
                             setAnalysisResult({ ...result, filename: file.name });
-                            saveToHistory({ ...result, filename: file.name });
                         } catch (error) {
                             console.error('DOCX analysis failed:', error);
                             alert('DOCX analysis failed. Please try again.');
@@ -506,9 +467,10 @@ const DetectivePage = () => {
                     reader.onload = async function () {
                         try {
                             const text = this.result;
-                            const result = await performTextAnalysis(text);
+                            const result = await performTextAnalysis(text, async (analysisResult) => {
+                                await fetchHistory();
+                            });
                             setAnalysisResult({ ...result, filename: file.name });
-                            saveToHistory({ ...result, filename: file.name });
                         } catch (error) {
                             console.error('TXT analysis failed:', error);
                             alert('TXT analysis failed. Please try again.');
@@ -550,7 +512,7 @@ const DetectivePage = () => {
             try {
                 const result = await performImageAnalysis(file);
                 setAnalysisResult({...result, filename: file.name, isImage: true});
-                saveToHistory({...result, filename: file.name, isImage: true});
+                await fetchHistory();
             } catch (error) {
                 console.error('Image analysis failed:', error);
                 alert('Image analysis failed. Please try again.');
@@ -561,6 +523,38 @@ const DetectivePage = () => {
         reader.readAsDataURL(file);
     };
 
+    const handleThumbsUp = async () => {
+        try {
+            // Check if user is authenticated
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/feedback/analysis/${analysisResult.analysisId}/submit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`,
+                },
+                body: JSON.stringify({
+                    rating: "THUMBS_UP",
+                    comment: ""
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Thank you for your positive feedback! Your input helps us improve.');
+            } else {
+                throw new Error(data.error || 'Failed to submit feedback');
+            }
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+            alert('Failed to submit feedback. Please try again.');
+        }
+    };
+
     const handleThumbsDown = () => {
         setShowFeedback(true);
     };
@@ -569,16 +563,20 @@ const DetectivePage = () => {
         if (!feedbackText.trim()) return;
         
         try {
-            const response = await fetch('/api/feedback/submit', {
+            // Check if user is authenticated
+            if (!isUserAuthenticated || !authToken) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/feedback/analysis/${analysisResult.analysisId}/submit/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`,
                 },
                 body: JSON.stringify({
-                    analysis_id: analysisResult?.analysisId,
-                    submission_id: analysisResult?.submissionId,
-                    feedback_text: feedbackText,
-                    query: analysisResult?.filename || 'Current Analysis'
+                    rating: "THUMBS_DOWN",
+                    comment: feedbackText
                 })
             });
             
@@ -587,7 +585,7 @@ const DetectivePage = () => {
             if (data.success) {
                 setFeedbackText('');
                 setShowFeedback(false);
-                alert('Feedback submitted successfully!');
+                alert('Thank you for your feedback! Your input helps us improve.');
             } else {
                 throw new Error(data.error || 'Failed to submit feedback');
             }
@@ -600,28 +598,100 @@ const DetectivePage = () => {
     //-------------------
     //history management
     //-------------------
-    const saveToHistory = async (analysisData) => {
-        // Add to local state for immediate UI update
-        // const newHistoryItem = {
-        //     id: analysisData.submissionId || Date.now(),
-        //     type: activeDetectionType,
-        //     title: analysisData.filename || `${activeDetectionType} Analysis ${new Date().toLocaleTimeString()}`,
-        //     date: new Date().toLocaleString(),
-        //     content: activeDetectionType === 'text' ? textContent.substring(0, 100) + '...' : 'Image analysis',
-        //     result: analysisData
-        // };
-        // setHistoryItems(prev => [newHistoryItem, ...prev]);
+    const fetchSubmissionDetails = async (submissionId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${submissionId}/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const submission = data.data.submission;
+                const detailedItem = convertSubmissionToHistoryItem(submission);
+
+                // Update the specific item in history with full details
+                setHistoryItems(prev => prev.map(h => 
+                    h.id === submissionId ? detailedItem : h
+                ));
+
+                return detailedItem;
+            }
+
+            throw new Error('Failed to fetch submission details');
+        } catch (error) {
+            console.error(`Failed to fetch submission details for ${submissionId}:`, error);
+            throw error;
+        }
     };
 
-    const viewHistoryItem = (item) => {
-        // Generate highlighted text if not already available
-        if (item.result.analysisDetails && !item.result.highlightedText.includes('<span class="highlight"')) {
-            const originalText = item.content.endsWith('...') ? 
-                item.content.substring(0, item.content.length - 3) : item.content;
-            item.result.highlightedText = generateHighlightedText(originalText, item.result.analysisDetails);
+    // Convert a submission payload into a history item with result.
+    const convertSubmissionToHistoryItem = (submission) => {
+        const analysis = submission.analysis_result;
+
+        const highlightedText = generateHighlightedText(
+            submission.content,
+            analysis.analysis_details
+        );
+
+        return {
+            id: submission.id,
+            type: 'text',
+            title: submission.name,
+            date: new Date(submission.created_at).toLocaleString(),
+            content: submission.content?.substring(0, 100) + '...',
+            isLoaded: true,
+            result: {
+                isAI: analysis.detection_result === 'AI_GENERATED',
+                confidence: Math.round(analysis.confidence * 100),
+                highlightedText,
+                detectionReasons: analysis.detection_reasons || [],
+                statistics: {
+                    totalWords: analysis.statistics?.total_words,
+                    sentences: analysis.statistics?.sentences,
+                    avgSentenceLength: analysis.statistics?.avg_sentence_length,
+                    aiKeywordsCount: analysis.statistics?.ai_keywords_count,
+                    transitionWordsCount: analysis.statistics?.transition_words_count,
+                    corporateJargonCount: analysis.statistics?.corporate_jargon_count,
+                    buzzwordsCount: analysis.statistics?.buzzwords_count,
+                    suspiciousPatternsCount: analysis.statistics?.suspicious_patterns_count,
+                    humanIndicatorsCount: analysis.statistics?.human_indicators_count,
+                },
+                analysisDetails: {
+                    foundKeywords: analysis.analysis_details?.found_keywords || [],
+                    foundPatterns: analysis.analysis_details?.found_patterns || [],
+                    foundTransitions: analysis.analysis_details?.found_transitions || [],
+                    foundJargon: analysis.analysis_details?.found_jargon || [],
+                    foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
+                    foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
+                },
+                analysisId: analysis.analysis_id,
+            }
+        };
+    };
+
+    const viewHistoryItem = async (item) => {
+        try {
+            setSelectedHistoryItem({ ...item, isLoading: true });
+            setCurrentView('history-detail');
+
+            const needsFetch = !item?.result || !item?.isLoaded;
+            const detailedItem = needsFetch ? await fetchSubmissionDetails(item.id) : item;
+
+            setSelectedHistoryItem({ ...detailedItem, isLoading: false });
+        } catch (error) {
+            console.error('Failed to load history item details:', error);
+            alert('Failed to load history item details. Please try again.');
+            setSelectedHistoryItem(null);
+            setCurrentView('main');
         }
-        setSelectedHistoryItem(item);
-        setCurrentView('history-detail');
     };
 
     const deleteHistoryItem = async (id) => {
@@ -638,15 +708,6 @@ const DetectivePage = () => {
         } catch (error) {
             console.error('Failed to delete history item:', error);
             alert('Failed to delete history item. Please try again.');
-        }
-    };
-
-    const exportResults = (format) => {
-        if (format === 'pdf'){
-            alert('PDF export functionality would be implemented here.');
-        }
-        else{
-            alert('Email export functionality would be implemented here.');
         }
     };
 
@@ -1278,10 +1339,7 @@ const DetectivePage = () => {
                                                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
                                                     <button 
                                                         className="action-btn" 
-                                                        onClick={() => {
-                                                            // Results are already saved automatically during analysis
-                                                            alert('Thank you for your feedback!');
-                                                        }}
+                                                        onClick={handleThumbsUp}
                                                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
                                                     >
                                                         <ThumbsUp className="icon-sm" />
@@ -1344,43 +1402,65 @@ const DetectivePage = () => {
                             </div>
 
                             {selectedHistoryItem && (
-                                <div className="results-container">
-                                    <div className="results-header">
-                                        <div className="detection-result">
-                                            <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                            </div>
-                                            <div>
-                                                <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                    {selectedHistoryItem.result.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                                </div>
-                                                <div className="result-confidence">
-                                                    Confidence: {selectedHistoryItem.result.confidence}%
-                                                </div>
+                                <>
+                                    {(selectedHistoryItem.isLoading || !selectedHistoryItem.result) ? (
+                                        <div className="results-container" style={{ position: 'relative', minHeight: '240px' }}>
+                                            <div style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexDirection: 'column',
+                                                background: 'rgba(255, 255, 255, 0.55)',
+                                                backdropFilter: 'blur(2px)',
+                                                zIndex: 10,
+                                                borderRadius: '0.75rem'
+                                            }}>
+                                                <div className="loading-spinner"></div>
+                                                <div className="loading-text">Loading analysis...</div>
                                             </div>
                                         </div>
-                                        
-                                        <div className="results-actions">
-                                            <button className="action-btn export" onClick={exportReportAsPDF(analysisResult.analysisId)}>
-                                                <Download className="icon-sm" />
-                                                Export PDF
-                                            </button>
-                                            <button className="action-btn" onClick={() => exportResults('email')}>
-                                                <Mail className="icon-sm" />
-                                                Email
-                                            </button>
-                                        </div>
-                                    </div>
+                                    ) : (
+                                        <div className="results-container">
+                                            <div className="results-header">
+                                                <div className="detection-result">
+                                                    <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                                        {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
+                                                    </div>
+                                                    <div>
+                                                        <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                                            {selectedHistoryItem.result.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
+                                                        </div>
+                                                        <div className="result-confidence">
+                                                            Confidence: {selectedHistoryItem.result.confidence}%
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="results-actions">
+                                                    <button className="action-btn export" onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}>
+                                                        <Download className="icon-sm" />
+                                                        Export PDF
+                                                    </button>
+                                                    <button className="action-btn" onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}>
+                                                        <Mail className="icon-sm" />
+                                                        Email
+                                                    </button>
+                                                </div>
+                                            </div>
 
-                                    {/*show analysis report for history items if available */}
-                                    {selectedHistoryItem.result.detectionReasons && (
-                                        <div ref={reportRef}>
-                                            <AnalysisReport result={selectedHistoryItem.result} />
+                                            {/*show analysis report for history items if available */}
+                                            {selectedHistoryItem.result.detectionReasons && (
+                                                <div ref={reportRef}>
+                                                    <AnalysisReport result={selectedHistoryItem.result} />
+                                                </div>
+                                            )}
+
+                                            <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
                                         </div>
                                     )}
-
-                                    <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
-                                </div>
+                                </>
                             )}
                         </div>
                     )}
