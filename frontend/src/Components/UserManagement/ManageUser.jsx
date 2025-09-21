@@ -59,12 +59,12 @@ const ManageUser = () => {
     const currentUser = getCurrentUser();
 
     // Redirect to login if not authenticated
-    /*useEffect(() => {
+    useEffect(() => {
         if (!isUserAuthenticated) {
             navigate('/', { replace: true });
             return;
         }
-    }, [isUserAuthenticated, navigate]);*/
+    }, [isUserAuthenticated, navigate]);
 
     // State management
     const [sidebarOpen, setSidebarOpen] = useState(false);

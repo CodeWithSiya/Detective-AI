@@ -65,12 +65,12 @@ const DetectivePage = () => {
     const [isExporting, setIsExporting] = useState(false);
 
     // Redirect to login if not authenticated.
-    /*useEffect(() => {
+    useEffect(() => {
         if (!isUserAuthenticated) {
             navigate('/', { replace: true });
             return;
         }
-    }, [isUserAuthenticated, navigate]);*/
+    }, [isUserAuthenticated, navigate]);
     
     //sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
