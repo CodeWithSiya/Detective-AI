@@ -14,7 +14,7 @@ const Team = ({ onBackToDetective }) => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, to: '/detective'},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>, to: '/team', active: true},
-        {id: 'manage-user', label: 'Manage User', icon: <Settings className="icon-sm"/>, to: '/manage-user'},
+        {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>, to: '/manage-user'},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>, to: '/'},
     ];
 

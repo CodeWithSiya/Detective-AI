@@ -10,7 +10,8 @@ import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
 import Team from './Components/Team/Team';
 import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
 import Admin from './Components/Admin/Admin';
-import DetectiveBasic from './components/Basic-DetectivePage/DetectiveBasic'
+import DetectiveBasic from './components/Basic-DetectivePage/DetectiveBasic';
+import ManageUser from './Components/UserManagement/ManageUser';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/team" element={<Team />} />
         <Route path="/detective-basic" element={<DetectiveBasic />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/manage-user" element={<ManageUser />} />
       </Routes>
     </Router>
   )
