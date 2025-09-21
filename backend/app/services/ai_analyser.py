@@ -24,7 +24,7 @@ class AiAnalyser(ABC):
         pass
 
     @abstractmethod
-    def preprocess(self, raw_input: Any) -> Any:
+    def preprocess(self, raw_input: Any = None, image_path: Any = None) -> Any:
         """Preprocess input for analysis."""
         pass
 

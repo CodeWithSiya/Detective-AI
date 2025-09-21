@@ -174,7 +174,7 @@ class AiTextAnalyser(AiAnalyser):
 
             return None
 
-    def preprocess(self, raw_input: Any) -> Any:
+    def preprocess(self, raw_input: Any = None, image_path: Any = None) -> Any:
         """
         Preprocess text input for analysis.
         
