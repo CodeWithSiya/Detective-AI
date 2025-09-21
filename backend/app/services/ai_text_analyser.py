@@ -128,7 +128,7 @@ class AiTextAnalyser(AiAnalyser):
             if submission is None and self.claude_service is not None:
                 # Generate a smart name using Claude.
                 try:
-                    submission_name = self.claude_service.create_submission_name(text, max_length=50)
+                    submission_name = self.claude_service.create_text_submission_name(text, max_length=50)
                 except Exception:
                     # Fallback to date-based name if Claude fails
                     submission_name = f"Text Analysis {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"

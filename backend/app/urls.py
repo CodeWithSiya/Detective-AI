@@ -9,6 +9,9 @@ from app.views import admin_views
 urlpatterns = [
     # Text analysis
     path('analysis/text/', analysis_views.analyse_text, name="analyse_text"),
+    
+    # Image analysis
+    path('analysis/image/', analysis_views.analyse_image, name='analyse_image'),
 
     # User authentication
     path('users/register/', user_views.register_user, name='register_user'),

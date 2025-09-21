@@ -42,7 +42,7 @@ class TextSubmissionDetailSerializer(serializers.ModelSerializer):
                     # Basic analysis data.
                     'id': str(analysis.id),
                     'status': analysis.status,
-                    'detection_result': analysis.detection_result,
+                    'is_ai_generated': analysis.detection_result,
                     'probability': analysis.probability,
                     'confidence': analysis.confidence,
                     'processing_time_ms': analysis.processing_time_ms,
