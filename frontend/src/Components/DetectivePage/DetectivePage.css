@@ -1508,6 +1508,99 @@ body {
     box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
 }
 
+/* Enhanced Image Analysis Section */
+.image-analysis {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(59, 130, 246, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+}
+
+.analysis-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+    padding-bottom: 1rem;
+}
+
+.analysis-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analysis-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.analysis-points {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.analysis-point {
+    position: relative;
+    background: rgba(59, 130, 246, 0.05);
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #334155;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+}
+
+.analysis-point::before {
+    content: "•";
+    color: #3b82f6;
+    font-weight: 700;
+    font-size: 1.2rem;
+    position: absolute;
+    left: 0.75rem;
+    top: 1rem;
+}
+
+.analysis-point:hover {
+    background: rgba(59, 130, 246, 0.08);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.fallback-analysis {
+    font-size: 1rem;
+    color: #64748b;
+    line-height: 1.6;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 12px;
+    border: 2px dashed rgba(59, 130, 246, 0.2);
+}
+
+.result-image {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Enhanced Highlighted Text */
 .analyzed-text {
     background: rgba(255, 255, 255, 0.9);

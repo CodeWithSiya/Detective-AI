@@ -384,11 +384,16 @@ const DetectivePage = () => {
                 throw new Error(data.error || 'Image analysis failed');
             }
             
+            // Extract analysis explanations and split by \n\n
+            const analysisText = data.data.analysis_result.analysis || '';
+            const analysisPoints = analysisText.split('\n\n').filter(point => point.trim() !== '');
+            
             return {
                 isAI: data.data.analysis_result.prediction.is_ai_generated,
                 confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
                 submissionId: data.data.submission.id,
                 analysisId: data.data.analysis_result.analysis_id,
+                analysisPoints: analysisPoints, // Add the bullet points
                 highlightedText: '' // Images don't have highlighted text
             };
         } catch (error) {
@@ -1433,15 +1438,32 @@ const DetectivePage = () => {
                                                 )}
                                                 
                                                 <div className="image-analysis">
-                                                    <p style={{ color: '#d1d5db', marginBottom: '1rem' }}>
-                                                        Analysis Complete: {analysisResult.filename}
-                                                    </p>
-                                                    <p style={{ color: '#9ca3af' }}>
-                                                        {analysisResult.isAI ? 
-                                                            'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
-                                                            'The image appears to be authentic with natural characteristics typical of human-created content.'
-                                                        }
-                                                    </p>
+                                                    <div className="analysis-header">
+                                                        <h4 className="analysis-title">
+                                                            <Search className="icon-sm" />
+                                                            Analysis Explanation
+                                                        </h4>
+                                                        <p className="analysis-subtitle">
+                                                            Analysis Complete: {analysisResult.filename}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {analysisResult.analysisPoints && analysisResult.analysisPoints.length > 0 ? (
+                                                        <ul className="analysis-points">
+                                                            {analysisResult.analysisPoints.map((point, index) => (
+                                                                <li key={index} className="analysis-point">
+                                                                    {point.trim()}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <p className="fallback-analysis">
+                                                            {analysisResult.isAI ? 
+                                                                'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
+                                                                'The image appears to be authentic with natural characteristics typical of human-created content.'
+                                                            }
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ) : (
