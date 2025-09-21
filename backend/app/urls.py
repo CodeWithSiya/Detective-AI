@@ -58,6 +58,5 @@ urlpatterns = [
     path('submissions/', submission_history_views.get_user_submissions, name='get_user_submissions'),
     path('submissions/statistics/', submission_history_views.get_submission_statistics, name='get_submission_statistics'),
     path('submissions/<str:submission_id>/', submission_history_views.get_submission_detail, name='get_submission_detail'),
-    path('submissions/<str:submission_id>/update/', submission_history_views.update_submission, name='update_submission'),
     path('submissions/<str:submission_id>/delete/', submission_history_views.delete_submission, name='delete_submission')
 ]

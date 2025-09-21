@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
 from app.models.text_submission import TextSubmission
 from app.models.text_analysis_result import TextAnalysisResult
+from app.models.image_submission import ImageSubmission 
+from app.models.image_analysis_result import ImageAnalysisResult
 
 class TextSubmissionListSerializer(serializers.ModelSerializer):
     """
@@ -63,19 +65,88 @@ class TextSubmissionDetailSerializer(serializers.ModelSerializer):
             return None
         except Exception:
             return None
+    
+class ImageSubmissionListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing image submissions - just name and basic info.
 
-class TextSubmissionUpdateSerializer(serializers.ModelSerializer):
+    :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
+    :version: 21/09/2025 
     """
-    Serializer for updating text submissions.
-    """
+    image_url = serializers.SerializerMethodField()
+    dimensions = serializers.SerializerMethodField()
+    
     class Meta:
-        model = TextSubmission
-        fields = ['name', 'content']
+        model = ImageSubmission
+        fields = ['id', 'name', 'created_at', 'image_url', 'file_size', 'dimensions']
+    
+    def get_image_url(self, obj):
+        """Get the image URL."""
+        return obj.image_url
+    
+    def get_dimensions(self, obj):
+        """Get image dimensions as string."""
+        if obj.width and obj.height:
+            return f"{obj.width}x{obj.height}"
+        return None
 
-    def validate_content(self, value):
+class ImageSubmissionDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer with all content including full analysis data.
+    """
+    analysis_result = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+    dimensions = serializers.SerializerMethodField()
+    file_size_mb = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ImageSubmission
+        fields = [
+            'id', 'name', 'created_at', 'image_url', 'file_size', 
+            'file_size_mb', 'width', 'height', 'dimensions', 'analysis_result'
+        ]
+
+    def get_analysis_result(self, obj):
         """
-        Validate content length to ensure meaningful submissions.
+        Get the complete latest analysis result including all analysis data.
         """
-        if not value or len(value.strip()) < 10:
-            raise serializers.ValidationError("Content must be at least 10 characters long.")
-        return value.strip()
+        try:
+            content_type = ContentType.objects.get_for_model(obj)
+            analysis = ImageAnalysisResult.objects.filter(
+                content_type=content_type,
+                object_id=obj.id,
+                status=ImageAnalysisResult.Status.COMPLETED
+            ).order_by('-created_at').first()
+
+            if analysis:
+                return {
+                    # Basic analysis data
+                    'id': str(analysis.id),
+                    'status': analysis.status,
+                    'detection_result': analysis.detection_result,
+                    'probability': analysis.probability,
+                    'confidence': analysis.confidence,
+                    'processing_time_ms': analysis.processing_time_ms,
+                    'created_at': analysis.created_at,
+                    'completed_at': analysis.completed_at,
+                }
+            
+            return None
+        except Exception:
+            return None
+
+    def get_image_url(self, obj):
+        """Get the image URL."""
+        return obj.image_url
+
+    def get_dimensions(self, obj):
+        """Get image dimensions as string."""
+        if obj.width and obj.height:
+            return f"{obj.width}x{obj.height}"
+        return None
+
+    def get_file_size_mb(self, obj):
+        """Get file size in MB."""
+        if obj.file_size:
+            return round(obj.file_size / (1024 * 1024), 2)
+        return None
