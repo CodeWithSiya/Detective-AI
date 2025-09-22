@@ -19,7 +19,7 @@ class ImageAnalysisResult(AnalysisResult):
     analysis_details = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Detailed analysis including detection reasons and Claude explanation"
+        help_text="Detailed analysis including detection reasons from visual analysis"
     )
 
     # Defining metadata for the image analysis table.
@@ -41,18 +41,18 @@ class ImageAnalysisResult(AnalysisResult):
         return f"Image Analysis {self.id} | {self.status} | {self.detection_result} | {self.probability:.3f}"
     
     @property
-    def has_claude_explanation(self) -> bool:
+    def detection_reasons(self) -> list:  # Should return list, not str
         """
-        Check if Claude provided an explanation.
+        Get detection reasons from analysis details.
         """
-        return bool(self.analysis_details.get('explanation', '').strip())
+        return self.analysis_details.get('detection_reasons', [])
     
     @property
-    def explanation(self) -> str:
+    def has_detection_reasons(self) -> bool:
         """
-        Get the Claude explanation from analysis details.
+        Check if there are detection reasons available.
         """
-        return self.analysis_details.get('explanation', '')
+        return bool(self.detection_reasons)
     
     def save_analysis_result(self, analysis_result: dict) -> None:
         """
@@ -76,10 +76,10 @@ class ImageAnalysisResult(AnalysisResult):
             else:
                 self.detection_result = self.DetectionResult.HUMAN_WRITTEN
             
-            # Save analysis data (simplified for image analysis)
+            # Save analysis data (only detection reasons for images)
             analysis = analysis_result.get('analysis', {})
             self.analysis_details = {
-                'explanation': analysis.get('explanation', '')
+                'detection_reasons': analysis.get('detection_reasons', [])
             }
             
             # Save metadata and processing time

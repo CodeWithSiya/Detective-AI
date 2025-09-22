@@ -223,22 +223,36 @@ class AiImageAnalyser(AiAnalyser):
                 'confidence': round(confidence, 3)
             },
             'analysis': {
-                'explanation': '' 
+                'detection_reasons': []
             },
             'metadata': {
-                'enhanced_analysis_used': bool(enhanced_analysis and enhanced_analysis.get('explanation')),
+                'enhanced_analysis_used': bool(enhanced_analysis and enhanced_analysis.get('detection_reasons')),
                 'model_threshold': 0.5
             }
         }
 
-        # Add Claude's explanation if available
-        if enhanced_analysis and enhanced_analysis.get('explanation'):
-            result['analysis']['explanation'] = enhanced_analysis.get('explanation')
+        # Merge enhanced analysis if available
+        if enhanced_analysis and enhanced_analysis.get('detection_reasons'):
+            # Update detection reasons from Claude
+            result['analysis']['detection_reasons'] = enhanced_analysis.get('detection_reasons', [])
         else:
-            # Provide basic explanation based on model output
+            # Provide basic analysis based on model output only
             if is_ai_generated:
-                result['analysis']['explanation'] = f"The model detected this image as AI-generated with {probability:.1%} confidence. This suggests the image may have been created using artificial intelligence tools."
+                reason_type = 'critical' if probability > 0.8 else 'warning'
+                impact = 'High' if probability > 0.8 else 'Medium'
+                
+                result['analysis']['detection_reasons'].append({
+                    'type': reason_type,
+                    'title': 'AI Content Detected',
+                    'description': f'Model detected AI-generated content with {probability:.1%} confidence. The image shows patterns commonly associated with AI-created content.',
+                    'impact': impact
+                })
             else:
-                result['analysis']['explanation'] = f"The model indicates this image appears to be human-created with {1 - probability:.1%} confidence. The image shows characteristics typical of traditional photography or artwork."
+                result['analysis']['detection_reasons'].append({
+                    'type': 'success',
+                    'title': 'Human Content Detected',
+                    'description': f'Content appears to be human-created with {1 - probability:.1%} confidence. The image shows characteristics typical of traditional photography or artwork.',
+                    'impact': 'Positive'
+                })
         
         return result

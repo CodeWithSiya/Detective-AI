@@ -67,7 +67,7 @@ class ClaudeService:
             )
 
             # Parse Claude's response.
-            analysis_result = self.parse_claude_response(response.content[0].text) # type: ignore
+            analysis_result = self.parse_text_reponse(response.content[0].text) # type: ignore
             return analysis_result
         
         except Exception as e:
@@ -80,7 +80,7 @@ class ClaudeService:
 
         :param image_path: Path to the image file to analyse.
         :param base_prediction: Basic model prediction results.
-        :return: Enhanced analysis with explanation.
+        :return: Enhanced analysis with structured detection reasons.
         """
         try:
             # Read and encode the image.
@@ -123,16 +123,13 @@ class ClaudeService:
                 ]
             )
 
-            # Parse Claude's response.
-            explanation = response.content[0].text.strip()  # type: ignore
-
-            return {
-                'explanation': explanation
-            }
+            # Use the image-specific parser
+            analysis_result = self.parse_image_response(response.content[0].text) # type: ignore
+            return analysis_result
         
         except Exception as e:
             # Fallback explanation if Claude fails
-            return self.fallback_image_analysis(str(e), base_prediction)
+            return self.fallback_image_analysis(str(e))
         
     def build_text_analysis_prompt(self, text:str, base_prediction: Dict[str, Any]):
         """
@@ -206,7 +203,7 @@ class ClaudeService:
         confidence = base_prediction.get('confidence', 0)
 
         return f"""
-        You are an expert AI image detection system. Your role is to analyse this image for signs that it may have been AI-generated, and provide a clear, natural explanation.
+        You are an expert AI image detection system. Your role is to analyse this image for signs that it may have been AI-generated, and provide a clear, structured evaluation.
 
         TASK:
         - Look at this image and explain whether it shows patterns of being AI-generated. Use both the model's results and your visual analysis.
@@ -217,13 +214,23 @@ class ClaudeService:
         - Is AI Generated: {is_ai_generated}
         - Confidence: {confidence:.3f}
 
-        INSTRUCTIONS:
-        - Respond in bullet points only
-        - Keep each bullet point short and easy to digest.
-        - Use plain text only - no bold, italics, or formatting
-        - Write in everyday language, not technical jargon
-        - Focus each point on specific observations
-        - Make it sound natural and conversational
+        OUTPUT FORMAT (Reply ONLY with valid JSON):
+        {{
+        "detection_reasons": [
+            {{
+            "type": "critical" | "warning" | "info" | "success",
+            "title": "short category name",
+            "description": "detailed but simple explanation",
+            "impact": "High" | "Medium" | "Low" | "Positive"
+            }}
+        ]
+        }}
+
+        DETECTION CATEGORIES:
+        - CRITICAL: Obvious AI artifacts or clear signs of generation
+        - WARNING: Suspicious patterns that suggest AI creation
+        - INFO: Mild indicators or technical observations
+        - SUCCESS: Strong signs of human creation or natural photography
 
         THINGS TO LOOK FOR:
         - Unrealistic textures or surfaces
@@ -234,14 +241,15 @@ class ClaudeService:
         - Inconsistent perspective or proportions
         - Signs of human creativity, imperfections, or natural variation
 
-        OUTPUT:
-        - Write 4-6 bullet points explaining your findings
-        - Use plain text only and keep each point focused and digestible 
+        INSTRUCTIONS:
+        - Write 3-5 detection reasons explaining your findings
+        - Keep each description focused and digestible 
         - Write in British English with correct spelling (analysed not analyzed, colour not color)
-        - Use simple language that a general audience can understand.
+        - Use simple language that a general audience can understand
+        - Respond only with valid JSON (no extra text or formatting)
         """
     
-    def parse_claude_response(self, response_text: str) -> Dict[str, Any]:
+    def parse_text_reponse(self, response_text: str) -> Dict[str, Any]:
         """
         Parse Claude's JSON response.
         """
@@ -268,6 +276,30 @@ class ClaudeService:
             # Return empty structure if parsing fails.
             return self.fallback_text_analysis(f"JSON parsing error: {str(e)}")
         
+    def parse_image_response(self, response_text: str) -> Dict[str, Any]:
+        """
+        Parse Claude's JSON response for image analysis.
+        """
+        try:
+            # Clean up the response text
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:].strip()
+            if response_text.endswith("```"):
+                response_text = response_text[:-3].strip()
+
+            parsed = json.loads(response_text)
+
+            detection_reasons = parsed.get('detection_reasons', [])
+
+            return {
+                'detection_reasons': detection_reasons
+            }
+
+        except (json.JSONDecodeError, KeyError) as e:
+            # Return fallback structure if parsing fails
+            return self.fallback_image_analysis(f"JSON parsing error: {str(e)}")
+        
     def fallback_text_analysis(self, error_message: str) -> Dict[str, Any]:
         """
         Provide fallback analysis when Claude fails.
@@ -289,21 +321,19 @@ class ClaudeService:
         }
     }
 
-    def fallback_image_analysis(self, error_message: str, base_prediction: Dict[str, Any]) -> Dict[str, Any]:
+    def fallback_image_analysis(self, error_message: str) -> Dict[str, Any]:
         """
         Provide fallback analysis when Claude image analysis fails.
         """
-        probability = base_prediction.get('probability', 0)
-        is_ai_generated = base_prediction.get('is_ai_generated', False)
-
-        if is_ai_generated:
-            explanation = f"The detection model identified this image as likely AI-generated with {probability:.1%} confidence. While detailed visual analysis isn't available, the model detected patterns commonly associated with AI-created content."
-        else:
-            explanation = f"The detection model suggests this image appears to be human-created with {1 - probability:.1%} confidence. The image likely shows characteristics typical of traditional photography or artwork."
-
         return {
-            'explanation': explanation
+            'detection_reasons': [{
+                'type': 'warning',
+                'title': 'Enhanced Analysis Unavailable',
+                'description': f'Detailed visual analysis failed: {error_message}',
+                'impact': 'Low'
+            }]
         }
+
 
     def create_text_submission_name(self, text: str, max_length: int = 20):
         """
