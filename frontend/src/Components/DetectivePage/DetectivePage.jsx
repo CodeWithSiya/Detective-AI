@@ -62,8 +62,6 @@ const DetectivePage = () => {
     const isUserAuthenticated = isAuthenticated();
     const currentUser = getCurrentUser();
 
-    const [isExporting, setIsExporting] = useState(false);
-
     // Redirect to login if not authenticated.
     useEffect(() => {
         if (!isUserAuthenticated) {
@@ -72,11 +70,11 @@ const DetectivePage = () => {
         }
     }, [isUserAuthenticated, navigate]);
     
-    //sidebar and view state
+    // Sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentView, setCurrentView] = useState('main');
 
-    //text and image analysis state
+    // Text and image analysis state
     const [activeDetectionType, setActiveDetectionType] = useState('text');
     const [inputMode, setInputMode] = useState('type'); //type or upload
     const [textContent, setTextContent] = useState('');
@@ -84,26 +82,30 @@ const DetectivePage = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
     
-    //uploaded file states for feedback
+    // Uploaded file states for feedback
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isFileUploaded, setIsFileUploaded] = useState(false);
 
-    //feedback state
+    // Feedback state
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
 
-    //Refs for file inputs
+    // Refs for file inputs
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
     const reportRef = useRef(null);
 
-    //history items state
+    // History items state
     const [historyItems, setHistoryItems] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     
-    //search state for filtering history
+    // Search state for filtering history
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Replace the single isExporting state with separate states
+    const [isPDFExporting, setIsPDFExporting] = useState(false);
+    const [isEmailSending, setIsEmailSending] = useState(false);
 
     // Filter history items based on search query
     const filteredHistoryItems = useMemo(() => {
@@ -373,8 +375,11 @@ const DetectivePage = () => {
             const formData = new FormData();
             formData.append('image', file);
             
-            const response = await fetch('/api/analyze/image', {
+            const response = await fetch(`${API_BASE_URL}/api/analysis/image/`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                },
                 body: formData
             });
             
@@ -384,8 +389,8 @@ const DetectivePage = () => {
                 throw new Error(data.error || 'Image analysis failed');
             }
             
-            // Extract analysis explanations and split by \n\n
-            const analysisText = data.data.analysis_result.analysis || '';
+            // Extract analysis explanations from the correct location and split by \n\n
+            const analysisText = data.data.analysis_result.analysis.explanation || '';
             const analysisPoints = analysisText.split('\n\n').filter(point => point.trim() !== '');
             
             return {
@@ -393,8 +398,14 @@ const DetectivePage = () => {
                 confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
                 submissionId: data.data.submission.id,
                 analysisId: data.data.analysis_result.analysis_id,
-                analysisPoints: analysisPoints, // Add the bullet points
-                highlightedText: '' // Images don't have highlighted text
+                analysisPoints: analysisPoints,
+                detectionReasons: data.data.analysis_result.analysis.detection_reasons || [], // Add detection reasons
+                metadata: data.data.analysis_result.metadata,
+                imageUrl: data.data.submission.image_url,
+                dimensions: data.data.submission.dimensions,
+                fileSize: data.data.submission.file_size_mb,
+                filename: data.data.submission.name,
+                timestamp: data.timestamp
             };
         } catch (error) {
             console.error('Image analysis failed:', error);
@@ -964,7 +975,7 @@ const DetectivePage = () => {
     // PDF export function
     const exportReportAsPDF = async (analysisId) => {
         try {
-            setIsExporting(true);
+            setIsPDFExporting(true);
             
             if (!analysisId) {
                 throw new Error('No submission ID provided for export');
@@ -1007,15 +1018,16 @@ const DetectivePage = () => {
             
         } catch (error) {
             console.error('Failed to export PDF:', error);
+            alert('Failed to export PDF. Please try again.');
         } finally {
-            setIsExporting(false);
+            setIsPDFExporting(false);
         }
     };
 
     // Export Report as Email
     const exportReportAsEmail = async (analysisId) => {
         try {
-            setIsExporting(true);
+            setIsEmailSending(true);
             
             if (!analysisId) {
                 throw new Error('No submission ID provided for export');
@@ -1042,15 +1054,16 @@ const DetectivePage = () => {
             if (result.success) {
                 console.log('Email sent successfully:', result.message);
                 console.log('Recipient:', result.data.recipient);
-                alert("Sent successfully.")
+                alert("Email Sent successfully!")
             } else {
                 throw new Error(result.error || 'Failed to send email');
             }
             
         } catch (error) {
             console.error('Failed to send email:', error);
+            alert('Failed to send email. Please try again.');
         } finally {
-            setIsExporting(false);
+            setIsEmailSending(false);
         }
     };
 
@@ -1431,39 +1444,90 @@ const DetectivePage = () => {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    
+                                                    <div className="results-actions">
+                                                        <button 
+                                                            className="action-btn export" 
+                                                            onClick={() => exportReportAsPDF(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isPDFExporting ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Exporting...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Download className="icon-sm" />
+                                                                    Export PDF
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        <button 
+                                                            className="action-btn" 
+                                                            onClick={() => exportReportAsEmail(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isEmailSending ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Sending...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Mail className="icon-sm" />
+                                                                    Email
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 
                                                 {uploadedImage && (
                                                     <img src={uploadedImage} alt="Uploaded" className="result-image" />
                                                 )}
                                                 
-                                                <div className="image-analysis">
-                                                    <div className="analysis-header">
-                                                        <h4 className="analysis-title">
-                                                            <Search className="icon-sm" />
-                                                            Analysis Explanation
-                                                        </h4>
-                                                        <p className="analysis-subtitle">
-                                                            Analysis Complete: {analysisResult.filename}
-                                                        </p>
+                                                {/* Detection Factors for Images */}
+                                                <div className="report-section">
+                                                    <div className="section-header">
+                                                        <Brain className="icon-sm" />
+                                                        <h4 className="section-title">Detection Factors</h4>
                                                     </div>
-                                                    
-                                                    {analysisResult.analysisPoints && analysisResult.analysisPoints.length > 0 ? (
-                                                        <ul className="analysis-points">
-                                                            {analysisResult.analysisPoints.map((point, index) => (
-                                                                <li key={index} className="analysis-point">
-                                                                    {point.trim()}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="fallback-analysis">
-                                                            {analysisResult.isAI ? 
-                                                                'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
-                                                                'The image appears to be authentic with natural characteristics typical of human-created content.'
-                                                            }
-                                                        </p>
-                                                    )}
+                                                    <div className="factors-list">
+                                                        {analysisResult.detectionReasons.map((reason, index) => (
+                                                            <div key={index} className={`factor-item factor-${reason.type}`}>
+                                                                <div className="factor-header">
+                                                                    <div className={`factor-icon ${reason.type}`}>
+                                                                        {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
+                                                                        {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
+                                                                        {reason.type === 'info' && <Info className="icon-xs" />}
+                                                                        {reason.type === 'success' && <CheckCircle className="icon-xs" />}
+                                                                    </div>
+                                                                    <div className="factor-title">{reason.title}</div>
+                                                                    <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
+                                                                        {reason.impact} Impact
+                                                                    </div>
+                                                                </div>
+                                                                <div className="factor-description">{reason.description}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Feedback buttons */}
+                                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                                    <button 
+                                                        className="action-btn" 
+                                                        onClick={handleThumbsUp}
+                                                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
+                                                    >
+                                                        <ThumbsUp className="icon-sm" />
+                                                        Accurate
+                                                    </button>
+                                                    <button className="action-btn" onClick={handleThumbsDown}>
+                                                        <ThumbsDown className="icon-sm" />
+                                                        Not Accurate
+                                                    </button>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1485,13 +1549,39 @@ const DetectivePage = () => {
                                                     </div>
                                                     
                                                     <div className="results-actions">
-                                                        <button className="action-btn export" onClick={() => exportReportAsPDF(analysisResult.analysisId)}>
-                                                            <Download className="icon-sm" />
-                                                            Export PDF
+                                                        <button 
+                                                            className="action-btn export" 
+                                                            onClick={() => exportReportAsPDF(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isPDFExporting ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Exporting...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Download className="icon-sm" />
+                                                                    Export PDF
+                                                                </>
+                                                            )}
                                                         </button>
-                                                        <button className="action-btn" onClick={() => exportReportAsEmail(analysisResult.analysisId)}>
-                                                            <Mail className="icon-sm" />
-                                                            Email
+                                                        <button 
+                                                            className="action-btn" 
+                                                            onClick={() => exportReportAsEmail(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isEmailSending ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Sending...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Mail className="icon-sm" />
+                                                                    Email
+                                                                </>
+                                                            )}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1606,13 +1696,39 @@ const DetectivePage = () => {
                                                 </div>
                                                 
                                                 <div className="results-actions">
-                                                    <button className="action-btn export" onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}>
-                                                        <Download className="icon-sm" />
-                                                        Export PDF
+                                                    <button 
+                                                        className="action-btn export" 
+                                                        onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}
+                                                        disabled={isPDFExporting || isEmailSending}
+                                                    >
+                                                        {isPDFExporting ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Exporting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Download className="icon-sm" />
+                                                                Export PDF
+                                                            </>
+                                                        )}
                                                     </button>
-                                                    <button className="action-btn" onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}>
-                                                        <Mail className="icon-sm" />
-                                                        Email
+                                                    <button 
+                                                        className="action-btn" 
+                                                        onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}
+                                                        disabled={isPDFExporting || isEmailSending}
+                                                    >
+                                                        {isEmailSending ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Sending...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Mail className="icon-sm" />
+                                                                Email
+                                                            </>
+                                                        )}
                                                     </button>
                                                 </div>
                                             </div>
