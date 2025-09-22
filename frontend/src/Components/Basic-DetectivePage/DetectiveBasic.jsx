@@ -36,7 +36,8 @@ import {
     TrendingUp,
     Brain,
     FileCheck,
-    Info
+    Info,
+    Home
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { isAuthenticated } from '../UserAuthentication/AuthHandler';
@@ -374,9 +375,8 @@ const DetectiveBasic = () => {
     );
 
     const navigationItems = [
-        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
-        {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        {id: 'demo', label: 'Demo', icon: <Play className="icon-sm"/>}
+        {id: 'detective-basic', label: 'Basic Detector', icon: <Search className="icon-sm"/>, active: true},
+        {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
     ];
 
     return (

@@ -1,6 +1,6 @@
 // For DOCX parsing
 import mammoth from "mammoth";
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -41,7 +41,8 @@ import {
     Brain,
     FileCheck,
     Info,
-    Home
+    Home,
+    Settings
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
@@ -82,6 +83,10 @@ const DetectivePage = () => {
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
+    
+    //uploaded file states for feedback
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [isFileUploaded, setIsFileUploaded] = useState(false);
 
     //feedback state
     const [showFeedback, setShowFeedback] = useState(false);
@@ -95,6 +100,33 @@ const DetectivePage = () => {
 
     //history items state
     const [historyItems, setHistoryItems] = useState([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    
+    //search state for filtering history
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter history items based on search query
+    const filteredHistoryItems = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return historyItems;
+        }
+        
+        return historyItems.filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.type.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [historyItems, searchQuery]);
+
+    // Handle search input changes
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    // Clear search
+    const clearSearch = () => {
+        setSearchQuery('');
+    };
 
     // Fetch user history on component mount
     const fetchHistory = useCallback(async () => {
@@ -104,6 +136,8 @@ const DetectivePage = () => {
                 console.log('User not authenticated, skipping history fetch');
                 return;
             }
+
+            setIsHistoryLoading(true);
 
             const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
                 headers: {
@@ -135,6 +169,8 @@ const DetectivePage = () => {
             if (error.message.includes('401')) {
                 console.log('Authentication failed, user may need to log in again');
             }
+        } finally {
+            setIsHistoryLoading(false);
         }
     }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
 
@@ -348,11 +384,16 @@ const DetectivePage = () => {
                 throw new Error(data.error || 'Image analysis failed');
             }
             
+            // Extract analysis explanations and split by \n\n
+            const analysisText = data.data.analysis_result.analysis || '';
+            const analysisPoints = analysisText.split('\n\n').filter(point => point.trim() !== '');
+            
             return {
                 isAI: data.data.analysis_result.prediction.is_ai_generated,
                 confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
                 submissionId: data.data.submission.id,
                 analysisId: data.data.analysis_result.analysis_id,
+                analysisPoints: analysisPoints, // Add the bullet points
                 highlightedText: '' // Images don't have highlighted text
             };
         } catch (error) {
@@ -399,6 +440,14 @@ const DetectivePage = () => {
                 alert('Please upload only PDF, DOCX, or TXT files for text analysis.');
                 return;
             }
+
+            // Set upload feedback
+            setUploadedFile({
+                name: file.name,
+                size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+                type: file.type
+            });
+            setIsFileUploaded(true);
 
             setIsAnalyzing(true);
 
@@ -503,6 +552,14 @@ const DetectivePage = () => {
             alert('Please Upload only PNG or JPEG');
             return;
         }
+
+        // Set upload feedback
+        setUploadedFile({
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+            type: file.type
+        });
+        setIsFileUploaded(true);
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -715,6 +772,8 @@ const DetectivePage = () => {
         setAnalysisResult(null);
         setTextContent('');
         setUploadedImage(null);
+        setUploadedFile(null);
+        setIsFileUploaded(false);
         if (fileInputRef.current){
             fileInputRef.current.value = '';
         }
@@ -898,7 +957,7 @@ const DetectivePage = () => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        
+        {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
     ];
 
@@ -1049,7 +1108,41 @@ const DetectivePage = () => {
                     {/*history section*/}
                     <div className="nav-section history-section">
                         <div className="nav-section-title">Recent Detections</div>
-                        {historyItems.map((item) => (
+                        
+                        {/*search bar*/}
+                        <div className="history-search-container">
+                            <div className="history-search-input-wrapper">
+                                <Search className="icon-xs search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search detections..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="history-search-input"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={clearSearch}
+                                        className="clear-search-btn"
+                                    >
+                                        <X className="icon-xs" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* History Loading Indicator */}
+                        {isHistoryLoading && (
+                            <div className="history-loading">
+                                <div className="history-loading-spinner">
+                                    <Loader className="icon-sm animate-spin" />
+                                </div>
+                                <div className="history-loading-text">Loading detections...</div>
+                            </div>
+                        )}
+                        
+                        {/* History Items */}
+                        {!isHistoryLoading && filteredHistoryItems.map((item) => (
                             <div key={item.id} className="history-item">
                                 <div className="history-content" onClick={() => viewHistoryItem(item)}>
                                     {item.type === 'text' ?
@@ -1076,6 +1169,28 @@ const DetectivePage = () => {
                                 </div>
                             </div>
                         ))}
+                        
+                        {/* No Search Results */}
+                        {!isHistoryLoading && searchQuery && filteredHistoryItems.length === 0 && (
+                            <div className="no-search-results">
+                                <div className="no-results-icon">
+                                    <Search className="icon-sm" />
+                                </div>
+                                <div className="no-results-text">No detections found</div>
+                                <div className="no-results-subtext">Try a different search term</div>
+                            </div>
+                        )}
+                        
+                        {/* Empty State when not loading and no history */}
+                        {!isHistoryLoading && !searchQuery && filteredHistoryItems.length === 0 && (
+                            <div className="no-search-results">
+                                <div className="no-results-icon">
+                                    <History className="icon-sm" />
+                                </div>
+                                <div className="no-results-text">No detections yet</div>
+                                <div className="no-results-subtext">Your analysis history will appear here</div>
+                            </div>
+                        )}
                     </div>
                 </nav>
             </div>
@@ -1203,18 +1318,33 @@ const DetectivePage = () => {
                                                 </button>
                                             </>
                                         ) : (
-                                            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                                                <div className="upload-icon">
-                                                    <FileText className="icon-lg" />
-                                                </div>
-                                                <h3 className="upload-title">Upload Document</h3>
-                                                <p className="upload-description">
-                                                    Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
-                                                </p>
-                                                <button className="upload-button">
-                                                    <Upload className="icon-sm" />
-                                                    Choose Document
-                                                </button>
+                                            <div className="upload-area" onClick={!isFileUploaded ? () => fileInputRef.current?.click() : undefined}>
+                                                {!isFileUploaded ? (
+                                                    <>
+                                                        <div className="upload-icon">
+                                                            <FileText className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-title">Upload Document</h3>
+                                                        <p className="upload-description">
+                                                            Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
+                                                        </p>
+                                                        <button className="upload-button">
+                                                            <Upload className="icon-sm" />
+                                                            Choose Document
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <div className="upload-success">
+                                                        <div className="upload-success-icon">
+                                                            <CheckCircle className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-success-title">File Uploaded Successfully!</h3>
+                                                        <div className="upload-file-info">
+                                                            <p className="file-name">{uploadedFile?.name}</p>
+                                                            <p className="file-size">{uploadedFile?.size} MB</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
@@ -1229,18 +1359,38 @@ const DetectivePage = () => {
 
                                 {/* Image Upload Area */}
                                 {activeDetectionType === 'image' && (
-                                    <div className="upload-area" onClick={() => imageInputRef.current?.click()}>
-                                        <div className="upload-icon">
-                                            <ImageIcon className="icon-lg" />
-                                        </div>
-                                        <h3 className="upload-title">Upload Image</h3>
-                                        <p className="upload-description">
-                                            Click here or drag and drop PNG or JPEG images (up to 10MB)
-                                        </p>
-                                        <button className="upload-button">
-                                            <Upload className="icon-sm" />
-                                            Choose Image
-                                        </button>
+                                    <div className="upload-area" onClick={!isFileUploaded ? () => imageInputRef.current?.click() : undefined}>
+                                        {!isFileUploaded ? (
+                                            <>
+                                                <div className="upload-icon">
+                                                    <ImageIcon className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-title">Upload Image</h3>
+                                                <p className="upload-description">
+                                                    Click here or drag and drop PNG or JPEG images (up to 10MB)
+                                                </p>
+                                                <button className="upload-button">
+                                                    <Upload className="icon-sm" />
+                                                    Choose Image
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="upload-success">
+                                                <div className="upload-success-icon">
+                                                    <CheckCircle className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-success-title">Image Uploaded Successfully!</h3>
+                                                <div className="upload-file-info">
+                                                    <p className="file-name">{uploadedFile?.name}</p>
+                                                    <p className="file-size">{uploadedFile?.size} MB</p>
+                                                </div>
+                                                {uploadedImage && (
+                                                    <div className="uploaded-image-preview">
+                                                        <img src={uploadedImage} alt="Uploaded preview" className="preview-image" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <input
                                             ref={imageInputRef}
                                             type="file"
@@ -1288,15 +1438,32 @@ const DetectivePage = () => {
                                                 )}
                                                 
                                                 <div className="image-analysis">
-                                                    <p style={{ color: '#d1d5db', marginBottom: '1rem' }}>
-                                                        Analysis Complete: {analysisResult.filename}
-                                                    </p>
-                                                    <p style={{ color: '#9ca3af' }}>
-                                                        {analysisResult.isAI ? 
-                                                            'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
-                                                            'The image appears to be authentic with natural characteristics typical of human-created content.'
-                                                        }
-                                                    </p>
+                                                    <div className="analysis-header">
+                                                        <h4 className="analysis-title">
+                                                            <Search className="icon-sm" />
+                                                            Analysis Explanation
+                                                        </h4>
+                                                        <p className="analysis-subtitle">
+                                                            Analysis Complete: {analysisResult.filename}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {analysisResult.analysisPoints && analysisResult.analysisPoints.length > 0 ? (
+                                                        <ul className="analysis-points">
+                                                            {analysisResult.analysisPoints.map((point, index) => (
+                                                                <li key={index} className="analysis-point">
+                                                                    {point.trim()}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <p className="fallback-analysis">
+                                                            {analysisResult.isAI ? 
+                                                                'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
+                                                                'The image appears to be authentic with natural characteristics typical of human-created content.'
+                                                            }
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ) : (
