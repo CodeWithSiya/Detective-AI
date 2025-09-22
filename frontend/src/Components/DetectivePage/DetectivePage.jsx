@@ -107,6 +107,10 @@ const DetectivePage = () => {
     const [isPDFExporting, setIsPDFExporting] = useState(false);
     const [isEmailSending, setIsEmailSending] = useState(false);
 
+    // Feedback State
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+    const [isSubmittingThumbsUp, setIsSubmittingThumbsUp] = useState(false);
+
     // Filter history items based on search query
     const filteredHistoryItems = useMemo(() => {
         if (!searchQuery.trim()) {
@@ -128,6 +132,13 @@ const DetectivePage = () => {
     // Clear search
     const clearSearch = () => {
         setSearchQuery('');
+    };
+
+    // Helper function to truncate text with ellipsis
+    const truncateText = (text, maxLength = 20) => {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     };
 
     // Fetch user history on component mount
@@ -158,8 +169,9 @@ const DetectivePage = () => {
             if (data.success) {
                 const transformedHistory = data.data.submissions.map(item => ({
                     id: item.id,
-                    type: 'text',
-                    title: item.name,
+                    type: item.type,
+                    title: truncateText(item.name), // Apply truncation here
+                    fullTitle: item.name, // Keep original for tooltips
                     date: new Date(item.created_at).toLocaleString(),
                     content: 'Click to view details...', 
                     result: null       // Will be populated when individual submission is fetched.
@@ -174,7 +186,7 @@ const DetectivePage = () => {
         } finally {
             setIsHistoryLoading(false);
         }
-    }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
+    }, [isUserAuthenticated, authToken]);
 
     useEffect(() => {
         // Only fetch history if user is authenticated
@@ -191,19 +203,31 @@ const DetectivePage = () => {
         setSidebarOpen(!sidebarOpen);
     };
     
-    // Helper function to generate highlighted text from API data
+    // Helper function to generate highlighted text from API data with priority-based highlighting
     const generateHighlightedText = (originalText, analysisDetails) => {
         if (!analysisDetails) return originalText;
         
-        let highlightedText = originalText;
+        // Define priority levels (higher number = higher priority)
+        const PRIORITY_LEVELS = {
+            suspicious: 5,    // Highest priority - AI patterns
+            keyword: 4,       // AI keywords
+            critical: 3,      // Critical indicators
+            warning: 2,       // Warning level
+            jargon: 1,        // Corporate jargon
+            buzzword: 1,      // Buzzwords
+            transition: 0,    // Lowest priority - transition words
+            human: -1         // Human indicators (different styling)
+        };
+        
+        // Collect all found items with their types and priorities
         const highlights = [];
         
-        // Collect all found items with their types
         if (analysisDetails.found_keywords?.length > 0) {
             analysisDetails.found_keywords.forEach(keyword => {
                 highlights.push({
                     text: keyword,
                     type: 'keyword',
+                    priority: PRIORITY_LEVELS.keyword,
                     tooltip: 'AI-typical keyword detected'
                 });
             });
@@ -214,6 +238,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: pattern,
                     type: 'suspicious',
+                    priority: PRIORITY_LEVELS.suspicious,
                     tooltip: 'Suspicious AI pattern detected'
                 });
             });
@@ -224,6 +249,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: transition,
                     type: 'transition',
+                    priority: PRIORITY_LEVELS.transition,
                     tooltip: 'Overused transition word'
                 });
             });
@@ -234,6 +260,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: jargon,
                     type: 'jargon',
+                    priority: PRIORITY_LEVELS.jargon,
                     tooltip: 'Corporate jargon flagged by detectors'
                 });
             });
@@ -244,6 +271,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: buzzword,
                     type: 'buzzword',
+                    priority: PRIORITY_LEVELS.buzzword,
                     tooltip: 'Buzzword frequently used by AI'
                 });
             });
@@ -254,28 +282,86 @@ const DetectivePage = () => {
                 highlights.push({
                     text: indicator,
                     type: 'human',
+                    priority: PRIORITY_LEVELS.human,
                     tooltip: 'Human writing indicator'
                 });
             });
         }
         
-        // Apply highlights to text with staggered tooltip positioning
-        highlights.forEach((highlight, index) => {
-            // Escape special regex characters but preserve the original text case
+        // Find all matches for all highlights in the original text
+        const matches = [];
+        
+        highlights.forEach((highlight, highlightIndex) => {
             const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Use global flag and case-insensitive, but capture the actual matched text
             const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
+            let match;
             
-            // Calculate tooltip offset class to prevent overlap
-            const offsetClass = `tooltip-offset-${index % 4}`;
-            
-            highlightedText = highlightedText.replace(regex, (match) => {
-                return `<span class="highlight highlight-${highlight.type}">${match}<span class="tooltip ${offsetClass}">${highlight.tooltip}</span></span>`;
-            });
+            while ((match = regex.exec(originalText)) !== null) {
+                matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    text: match[0],
+                    type: highlight.type,
+                    priority: highlight.priority,
+                    tooltip: highlight.tooltip,
+                    highlightIndex: highlightIndex
+                });
+            }
         });
         
-        return highlightedText;
+        // Sort matches by start position
+        matches.sort((a, b) => a.start - b.start);
+        
+        // Remove overlapping matches, keeping higher priority ones
+        const filteredMatches = [];
+        
+        for (let i = 0; i < matches.length; i++) {
+            const currentMatch = matches[i];
+            let shouldAdd = true;
+            
+            // Check against already added matches
+            for (let j = 0; j < filteredMatches.length; j++) {
+                const existingMatch = filteredMatches[j];
+                
+                // Check if there's any overlap
+                const overlaps = (
+                    (currentMatch.start >= existingMatch.start && currentMatch.start < existingMatch.end) ||
+                    (currentMatch.end > existingMatch.start && currentMatch.end <= existingMatch.end) ||
+                    (currentMatch.start <= existingMatch.start && currentMatch.end >= existingMatch.end)
+                );
+                
+                if (overlaps) {
+                    // If current match has higher priority, remove the existing one
+                    if (currentMatch.priority > existingMatch.priority) {
+                        filteredMatches.splice(j, 1);
+                        j--; // Adjust index after removal
+                    } else {
+                        // Keep existing match, don't add current
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (shouldAdd) {
+                filteredMatches.push(currentMatch);
+            }
+        }
+        
+        // Sort filtered matches by start position (reverse order for replacement)
+        filteredMatches.sort((a, b) => b.start - a.start);
+        
+        // Apply highlights from end to beginning to maintain correct positions
+        let result = originalText;
+        
+        filteredMatches.forEach((match, index) => {
+            const offsetClass = `tooltip-offset-${index % 4}`;
+            const highlightHtml = `<span class="highlight highlight-${match.type}">${match.text}<span class="tooltip ${offsetClass}">${match.tooltip}</span></span>`;
+            
+            result = result.substring(0, match.start) + highlightHtml + result.substring(match.end);
+        });
+        
+        return result;
     };
 
     const performTextAnalysis = async (text, onSuccess) => {
@@ -593,6 +679,8 @@ const DetectivePage = () => {
 
     const handleThumbsUp = async () => {
         try {
+            setIsSubmittingThumbsUp(true);
+
             // Check if user is authenticated
             if (!isUserAuthenticated || !authToken) {
                 throw new Error('User not authenticated');
@@ -620,6 +708,8 @@ const DetectivePage = () => {
         } catch (error) {
             console.error('Failed to submit feedback:', error);
             alert('Failed to submit feedback. Please try again.');
+        } finally {
+            setIsSubmittingThumbsUp(false);
         }
     };
 
@@ -631,6 +721,8 @@ const DetectivePage = () => {
         if (!feedbackText.trim()) return;
         
         try {
+            setIsSubmittingFeedback(true);
+
             // Check if user is authenticated
             if (!isUserAuthenticated || !authToken) {
                 throw new Error('User not authenticated');
@@ -660,6 +752,8 @@ const DetectivePage = () => {
         } catch (error) {
             console.error('Failed to submit feedback:', error);
             alert('Failed to submit feedback. Please try again.');
+        } finally {
+            setIsSubmittingFeedback(false);
         }
     };
 
@@ -1159,11 +1253,16 @@ const DetectivePage = () => {
                             <div key={item.id} className="history-item">
                                 <div className="history-content" onClick={() => viewHistoryItem(item)}>
                                     {item.type === 'text' ?
-                                        <FileText className="icon-xs"/> :
-                                        <ImageIcon className="icon-xs"/>
+                                        <FileText className="icon-xs" /> :
+                                        <ImageIcon className="icon-xs" />
                                     }
                                     <div>
-                                        <div className="history-text">{item.title}</div>
+                                        <div x
+                                            className="history-text"
+                                            title={item.fullTitle || item.title} // Show full title on hover
+                                        >
+                                            {item.title}
+                                        </div>
                                         <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
                                             {item.date}
                                         </div>
@@ -1175,7 +1274,10 @@ const DetectivePage = () => {
                                     </button>
                                     <button
                                         className="history-action"
-                                        onClick={() => deleteHistoryItem(item.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent triggering viewHistoryItem
+                                            deleteHistoryItem(item.id);
+                                        }}
                                     >
                                         <Trash2 className="icon-xs"/>
                                     </button>
@@ -1519,12 +1621,26 @@ const DetectivePage = () => {
                                                     <button 
                                                         className="action-btn" 
                                                         onClick={handleThumbsUp}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
                                                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
                                                     >
-                                                        <ThumbsUp className="icon-sm" />
-                                                        Accurate
+                                                        {isSubmittingThumbsUp ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Submitting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <ThumbsUp className="icon-sm" />
+                                                                Accurate
+                                                            </>
+                                                        )}
                                                     </button>
-                                                    <button className="action-btn" onClick={handleThumbsDown}>
+                                                    <button 
+                                                        className="action-btn" 
+                                                        onClick={handleThumbsDown}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
+                                                    >
                                                         <ThumbsDown className="icon-sm" />
                                                         Not Accurate
                                                     </button>
@@ -1597,10 +1713,20 @@ const DetectivePage = () => {
                                                     <button 
                                                         className="action-btn" 
                                                         onClick={handleThumbsUp}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
                                                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
                                                     >
-                                                        <ThumbsUp className="icon-sm" />
-                                                        Accurate
+                                                        {isSubmittingThumbsUp ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Submitting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <ThumbsUp className="icon-sm" />
+                                                                Accurate
+                                                            </>
+                                                        )}
                                                     </button>
                                                     <button className="action-btn" onClick={handleThumbsDown}>
                                                         <ThumbsDown className="icon-sm" />
@@ -1767,11 +1893,26 @@ const DetectivePage = () => {
                             onChange={(e) => setFeedbackText(e.target.value)}
                         />
                         <div className="modal-actions">
-                            <button className="modal-btn cancel" onClick={() => setShowFeedback(false)}>
+                            <button 
+                                className="modal-btn cancel" 
+                                onClick={() => setShowFeedback(false)}
+                                disabled={isSubmittingFeedback}
+                            >
                                 Cancel
                             </button>
-                            <button className="modal-btn submit" onClick={submitFeedback}>
-                                Submit Feedback
+                            <button 
+                                className="modal-btn submit" 
+                                onClick={submitFeedback}
+                                disabled={isSubmittingFeedback || !feedbackText.trim()}
+                            >
+                                {isSubmittingFeedback ? (
+                                    <>
+                                        <Loader className="icon-sm animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Submit Feedback'
+                                )}
                             </button>
                         </div>
                     </div>
