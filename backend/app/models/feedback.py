@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.utils import timezone
 import uuid
 
 User = get_user_model()
@@ -12,11 +13,17 @@ class Feedback(models.Model):
 
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 22/08/2025
-    """
+    """ 
     # Feedback Rating Choices.
     class FeedbackRating(models.TextChoices):
         THUMBS_UP = "THUMBS_UP", "Thumbs Up"
         THUMBS_DOWN = "THUMBS_DOWN", "Thumbs Down"
+
+    # Feedback Status Choices.
+    class FeedbackStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        REVIEWED = 'REVIEWED', 'Reviewed' 
+        RESOLVED = 'RESOLVED', 'Resolved'
 
     # Defining fields for the feedback.
     id = models.UUIDField(
@@ -43,17 +50,25 @@ class Feedback(models.Model):
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text="Timestamp when the submission was created."
+        help_text="Timestamp when the feedback was created."
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        help_text="Timestamp when the submission was last updated."
+        help_text="Timestamp when the feedback was last updated."
     )
+
+    # Admin fields.
+    status = models.CharField(
+        max_length=20,
+        choices=FeedbackStatus.choices,
+        default=FeedbackStatus.PENDING
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
 
     # Generic relation to any submission type.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
-    submission = GenericForeignKey('content_type', 'object_id')
+    analysis_result = GenericForeignKey('content_type', 'object_id')
 
     # Defining metadata for the feedback table.
     class Meta:
@@ -61,15 +76,46 @@ class Feedback(models.Model):
         indexes = [
             models.Index(fields=["user", "created_at"]),
             models.Index(fields=["rating"]),
-            models.Index(fields=["content_type", "object_id"])
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["status"]), 
         ]
-        # Ensure one feedback per user per submission.
+        # Ensure one feedback per user per analysis result.
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "content_type", "object_id"],
-                name="unique_feedback_per_user_submission"
+                name="unique_feedback_per_user_analysis"
             )
         ]
+
+    def mark_as_resolved(self) -> None:
+        """
+        Mark feedback as resolved by an admin user.
+        """
+        self.status = self.FeedbackStatus.RESOLVED
+        self.resolved_at = timezone.now()
+        self.save(update_fields=['status', 'resolved_at'])
+
+    def mark_as_reviewed(self) -> None:
+        """
+        Mark feedback as reviewed by an admin user.
+        """
+        self.status = self.FeedbackStatus.REVIEWED
+        self.save(update_fields=['status'])
+
+    @property
+    def is_reviewed(self) -> bool:
+        """Check if feedback is reviewed."""
+        return self.status == self.FeedbackStatus.REVIEWED
+
+    @property
+    def is_resolved(self) -> bool:
+        """Check if feedback is resolved."""
+        return self.status == self.FeedbackStatus.RESOLVED
+
+    @property
+    def is_pending(self) -> bool:
+        """Check if feedback is pending."""
+        return self.status == self.FeedbackStatus.PENDING
 
     def __str__(self) -> str:
         """
