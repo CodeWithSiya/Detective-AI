@@ -116,8 +116,8 @@ const AdminPage = () => {
             setUsers([
                 {
                     id: 1,
-                    name: 'John Doe',
-                    email: 'john.doe@example.com',
+                    name: 'Siyabonga Madondo',
+                    email: 'MDNSIY014@myuct.ac.za',
                     joinDate: '2024-01-15',
                     totalAnalyses: 45,
                     accurateDetections: 42,
@@ -126,7 +126,7 @@ const AdminPage = () => {
                 {
                     id: 2,
                     name: 'Sarah Johnson',
-                    email: 'sarah.johnson@example.com',
+                    email: 'sarah.johnson@gmail.com',
                     joinDate: '2024-01-10',
                     totalAnalyses: 78,
                     accurateDetections: 71,
@@ -135,7 +135,7 @@ const AdminPage = () => {
                 {
                     id: 3,
                     name: 'Mike Chen',
-                    email: 'mike.chen@example.com',
+                    email: 'mike.chen@gmail.com',
                     joinDate: '2024-01-05',
                     totalAnalyses: 23,
                     accurateDetections: 20,
@@ -147,7 +147,7 @@ const AdminPage = () => {
                 {
                     id: 1,
                     userId: 1,
-                    userName: 'John Doe',
+                    userName: 'Siyabonga Madondo',
                     submissionId: 'sub_123',
                     analysisId: 'ana_456',
                     feedbackText: 'The detection seems incorrect. This text was written by me, not AI.',
@@ -173,7 +173,7 @@ const AdminPage = () => {
                 {
                     id: 3,
                     userId: 1,
-                    userName: 'John Doe',
+                    userName: 'Siyabonga Madondo',
                     submissionId: 'sub_125',
                     analysisId: 'ana_458',
                     feedbackText: 'The image detection failed. This was clearly a real photograph.',
@@ -189,7 +189,7 @@ const AdminPage = () => {
                 {
                     id: 1,
                     type: 'analysis',
-                    user: 'John Doe',
+                    user: 'Siyabonga Madondo',
                     action: 'Text analysis completed',
                     timestamp: '2024-01-20T10:30:00Z',
                     status: 'success',

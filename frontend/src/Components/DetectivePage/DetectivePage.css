@@ -573,23 +573,57 @@ body {
     align-items: center;
     gap: 0.75rem;
     flex: 1;
-    min-width: 0;
+    min-width: 0; /* Important: allows text truncation to work */
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+/* Icon styling - ensure consistent size and positioning */
+.history-content .icon-xs {
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 16px !important;
+    height: 16px !important;
+    color: #64748b;
+    margin-right: 0.5rem;
+}
+
+/* Text container - allows for proper text truncation */
+.history-content > div {
+    min-width: 0; /* Allows text truncation */
+    flex: 1;
+    overflow: hidden;
 }
 
 .history-text {
     font-size: 0.875rem;
     color: #1e293b !important;
+    font-weight: 500;
+    /* Text truncation styles */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: 500;
+    max-width: 180px; /* Adjust this value based on your sidebar width */
+    line-height: 1.2;
+    margin-bottom: 2px;
 }
 
+/* Date text styling */
+.history-content > div > div:last-child {
+    font-size: 0.75rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+/* History actions - ensure they don't interfere with text */
 .history-actions {
     display: flex;
     gap: 0.25rem;
     opacity: 0;
     transition: opacity 0.3s ease;
+    flex-shrink: 0; /* Prevent actions from shrinking */
+    margin-left: 0.5rem;
 }
 
 .history-item:hover .history-actions {
@@ -604,11 +638,34 @@ body {
     padding: 0.5rem;
     border-radius: 6px;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .history-action:hover {
     background: rgba(0, 0, 0, 0.08) !important;
     transform: scale(1.1);
+}
+
+.history-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.history-action:disabled:hover {
+    background-color: transparent;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* History Search Bar */
@@ -1663,6 +1720,7 @@ body {
 .highlight-keyword {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.3) 100%);
     border: 1px solid rgba(59, 130, 246, 0.3);
+    color:#000;
 }
 
 .highlight-suspicious {

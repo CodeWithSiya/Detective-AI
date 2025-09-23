@@ -18,7 +18,6 @@ import {
     Play,
     Plus,
     Trash2,
-    Share,
     Upload,
     Clock,
     Shield,
@@ -90,6 +89,9 @@ const DetectivePage = () => {
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+
+    // Individual History Items
+    const [historyItemStates, setHistoryItemStates] = useState({});
 
     // Refs for file inputs
     const fileInputRef = useRef(null);
@@ -209,14 +211,14 @@ const DetectivePage = () => {
         
         // Define priority levels (higher number = higher priority)
         const PRIORITY_LEVELS = {
-            suspicious: 5,    // Highest priority - AI patterns
-            keyword: 4,       // AI keywords
-            critical: 3,      // Critical indicators
-            warning: 2,       // Warning level
-            jargon: 1,        // Corporate jargon
-            buzzword: 1,      // Buzzwords
-            transition: 0,    // Lowest priority - transition words
-            human: -1         // Human indicators (different styling)
+            suspicious: 7,    // Highest priority - AI patterns
+            keyword: 6,       // AI keywords
+            critical: 5,      // Critical indicators
+            warning: 4,       // Warning level
+            jargon: 3,        // Corporate jargon
+            buzzword: 2,      // Buzzwords
+            transition: 1,    // Lowest priority - transition words
+            human: 0         // Human indicators (different styling)
         };
         
         // Collect all found items with their types and priorities
@@ -774,6 +776,7 @@ const DetectivePage = () => {
             }
             
             const data = await response.json();
+            console.log('Fetched submission details:', data); // Debug log
             
             if (data.success) {
                 const submission = data.data.submission;
@@ -797,46 +800,76 @@ const DetectivePage = () => {
     // Convert a submission payload into a history item with result.
     const convertSubmissionToHistoryItem = (submission) => {
         const analysis = submission.analysis_result;
+        
+        // Check if this is an image submission
+        const isImageSubmission = submission.image_url || submission.type === 'image';
+        
+        if (isImageSubmission) {
+            // Handle image submission format
+            return {
+                id: submission.id,
+                type: 'image',
+                title: truncateText(submission.name, 25),
+                fullTitle: submission.name,
+                date: new Date(submission.created_at).toLocaleString(),
+                content: 'Image analysis result',
+                isLoaded: true,
+                result: {
+                    isAI: analysis.prediction?.is_ai_generated || analysis.detection_result === 'AI_GENERATED',
+                    confidence: Math.round((analysis.prediction?.confidence || analysis.confidence || 0) * 100),
+                    detectionReasons: analysis.analysis?.detection_reasons || analysis.detection_reasons || [],
+                    analysisId: analysis.analysis_id || analysis.id,
+                    isImage: true,
+                    imageUrl: submission.image_url,
+                    dimensions: submission.dimensions,
+                    fileSize: submission.file_size_mb,
+                    filename: submission.name,
+                    metadata: analysis.metadata || {}
+                }
+            };
+        } else {
+            // Handle text submission format (existing logic)
+            const highlightedText = generateHighlightedText(
+                submission.content,
+                analysis.analysis_details
+            );
 
-        const highlightedText = generateHighlightedText(
-            submission.content,
-            analysis.analysis_details
-        );
-
-        return {
-            id: submission.id,
-            type: 'text',
-            title: submission.name,
-            date: new Date(submission.created_at).toLocaleString(),
-            content: submission.content?.substring(0, 100) + '...',
-            isLoaded: true,
-            result: {
-                isAI: analysis.detection_result === 'AI_GENERATED',
-                confidence: Math.round(analysis.confidence * 100),
-                highlightedText,
-                detectionReasons: analysis.detection_reasons || [],
-                statistics: {
-                    totalWords: analysis.statistics?.total_words,
-                    sentences: analysis.statistics?.sentences,
-                    avgSentenceLength: analysis.statistics?.avg_sentence_length,
-                    aiKeywordsCount: analysis.statistics?.ai_keywords_count,
-                    transitionWordsCount: analysis.statistics?.transition_words_count,
-                    corporateJargonCount: analysis.statistics?.corporate_jargon_count,
-                    buzzwordsCount: analysis.statistics?.buzzwords_count,
-                    suspiciousPatternsCount: analysis.statistics?.suspicious_patterns_count,
-                    humanIndicatorsCount: analysis.statistics?.human_indicators_count,
-                },
-                analysisDetails: {
-                    foundKeywords: analysis.analysis_details?.found_keywords || [],
-                    foundPatterns: analysis.analysis_details?.found_patterns || [],
-                    foundTransitions: analysis.analysis_details?.found_transitions || [],
-                    foundJargon: analysis.analysis_details?.found_jargon || [],
-                    foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
-                    foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
-                },
-                analysisId: analysis.analysis_id,
-            }
-        };
+            return {
+                id: submission.id,
+                type: 'text',
+                title: truncateText(submission.name, 25),
+                fullTitle: submission.name,
+                date: new Date(submission.created_at).toLocaleString(),
+                content: submission.content?.substring(0, 100) + '...',
+                isLoaded: true,
+                result: {
+                    isAI: analysis.detection_result === 'AI_GENERATED',
+                    confidence: Math.round(analysis.confidence * 100),
+                    highlightedText,
+                    detectionReasons: analysis.detection_reasons || [],
+                    statistics: {
+                        totalWords: analysis.statistics?.total_words,
+                        sentences: analysis.statistics?.sentences,
+                        avgSentenceLength: analysis.statistics?.avg_sentence_length,
+                        aiKeywordsCount: analysis.statistics?.ai_keywords_count,
+                        transitionWordsCount: analysis.statistics?.transition_words_count,
+                        corporateJargonCount: analysis.statistics?.corporate_jargon_count,
+                        buzzwordsCount: analysis.statistics?.buzzwords_count,
+                        suspiciousPatternsCount: analysis.statistics?.suspicious_patterns_count,
+                        humanIndicatorsCount: analysis.statistics?.human_indicators_count,
+                    },
+                    analysisDetails: {
+                        foundKeywords: analysis.analysis_details?.found_keywords || [],
+                        foundPatterns: analysis.analysis_details?.found_patterns || [],
+                        foundTransitions: analysis.analysis_details?.found_transitions || [],
+                        foundJargon: analysis.analysis_details?.found_jargon || [],
+                        foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
+                        foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
+                    },
+                    analysisId: analysis.analysis_id,
+                }
+            };
+        }
     };
 
     const viewHistoryItem = async (item) => {
@@ -858,18 +891,32 @@ const DetectivePage = () => {
 
     const deleteHistoryItem = async (id) => {
         try {
-            const response = await fetch(`/api/submissions/${id}`, {
-                method: 'DELETE'
+            updateHistoryItemState(id, { isDeleting: true });
+
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
             });
             
             if (response.ok) {
                 setHistoryItems(prev => prev.filter(item => item.id !== id));
+                // Clean up the state for this item
+                setHistoryItemStates(prev => {
+                    const newState = { ...prev };
+                    delete newState[id];
+                    return newState;
+                });
             } else {
                 throw new Error('Failed to delete history item');
             }
         } catch (error) {
             console.error('Failed to delete history item:', error);
             alert('Failed to delete history item. Please try again.');
+        } finally {
+            updateHistoryItemState(id, { isDeleting: false });
         }
     };
 
@@ -885,6 +932,14 @@ const DetectivePage = () => {
         if (imageInputRef.current){
             imageInputRef.current.value = '';
         }
+    };
+
+    // Helper function to update individual item state
+    const updateHistoryItemState = (itemId, updates) => {
+        setHistoryItemStates(prev => ({
+            ...prev,
+            [itemId]: { ...prev[itemId], ...updates }
+        }));
     };
 
     // Analysis Report Component
@@ -1249,63 +1304,68 @@ const DetectivePage = () => {
                         )}
                         
                         {/* History Items */}
-                        {!isHistoryLoading && filteredHistoryItems.map((item) => (
-                            <div key={item.id} className="history-item">
-                                <div className="history-content" onClick={() => viewHistoryItem(item)}>
-                                    {item.type === 'text' ?
-                                        <FileText className="icon-xs" /> :
-                                        <ImageIcon className="icon-xs" />
-                                    }
-                                    <div>
-                                        <div x
-                                            className="history-text"
-                                            title={item.fullTitle || item.title} // Show full title on hover
-                                        >
-                                            {item.title}
-                                        </div>
-                                        <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
-                                            {item.date}
+                        {!isHistoryLoading && filteredHistoryItems.map((item) => {
+                            const itemState = historyItemStates[item.id] || {};
+                            return (
+                                <div key={item.id} className="history-item">
+                                    <div className="history-content" onClick={() => viewHistoryItem(item)}>
+                                        {item.type === 'text' ?
+                                            <FileText className="icon-xs" /> :
+                                            <ImageIcon className="icon-xs" />
+                                        }
+                                        <div>
+                                            <div 
+                                                className="history-text"
+                                                title={item.fullTitle || item.title}
+                                            >
+                                                {item.title}
+                                            </div>
+                                            <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
+                                                {item.date}
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="history-actions">
+                                        <button 
+                                            className="history-action"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (item.result?.analysisId) {
+                                                    updateHistoryItemState(item.id, { isExporting: true });
+                                                    exportReportAsPDF(item.result.analysisId)
+                                                        .finally(() => updateHistoryItemState(item.id, { isExporting: false }));
+                                                } else {
+                                                    alert('Analysis ID not available. Please view the item first.');
+                                                }
+                                            }}
+                                            disabled={itemState.isExporting || itemState.isDeleting}
+                                        >
+                                            {itemState.isExporting ? (
+                                                <Loader className="icon-xs animate-spin" />
+                                            ) : (
+                                                <Download className="icon-xs"/>
+                                            )}
+                                        </button>
+                                        <button
+                                            className="history-action"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm('Are you sure you want to delete this analysis?')) {
+                                                    deleteHistoryItem(item.id);
+                                                }
+                                            }}
+                                            disabled={itemState.isExporting || itemState.isDeleting}
+                                        >
+                                            {itemState.isDeleting ? (
+                                                <Loader className="icon-xs animate-spin" />
+                                            ) : (
+                                                <Trash2 className="icon-xs"/>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="history-actions">
-                                    <button className="history-action">
-                                        <Share className="icon-xs"/>
-                                    </button>
-                                    <button
-                                        className="history-action"
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // Prevent triggering viewHistoryItem
-                                            deleteHistoryItem(item.id);
-                                        }}
-                                    >
-                                        <Trash2 className="icon-xs"/>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                        
-                        {/* No Search Results */}
-                        {!isHistoryLoading && searchQuery && filteredHistoryItems.length === 0 && (
-                            <div className="no-search-results">
-                                <div className="no-results-icon">
-                                    <Search className="icon-sm" />
-                                </div>
-                                <div className="no-results-text">No detections found</div>
-                                <div className="no-results-subtext">Try a different search term</div>
-                            </div>
-                        )}
-                        
-                        {/* Empty State when not loading and no history */}
-                        {!isHistoryLoading && !searchQuery && filteredHistoryItems.length === 0 && (
-                            <div className="no-search-results">
-                                <div className="no-results-icon">
-                                    <History className="icon-sm" />
-                                </div>
-                                <div className="no-results-text">No detections yet</div>
-                                <div className="no-results-subtext">Your analysis history will appear here</div>
-                            </div>
-                        )}
+                            );
+                        })}
                     </div>
                 </nav>
             </div>
@@ -1774,103 +1834,154 @@ const DetectivePage = () => {
                             </div>
                         </>
                     ) : (
-                        // History Detail View
-                        <div className="history-detail">
-                            <div className="history-detail-header">
-                                <h2 className="history-detail-title">{selectedHistoryItem?.title}</h2>
-                                <button className="back-button" onClick={() => setCurrentView('main')}>
-                                    <ArrowLeft className="icon-sm" />
-                                    Back to Main
-                                </button>
+            // History Detail View
+            <div className="history-detail">
+                <div className="history-detail-header">
+                    <h2 className="history-detail-title">{selectedHistoryItem?.fullTitle || selectedHistoryItem?.title}</h2>
+                    <button className="back-button" onClick={() => setCurrentView('main')}>
+                        <ArrowLeft className="icon-sm" />
+                        Back to Main
+                    </button>
+                </div>
+
+                {selectedHistoryItem && (
+                    <>
+                        {(selectedHistoryItem.isLoading || !selectedHistoryItem.result) ? (
+                            <div className="results-container" style={{ position: 'relative', minHeight: '240px' }}>
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexDirection: 'column',
+                                    background: 'rgba(255, 255, 255, 0.55)',
+                                    backdropFilter: 'blur(2px)',
+                                    zIndex: 10,
+                                    borderRadius: '0.75rem'
+                                }}>
+                                    <div className="loading-spinner"></div>
+                                    <div className="loading-text">Loading analysis...</div>
+                                </div>
                             </div>
-
-                            {selectedHistoryItem && (
-                                <>
-                                    {(selectedHistoryItem.isLoading || !selectedHistoryItem.result) ? (
-                                        <div className="results-container" style={{ position: 'relative', minHeight: '240px' }}>
-                                            <div style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                flexDirection: 'column',
-                                                background: 'rgba(255, 255, 255, 0.55)',
-                                                backdropFilter: 'blur(2px)',
-                                                zIndex: 10,
-                                                borderRadius: '0.75rem'
-                                            }}>
-                                                <div className="loading-spinner"></div>
-                                                <div className="loading-text">Loading analysis...</div>
+                        ) : (
+                            <div className="results-container">
+                                <div className="results-header">
+                                    <div className="detection-result">
+                                        <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                            {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
+                                        </div>
+                                        <div>
+                                            <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                                {selectedHistoryItem.result.isAI ? 
+                                                    (selectedHistoryItem.result.isImage ? 'AI Generated' : 'AI Generated Content Detected') : 
+                                                    (selectedHistoryItem.result.isImage ? 'Likely Human Created' : 'Likely Human Written')
+                                                }
+                                            </div>
+                                            <div className="result-confidence">
+                                                Confidence: {selectedHistoryItem.result.confidence}%
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="results-container">
-                                            <div className="results-header">
-                                                <div className="detection-result">
-                                                    <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                        {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                                    </div>
-                                                    <div>
-                                                        <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                            {selectedHistoryItem.result.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                                        </div>
-                                                        <div className="result-confidence">
-                                                            Confidence: {selectedHistoryItem.result.confidence}%
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="results-actions">
-                                                    <button 
-                                                        className="action-btn export" 
-                                                        onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}
-                                                        disabled={isPDFExporting || isEmailSending}
-                                                    >
-                                                        {isPDFExporting ? (
-                                                            <>
-                                                                <Loader className="icon-sm animate-spin" />
-                                                                Exporting...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Download className="icon-sm" />
-                                                                Export PDF
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                    <button 
-                                                        className="action-btn" 
-                                                        onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}
-                                                        disabled={isPDFExporting || isEmailSending}
-                                                    >
-                                                        {isEmailSending ? (
-                                                            <>
-                                                                <Loader className="icon-sm animate-spin" />
-                                                                Sending...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Mail className="icon-sm" />
-                                                                Email
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/*show analysis report for history items if available */}
-                                            {selectedHistoryItem.result.detectionReasons && (
-                                                <div ref={reportRef}>
-                                                    <AnalysisReport result={selectedHistoryItem.result} />
-                                                </div>
+                                    </div>
+                                    
+                                    <div className="results-actions">
+                                        <button 
+                                            className="action-btn export" 
+                                            onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}
+                                            disabled={isPDFExporting || isEmailSending}
+                                        >
+                                            {isPDFExporting ? (
+                                                <>
+                                                    <Loader className="icon-sm animate-spin" />
+                                                    Exporting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download className="icon-sm" />
+                                                    Export PDF
+                                                </>
                                             )}
+                                        </button>
+                                        <button 
+                                            className="action-btn" 
+                                            onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}
+                                            disabled={isPDFExporting || isEmailSending}
+                                        >
+                                            {isEmailSending ? (
+                                                <>
+                                                    <Loader className="icon-sm animate-spin" />
+                                                    Sending...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Mail className="icon-sm" />
+                                                    Email
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
 
-                                            <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
+                                {/* Display image if it's an image submission */}
+                                {selectedHistoryItem.result.isImage && selectedHistoryItem.result.imageUrl && (
+                                    <div className="image-container">
+                                        <img 
+                                            src={selectedHistoryItem.result.imageUrl} 
+                                            alt="Analyzed image" 
+                                            className="result-image"
+                                        />
+                                    </div>
+                                )}
+
+                                {selectedHistoryItem.result.isImage ? (
+                                    // Image analysis results - show detection factors only
+                                    <>
+                                        {selectedHistoryItem.result.detectionReasons && selectedHistoryItem.result.detectionReasons.length > 0 && (
+                                            <div className="report-section">
+                                                <div className="section-header">
+                                                    <Brain className="icon-sm" />
+                                                    <h4 className="section-title">Detection Factors</h4>
+                                                </div>
+                                                <div className="factors-list">
+                                                    {selectedHistoryItem.result.detectionReasons.map((reason, index) => (
+                                                        <div key={index} className={`factor-item factor-${reason.type}`}>
+                                                            <div className="factor-header">
+                                                                <div className={`factor-icon ${reason.type}`}>
+                                                                    {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
+                                                                    {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
+                                                                    {reason.type === 'info' && <Info className="icon-xs" />}
+                                                                    {reason.type === 'success' && <CheckCircle className="icon-xs" />}
+                                                                </div>
+                                                                <div className="factor-title">{reason.title}</div>
+                                                                <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
+                                                                    {reason.impact} Impact
+                                                                </div>
+                                                            </div>
+                                                            <div className="factor-description">{reason.description}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    // Text analysis results - show full analysis report
+                                    <>
+                                        {/* Enhanced Analysis Report for text only */}
+                                        <div ref={reportRef}>
+                                            <AnalysisReport result={selectedHistoryItem.result} />
                                         </div>
-                                    )}
-                                </>
-                            )}
+
+                                        {/* Show highlighted text for text submissions */}
+                                        {selectedHistoryItem.result.highlightedText && (
+                                            <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </>
+                )}
                         </div>
                     )}
                 </div>
