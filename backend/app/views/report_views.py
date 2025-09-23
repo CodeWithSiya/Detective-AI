@@ -81,13 +81,28 @@ def download_report(request, analysis_id):
 @permission_classes([IsAuthenticated])
 def email_report(request, analysis_id):
     """
-    Email PDF report for an analysis.
+    Email PDF report for an analysis (text or image).
     
     POST /api/reports/analysis/<analysis_id>/email/
     """
     try:
-        # Get analysis result
-        analysis = TextAnalysisResult.objects.get(id=analysis_id)
+        # Try to get text analysis first
+        analysis = None
+        analysis_type = None
+        
+        try:
+            analysis = TextAnalysisResult.objects.get(id=analysis_id)
+            analysis_type = 'text'
+        except TextAnalysisResult.DoesNotExist:
+            try:
+                analysis = ImageAnalysisResult.objects.get(id=analysis_id)
+                analysis_type = 'image'
+            except ImageAnalysisResult.DoesNotExist:
+                return create_json_response(
+                    success=False,
+                    error='Analysis result not found',
+                    status_code=status.HTTP_404_NOT_FOUND
+                )
         
         # Check ownership
         if analysis.submission and analysis.submission.user != request.user:
@@ -108,7 +123,7 @@ def email_report(request, analysis_id):
         if result['success']:
             return create_json_response(
                 success=True,
-                message='Report sent successfully to your email',
+                message=f'{analysis_type.title()} analysis report sent successfully to your email',
                 data={'recipient': result['recipient']}
             )
         else:
@@ -118,12 +133,6 @@ def email_report(request, analysis_id):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
             
-    except TextAnalysisResult.DoesNotExist:
-        return create_json_response(
-            success=False,
-            error='Analysis result not found',
-            status_code=status.HTTP_404_NOT_FOUND
-        )
     except Exception as e:
         logger.error(f"Failed to send report: {str(e)}")
         return create_json_response(
