@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from app.services.report_service import ReportService
 from app.services.email_service import EmailService
 from app.models.text_analysis_result import TextAnalysisResult
+from app.models.image_analysis_result import ImageAnalysisResult
 from typing import Optional, Any
 from datetime import datetime
 import logging
@@ -27,13 +28,28 @@ def create_json_response(success: bool = True, message: Optional[str] = None, da
 @permission_classes([IsAuthenticated])
 def download_report(request, analysis_id):
     """
-    Download PDF report for an analysis.
+    Download PDF report for an analysis (text or image).
     
     GET /api/reports/analysis/<analysis_id>/download/
     """
     try:
-        # Get analysis result
-        analysis = TextAnalysisResult.objects.get(id=analysis_id)
+        # Try to get text analysis first
+        analysis = None
+        analysis_type = None
+        
+        try:
+            analysis = TextAnalysisResult.objects.get(id=analysis_id)
+            analysis_type = 'text'
+        except TextAnalysisResult.DoesNotExist:
+            try:
+                analysis = ImageAnalysisResult.objects.get(id=analysis_id)
+                analysis_type = 'image'
+            except ImageAnalysisResult.DoesNotExist:
+                return create_json_response(
+                    success=False,
+                    error='Analysis result not found',
+                    status_code=status.HTTP_404_NOT_FOUND
+                )
         
         # Check ownership
         if analysis.submission and analysis.submission.user != request.user:
@@ -49,16 +65,10 @@ def download_report(request, analysis_id):
         
         # Return PDF response
         response = HttpResponse(pdf_buffer.read(), content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="analysis_report_{analysis_id}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{analysis_type}_analysis_report_{analysis_id}.pdf"'
         
         return response
         
-    except TextAnalysisResult.DoesNotExist:
-        return create_json_response(
-            success=False,
-            error='Analysis result not found',
-            status_code=status.HTTP_404_NOT_FOUND
-        )
     except Exception as e:
         logger.error(f"Failed to generate report: {str(e)}")
         return create_json_response(

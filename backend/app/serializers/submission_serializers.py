@@ -129,6 +129,10 @@ class ImageSubmissionDetailSerializer(serializers.ModelSerializer):
                     'processing_time_ms': analysis.processing_time_ms,
                     'created_at': analysis.created_at,
                     'completed_at': analysis.completed_at,
+                    
+                    # Enhanced analysis data
+                    'enhanced_analysis_used': analysis.enhanced_analysis_used,
+                    'detection_reasons': analysis.detection_reasons,
                 }
             
             return None

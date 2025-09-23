@@ -43,6 +43,8 @@ urlpatterns = [
     
     # Admin feedback management
     path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin'),
+    path('admin/feedback/<str:feedback_id>/reviewed/', feedback_views.mark_feedback_as_reviewed, name='mark_feedback_as_reviewed'),
+    path('admin/feedback/<str:feedback_id>/resolved/', feedback_views.mark_feedback_as_resolved, name='mark_feedback_as_resolved'),
 
     # Admin dashboard and statistics
     path('admin/statistics/', admin_views.get_system_statistics, name='get_system_statistics'),
