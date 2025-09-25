@@ -176,7 +176,8 @@ const DetectivePage = () => {
                     fullTitle: item.name, // Keep original for tooltips
                     date: new Date(item.created_at).toLocaleString(),
                     content: 'Click to view details...', 
-                    result: null       // Will be populated when individual submission is fetched.
+                    result: null,       // Will be populated when individual submission is fetched.
+                    analysisId: item.analysis_id
                 }));
                 setHistoryItems(transformedHistory);
             }
@@ -813,6 +814,7 @@ const DetectivePage = () => {
                 fullTitle: submission.name,
                 date: new Date(submission.created_at).toLocaleString(),
                 content: 'Image analysis result',
+                analysisId: submission.analysis_id,
                 isLoaded: true,
                 result: {
                     isAI: analysis.prediction?.is_ai_generated || analysis.detection_result === 'AI_GENERATED',
@@ -866,7 +868,7 @@ const DetectivePage = () => {
                         foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
                         foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
                     },
-                    analysisId: analysis.analysis_id,
+                    analysisId: analysis.analysis_id || analysis.id,
                 }
             };
         }
@@ -893,13 +895,14 @@ const DetectivePage = () => {
         try {
             updateHistoryItemState(id, { isDeleting: true });
 
-            const response = await fetch(`${API_BASE_URL}/api/submissions/${id}/`, {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/delete/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${authToken}`,
                     'Content-Type': 'application/json',
                 }
             });
+            console.log(response);
             
             if (response.ok) {
                 setHistoryItems(prev => prev.filter(item => item.id !== id));
@@ -909,8 +912,6 @@ const DetectivePage = () => {
                     delete newState[id];
                     return newState;
                 });
-            } else {
-                throw new Error('Failed to delete history item');
             }
         } catch (error) {
             console.error('Failed to delete history item:', error);
@@ -1330,9 +1331,10 @@ const DetectivePage = () => {
                                             className="history-action"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (item.result?.analysisId) {
+                                                console.log(item);
+                                                if (item.analysisId) {
                                                     updateHistoryItemState(item.id, { isExporting: true });
-                                                    exportReportAsPDF(item.result.analysisId)
+                                                    exportReportAsPDF(item.analysisId)
                                                         .finally(() => updateHistoryItemState(item.id, { isExporting: false }));
                                                 } else {
                                                     alert('Analysis ID not available. Please view the item first.');
@@ -1369,8 +1371,6 @@ const DetectivePage = () => {
                     </div>
                 </nav>
             </div>
-
-
 
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
