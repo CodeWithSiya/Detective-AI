@@ -184,14 +184,30 @@
                 <div class="result-header">
                     <h3>
                         {% if analysis_result.detection_result == 'AI_GENERATED' %}
-                            🤖 AI Generated Content
+                            {% if is_image_analysis %}
+                                🤖 AI Generated Image
+                            {% else %}
+                                🤖 AI Generated Text
+                            {% endif %}
                         {% else %}
-                            ✍️ Human Written Content
+                            {% if is_image_analysis %}
+                                📸 Human Created Image
+                            {% else %}
+                                ✍️ Human Written Text
+                            {% endif %}
                         {% endif %}
                     </h3>
                 </div>
                 
                 <div class="result-details">
+                    <div class="result-detail">
+                        <strong>Analysis Type</strong>
+                        <div class="result-detail-value">{{ analysis_type_title }} Analysis</div>
+                    </div>
+                    <div class="result-detail">
+                        <strong>Submission Name</strong>
+                        <div class="result-detail-value">{{ submission_name }}</div>
+                    </div>
                     <div class="result-detail">
                         <strong>Confidence Level</strong>
                         <div class="result-detail-value">{{ confidence_percent }}%</div>
@@ -206,13 +222,19 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="report-info">
                 <h3>📋 Detailed Report Contents:</h3>
                 <ul>
                     <li>Complete analysis results and reasoning</li>
-                    <li>Text statistics and patterns detected</li>
-                    <li>Detailed explanations of findings</li>            
+                    {% if is_image_analysis %}
+                        <li>Original image with analysis overlay</li>
+                        <li>Image metadata and technical details</li>
+                    {% else %}
+                        <li>Text statistics and patterns detected</li>
+                        <li>Sample content and key findings</li>
+                    {% endif %}
+                    <li>Detailed explanations of findings</li>
                 </ul>
             </div>
             

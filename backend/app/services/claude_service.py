@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Optional
 import json
 import os
 from dataclasses import dataclass
+import base64
 
 @dataclass
 class DetectionReason:
@@ -50,7 +51,7 @@ class ClaudeService:
         :param base_prediction: Basic model prediction results
         :return: Enhanced analysis with reasoning and patterns
         """
-        prompt = self.build_analysis_prompt(text, base_prediction)
+        prompt = self.build_text_analysis_prompt(text, base_prediction)
 
         try:
             response = self.client.messages.create(
@@ -66,14 +67,71 @@ class ClaudeService:
             )
 
             # Parse Claude's response.
-            analysis_result = self.parse_claude_response(response.content[0].text) # type: ignore
+            analysis_result = self.parse_text_reponse(response.content[0].text) # type: ignore
             return analysis_result
         
         except Exception as e:
             # Fallback to basic analysis if Claude fails.
-            return self.fallback_analysis(str(e))
+            return self.fallback_text_analysis(str(e))
         
-    def build_analysis_prompt(self, text:str, base_prediction: Dict[str, Any]):
+    def analyse_image_patterns(self, image_path: str, base_prediction: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Use Claude to analyse image patterns and provide detailed reasoning for AI detection.
+
+        :param image_path: Path to the image file to analyse.
+        :param base_prediction: Basic model prediction results.
+        :return: Enhanced analysis with structured detection reasons.
+        """
+        try:
+            # Read and encode the image.
+            with open(image_path, "rb") as image_file:
+                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+
+            # Determine media type
+            image_format = image_path.lower().split('.')[-1]
+            if image_format in ['jpg', 'jpeg']:
+                media_type = "image/jpeg"
+            elif image_format == 'png':
+                media_type = "image/png"
+            else:
+                media_type = "image/jpeg"
+
+            prompt = self.build_image_analysis_prompt(base_prediction)
+
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=1000,
+                temperature=0.1,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": media_type,
+                                    "data": image_data
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
+            )
+
+            # Use the image-specific parser
+            analysis_result = self.parse_image_response(response.content[0].text) # type: ignore
+            return analysis_result
+        
+        except Exception as e:
+            # Fallback explanation if Claude fails
+            return self.fallback_image_analysis(str(e))
+        
+    def build_text_analysis_prompt(self, text:str, base_prediction: Dict[str, Any]):
         """
         Build the analysis prompt for Claude.
         """
@@ -133,9 +191,65 @@ class ClaudeService:
         - Make sure reasons match the category type
         - Do not use academic or formal terms like 'pedagogical' or 'didactic'.' Instead, explain things in plain, everyday language that sounds natural to a general audience.
         - When extracting AI patterns, quote each one briefly in 3 to 4 words that capture the essence of the pattern if it is too long, using clear, everyday language.
+        - Write in British English with correct spelling (analysed not analyzed, colour not color)
         """
     
-    def parse_claude_response(self, response_text: str) -> Dict[str, Any]:
+    def build_image_analysis_prompt(self, base_prediction: Dict[str, Any]) -> str:
+        """
+        Build the analysis prompt for image analysis with Claude.
+        """
+        probability = base_prediction.get('probability', 0)
+        is_ai_generated = base_prediction.get('is_ai_generated', False)
+        confidence = base_prediction.get('confidence', 0)
+
+        return f"""
+        You are an expert AI image detection system. Your role is to analyse this image for signs that it may have been AI-generated, and provide a clear, structured evaluation.
+
+        TASK:
+        - Look at this image and explain whether it shows patterns of being AI-generated. Use both the model's results and your visual analysis.
+        - Do not mention or reference any separate model results. Present your answer as one system's opinion.
+
+        ANALYSIS RESULTS:
+        - Probability of AI: {probability:.3f}
+        - Is AI Generated: {is_ai_generated}
+        - Confidence: {confidence:.3f}
+
+        OUTPUT FORMAT (Reply ONLY with valid JSON):
+        {{
+        "detection_reasons": [
+            {{
+            "type": "critical" | "warning" | "info" | "success",
+            "title": "short category name",
+            "description": "detailed but simple explanation",
+            "impact": "High" | "Medium" | "Low" | "Positive"
+            }}
+        ]
+        }}
+
+        DETECTION CATEGORIES:
+        - CRITICAL: Obvious AI artifacts or clear signs of generation
+        - WARNING: Suspicious patterns that suggest AI creation
+        - INFO: Mild indicators or technical observations
+        - SUCCESS: Strong signs of human creation or natural photography
+
+        THINGS TO LOOK FOR:
+        - Unrealistic textures or surfaces
+        - Inconsistent lighting or shadows
+        - Perfect symmetry or unnatural smoothness
+        - Strange artifacts or distortions
+        - Overly polished or too perfect appearance
+        - Inconsistent perspective or proportions
+        - Signs of human creativity, imperfections, or natural variation
+
+        INSTRUCTIONS:
+        - Write 3-5 detection reasons explaining your findings
+        - Keep each description focused and digestible 
+        - Write in British English with correct spelling (analysed not analyzed, colour not color)
+        - Use simple language that a general audience can understand
+        - Respond only with valid JSON (no extra text or formatting)
+        """
+    
+    def parse_text_reponse(self, response_text: str) -> Dict[str, Any]:
         """
         Parse Claude's JSON response.
         """
@@ -160,9 +274,33 @@ class ClaudeService:
     
         except (json.JSONDecodeError, KeyError) as e:
             # Return empty structure if parsing fails.
-            return self.fallback_analysis(f"JSON parsing error: {str(e)}")
+            return self.fallback_text_analysis(f"JSON parsing error: {str(e)}")
         
-    def fallback_analysis(self, error_message: str) -> Dict[str, Any]:
+    def parse_image_response(self, response_text: str) -> Dict[str, Any]:
+        """
+        Parse Claude's JSON response for image analysis.
+        """
+        try:
+            # Clean up the response text
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:].strip()
+            if response_text.endswith("```"):
+                response_text = response_text[:-3].strip()
+
+            parsed = json.loads(response_text)
+
+            detection_reasons = parsed.get('detection_reasons', [])
+
+            return {
+                'detection_reasons': detection_reasons
+            }
+
+        except (json.JSONDecodeError, KeyError) as e:
+            # Return fallback structure if parsing fails
+            return self.fallback_image_analysis(f"JSON parsing error: {str(e)}")
+        
+    def fallback_text_analysis(self, error_message: str) -> Dict[str, Any]:
         """
         Provide fallback analysis when Claude fails.
         """
@@ -183,7 +321,21 @@ class ClaudeService:
         }
     }
 
-    def create_submission_name(self, text: str, max_length: int = 20):
+    def fallback_image_analysis(self, error_message: str) -> Dict[str, Any]:
+        """
+        Provide fallback analysis when Claude image analysis fails.
+        """
+        return {
+            'detection_reasons': [{
+                'type': 'warning',
+                'title': 'Enhanced Analysis Unavailable',
+                'description': f'Detailed visual analysis failed: {error_message}',
+                'impact': 'Low'
+            }]
+        }
+
+
+    def create_text_submission_name(self, text: str, max_length: int = 20):
         """
         Create a very brief summarised name for each submission.
 
@@ -235,4 +387,81 @@ class ClaudeService:
             return title
             
         except Exception:
-            raise    
+            raise  
+
+    def create_image_submission_name(self, image_path: str, max_length: int = 50) -> str:
+        """
+        Create a descriptive name for an image submission using Claude's vision capabilities.
+
+        :param image_path: Path to the image file
+        :param max_length: Maximum length of the name
+        :return: Descriptive name for the submission
+        """
+        try:
+            # Read and encode the image
+            with open(image_path, "rb") as image_file:
+                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            # Determine media type
+            image_format = image_path.lower().split('.')[-1]
+            if image_format in ['jpg', 'jpeg']:
+                media_type = "image/jpeg"
+            elif image_format == 'png':
+                media_type = "image/png"
+            else:
+                media_type = "image/jpeg"
+
+            prompt = f"""
+            Create a brief, descriptive title for this image submission (max {max_length} characters).
+            The title should describe what you see and end with "Analysis".
+
+            Guidelines:
+            - Describe the main subject/scene in the image
+            - Keep it under {max_length} characters total
+            - End with "Analysis" (e.g., "Portrait Analysis", "Landscape Analysis", "Abstract Art Analysis")
+            - Use simple, clear language
+            - Focus on the most prominent visual element
+
+            Reply with ONLY the title, nothing else.
+            """
+
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=20,
+                temperature=0.3,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": media_type,
+                                    "data": image_data
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
+            )
+
+            # Extract and clean the title
+            title = response.content[0].text.strip()  # type: ignore
+            title = title.replace('"', '').replace("'", "").strip()
+            
+            # Ensure it's not too long
+            if len(title) > max_length:
+                title = title[:max_length-3] + "..."
+
+            return title
+        
+        except Exception as e:
+            # Fallback to filename-based name
+            filename = os.path.basename(image_path)
+            name_without_ext = os.path.splitext(filename)[0]
+            return f"{name_without_ext[:max_length-9]} Analysis"

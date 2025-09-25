@@ -286,3 +286,73 @@ def get_all_feedback_admin(request):
             error=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def mark_feedback_as_reviewed(request, feedback_id):
+    """
+    Mark feedback as reviewed (Admin only).
+
+    PATCH /api/admin/feedback/<feedback_id>/reviewed/
+    """
+    try:
+        result = FeedbackService.mark_feedback_as_reviewed(
+            feedback_id=feedback_id,
+            admin_user=request.user
+        )
+        
+        if result['success']:
+            return create_json_response(
+                success=True,
+                message=result['message'],
+                data={'feedback': result['data']},
+                status_code=status.HTTP_200_OK
+            )
+        else:
+            return create_json_response(
+                success=False,
+                error=result['error'],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+            
+    except Exception as e:
+        return create_json_response(
+            success=False,
+            error=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def mark_feedback_as_resolved(request, feedback_id):
+    """
+    Mark feedback as resolved (Admin only).
+
+    PATCH /api/admin/feedback/<feedback_id>/resolved/
+    """
+    try:
+        result = FeedbackService.mark_feedback_as_resolved(
+            feedback_id=feedback_id,
+            admin_user=request.user
+        )
+        
+        if result['success']:
+            return create_json_response(
+                success=True,
+                message=result['message'],
+                data={'feedback': result['data']},
+                status_code=status.HTTP_200_OK
+            )
+        else:
+            return create_json_response(
+                success=False,
+                error=result['error'],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+            
+    except Exception as e:
+        return create_json_response(
+            success=False,
+            error=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -1,22 +1,32 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.utils.module_loading import import_string
+from django.core.files.storage import default_storage
 from django.contrib.auth import get_user_model
 from typing import Optional
 from PIL import Image
 from .submission import Submission
+from django.utils import timezone
 import os
 
 User = get_user_model()
 
-def image_upload_path(instance: models.Model, filename: str) -> str:
+def image_upload_path(instance, filename: str) -> str:
     """
     Generate upload path for image submissions.
-
+    
     :param instance: The ImageSubmission model instance.
     :param filename: Filename of the uploaded file.
-    :return:
+    :return: Upload path string
     """
-    return f""
+    # Clean filename and get extension
+    name, ext = os.path.splitext(filename)
+    clean_name = "".join(c for c in name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+    
+    # Use current time if created_at is not set yet.
+    timestamp = instance.created_at if instance.created_at else timezone.now()
+    
+    return f"submissions/images/{instance.user.id}/{timestamp.strftime('%Y/%m')}/{clean_name}{ext}"
 
 class ImageSubmission(Submission):
     """
@@ -26,17 +36,19 @@ class ImageSubmission(Submission):
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 22/08/2025
     """ 
-    # Initialising the file extention validator.
-    file_extension_validator = FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])
+    # File extension validator
+    file_extension_validator = FileExtensionValidator(
+        allowed_extensions=["jpg", "jpeg", "png"]
+    )
 
-    # Storing the image file.
+    # Image file field
     image = models.ImageField(
         upload_to=image_upload_path,
         validators=[file_extension_validator],
         help_text="Image file for AI detection analysis. Supported formats: JPG, JPEG, PNG."
     )
 
-    # Defining the Image's metadata.
+    # Image-specific metadata
     file_size = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -58,12 +70,19 @@ class ImageSubmission(Submission):
         blank=True,
         help_text="Image height in pixels."
     )
+    image_format = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="Image format (jpg, png, etc.)"
+    )
 
-    # Defining metadata for the Iimage submission table.
+    # Defining metadata for the image submission table
     class Meta(Submission.Meta):
         db_table = "image_submissions"
         indexes = [
-            models.Index(fields=["user", "created_at"])
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["image_format"]),
         ]
 
     def save(self, *args, **kwargs):
@@ -72,45 +91,70 @@ class ImageSubmission(Submission):
         """
         if self.image:
             try:
-                # Get file size.
+                # Get file size
                 self.file_size = self.image.size
+                
+                # Extract image format
+                self.image_format = self.image.name.split('.')[-1].lower()
 
-                # Get image dimensions.
+                # Get image dimensions
                 with Image.open(self.image) as img:
                     self.width, self.height = img.size
 
             except Exception as e:
-                # Handle corrupted files.
+                print(f"Error processing image metadata: {e}")
+                # Handle corrupted files
                 self.file_size = None
                 self.width = None
                 self.height = None
+                self.image_format = None
         
-        # Save the image submission.
+        # Save the image submission
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         """
         Delete the associated image when model is deleted.
         """
-        if self.image:
-            # Delete the image from storage.
+        if self.image and hasattr(self.image, 'path'):
+            # Delete the image from storage
             if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
+                try:
+                    os.remove(self.image.path)
+                except OSError:
+                    pass  # File might already be deleted
 
         return super().delete(*args, **kwargs)
 
     @property
     def image_url(self) -> Optional[str]:
         """
-        Get the URL of the uploaded image.
+        Get the public URL for the stored image.
         """
         if self.image:
             return self.image.url
         return None
 
+    @property
+    def file_size_mb(self) -> Optional[float]:
+        """
+        Get file size in megabytes.
+        """
+        if self.file_size:
+            return round(self.file_size / (1024 * 1024), 2)
+        return None
+
+    @property
+    def dimensions(self) -> str:
+        """
+        Get formatted dimensions string.
+        """
+        if self.width and self.height:
+            return f"{self.width}x{self.height}"
+        return "Unknown"
+
     def __str__(self) -> str:
         """
         Obtain a string representation of this Image Submission.
         """
-        dimensions = f"{self.width}x{self.height}" if self.width and self.height else "Unknown"
-        return f"{self.name} | {self.user.email} ({dimensions})"
+        return f"{self.name} | {self.user.email} | {self.dimensions}"

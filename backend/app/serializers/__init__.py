@@ -14,6 +14,7 @@ from .feedback_serializers import (
 # Initialising Submission serializers.
 from .submission_serializers import (
     TextSubmissionListSerializer,
-    TextSubmissionUpdateSerializer,
-    TextSubmissionDetailSerializer
+    TextSubmissionDetailSerializer,
+    ImageSubmissionListSerializer,
+    ImageSubmissionDetailSerializer
 )

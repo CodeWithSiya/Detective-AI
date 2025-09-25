@@ -1,4 +1,4 @@
-Detective AI - Analysis Report
+Detective AI - {{ analysis_type_title }} Analysis Report
 ==============================
 
 Dear {{ recipient_name }},
@@ -6,15 +6,23 @@ Dear {{ recipient_name }},
 Your AI detection analysis has been completed. Please find the detailed report attached as a PDF.
 
 ANALYSIS SUMMARY:
+Submission: {{ submission_name }}
+Type: {{ analysis_type_title }} Analysis
 {% if analysis_result.detection_result == 'AI_GENERATED' %}
 Result: AI Generated Content
 {% else %}
-Result: Human Written Content
+Result: Human Created Content
 {% endif %}
 Date: {{ report_date }}
-Confidence: {{ analysis_result.confidence|floatformat:1 }}%
+Confidence: {{ confidence_percent }}%
 
 The attached PDF contains comprehensive details about the analysis including methodology, confidence metrics, and recommendations.
+
+{% if is_image_analysis %}
+This report includes the original image along with detailed technical analysis and metadata.
+{% else %}
+This report includes text statistics, pattern analysis, and sample content excerpts.
+{% endif %}
 
 If you have any questions about this report, please don't hesitate to contact our support team.
 

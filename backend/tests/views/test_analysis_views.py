@@ -216,7 +216,7 @@ class TestAnalysisViews:
         mock_analyser_class.return_value = mock_analyser
 
         mock_claude_service = Mock()
-        mock_claude_service.create_submission_name.return_value = "AI-Generated Title"
+        mock_claude_service.create_text_submission_name.return_value = "AI-Generated Title"
         mock_claude_service_class.return_value = mock_claude_service
 
         mock_submission_class.objects.create.return_value = mock_submission
@@ -230,7 +230,7 @@ class TestAnalysisViews:
 
         # Assertions.
         assert response.status_code == status.HTTP_200_OK
-        mock_claude_service.create_submission_name.assert_called_once_with('Sample text', max_length=50)
+        mock_claude_service.create_text_submission_name.assert_called_once_with('Sample text', max_length=50)
 
     @patch('app.views.analysis_views.ClaudeService')
     @patch('app.views.analysis_views.TextSubmission')
@@ -251,7 +251,7 @@ class TestAnalysisViews:
 
         # Mock Claude service to raise exception.
         mock_claude_service = Mock()
-        mock_claude_service.create_submission_name.side_effect = Exception("Claude API timeout")
+        mock_claude_service.create_text_submission_name.side_effect = Exception("Claude API timeout")
         mock_claude_service_class.return_value = mock_claude_service
 
         mock_submission_class.objects.create.return_value = mock_submission

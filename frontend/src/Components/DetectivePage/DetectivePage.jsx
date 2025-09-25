@@ -1,6 +1,6 @@
 // For DOCX parsing
 import mammoth from "mammoth";
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import './DetectivePage.css';
 import Logo from "../Assets/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
@@ -18,7 +18,6 @@ import {
     Play,
     Plus,
     Trash2,
-    Share,
     Upload,
     Clock,
     Shield,
@@ -41,7 +40,8 @@ import {
     Brain,
     FileCheck,
     Info,
-    Home
+    Home,
+    Settings
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
@@ -61,8 +61,6 @@ const DetectivePage = () => {
     const isUserAuthenticated = isAuthenticated();
     const currentUser = getCurrentUser();
 
-    const [isExporting, setIsExporting] = useState(false);
-
     // Redirect to login if not authenticated.
     useEffect(() => {
         if (!isUserAuthenticated) {
@@ -71,30 +69,79 @@ const DetectivePage = () => {
         }
     }, [isUserAuthenticated, navigate]);
     
-    //sidebar and view state
+    // Sidebar and view state
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentView, setCurrentView] = useState('main');
 
-    //text and image analysis state
+    // Text and image analysis state
     const [activeDetectionType, setActiveDetectionType] = useState('text');
     const [inputMode, setInputMode] = useState('type'); //type or upload
     const [textContent, setTextContent] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
+    
+    // Uploaded file states for feedback
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [isFileUploaded, setIsFileUploaded] = useState(false);
 
-    //feedback state
+    // Feedback state
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
 
-    //Refs for file inputs
+    // Individual History Items
+    const [historyItemStates, setHistoryItemStates] = useState({});
+
+    // Refs for file inputs
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
     const reportRef = useRef(null);
 
-    //history items state
+    // History items state
     const [historyItems, setHistoryItems] = useState([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    
+    // Search state for filtering history
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Replace the single isExporting state with separate states
+    const [isPDFExporting, setIsPDFExporting] = useState(false);
+    const [isEmailSending, setIsEmailSending] = useState(false);
+
+    // Feedback State
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+    const [isSubmittingThumbsUp, setIsSubmittingThumbsUp] = useState(false);
+
+    // Filter history items based on search query
+    const filteredHistoryItems = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return historyItems;
+        }
+        
+        return historyItems.filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.type.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [historyItems, searchQuery]);
+
+    // Handle search input changes
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    // Clear search
+    const clearSearch = () => {
+        setSearchQuery('');
+    };
+
+    // Helper function to truncate text with ellipsis
+    const truncateText = (text, maxLength = 20) => {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    };
 
     // Fetch user history on component mount
     const fetchHistory = useCallback(async () => {
@@ -104,6 +151,8 @@ const DetectivePage = () => {
                 console.log('User not authenticated, skipping history fetch');
                 return;
             }
+
+            setIsHistoryLoading(true);
 
             const response = await fetch(`${API_BASE_URL}/api/submissions/`, {
                 headers: {
@@ -122,11 +171,13 @@ const DetectivePage = () => {
             if (data.success) {
                 const transformedHistory = data.data.submissions.map(item => ({
                     id: item.id,
-                    type: 'text',
-                    title: item.name,
+                    type: item.type,
+                    title: truncateText(item.name), // Apply truncation here
+                    fullTitle: item.name, // Keep original for tooltips
                     date: new Date(item.created_at).toLocaleString(),
                     content: 'Click to view details...', 
-                    result: null       // Will be populated when individual submission is fetched.
+                    result: null,       // Will be populated when individual submission is fetched.
+                    analysisId: item.analysis_id
                 }));
                 setHistoryItems(transformedHistory);
             }
@@ -135,8 +186,10 @@ const DetectivePage = () => {
             if (error.message.includes('401')) {
                 console.log('Authentication failed, user may need to log in again');
             }
+        } finally {
+            setIsHistoryLoading(false);
         }
-    }, [isUserAuthenticated, authToken]); // Dependencies for useCallback
+    }, [isUserAuthenticated, authToken]);
 
     useEffect(() => {
         // Only fetch history if user is authenticated
@@ -153,19 +206,31 @@ const DetectivePage = () => {
         setSidebarOpen(!sidebarOpen);
     };
     
-    // Helper function to generate highlighted text from API data
+    // Helper function to generate highlighted text from API data with priority-based highlighting
     const generateHighlightedText = (originalText, analysisDetails) => {
         if (!analysisDetails) return originalText;
         
-        let highlightedText = originalText;
+        // Define priority levels (higher number = higher priority)
+        const PRIORITY_LEVELS = {
+            suspicious: 7,    // Highest priority - AI patterns
+            keyword: 6,       // AI keywords
+            critical: 5,      // Critical indicators
+            warning: 4,       // Warning level
+            jargon: 3,        // Corporate jargon
+            buzzword: 2,      // Buzzwords
+            transition: 1,    // Lowest priority - transition words
+            human: 0         // Human indicators (different styling)
+        };
+        
+        // Collect all found items with their types and priorities
         const highlights = [];
         
-        // Collect all found items with their types
         if (analysisDetails.found_keywords?.length > 0) {
             analysisDetails.found_keywords.forEach(keyword => {
                 highlights.push({
                     text: keyword,
                     type: 'keyword',
+                    priority: PRIORITY_LEVELS.keyword,
                     tooltip: 'AI-typical keyword detected'
                 });
             });
@@ -176,6 +241,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: pattern,
                     type: 'suspicious',
+                    priority: PRIORITY_LEVELS.suspicious,
                     tooltip: 'Suspicious AI pattern detected'
                 });
             });
@@ -186,6 +252,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: transition,
                     type: 'transition',
+                    priority: PRIORITY_LEVELS.transition,
                     tooltip: 'Overused transition word'
                 });
             });
@@ -196,6 +263,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: jargon,
                     type: 'jargon',
+                    priority: PRIORITY_LEVELS.jargon,
                     tooltip: 'Corporate jargon flagged by detectors'
                 });
             });
@@ -206,6 +274,7 @@ const DetectivePage = () => {
                 highlights.push({
                     text: buzzword,
                     type: 'buzzword',
+                    priority: PRIORITY_LEVELS.buzzword,
                     tooltip: 'Buzzword frequently used by AI'
                 });
             });
@@ -216,28 +285,86 @@ const DetectivePage = () => {
                 highlights.push({
                     text: indicator,
                     type: 'human',
+                    priority: PRIORITY_LEVELS.human,
                     tooltip: 'Human writing indicator'
                 });
             });
         }
         
-        // Apply highlights to text with staggered tooltip positioning
-        highlights.forEach((highlight, index) => {
-            // Escape special regex characters but preserve the original text case
+        // Find all matches for all highlights in the original text
+        const matches = [];
+        
+        highlights.forEach((highlight, highlightIndex) => {
             const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Use global flag and case-insensitive, but capture the actual matched text
             const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
+            let match;
             
-            // Calculate tooltip offset class to prevent overlap
-            const offsetClass = `tooltip-offset-${index % 4}`;
-            
-            highlightedText = highlightedText.replace(regex, (match) => {
-                return `<span class="highlight highlight-${highlight.type}">${match}<span class="tooltip ${offsetClass}">${highlight.tooltip}</span></span>`;
-            });
+            while ((match = regex.exec(originalText)) !== null) {
+                matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    text: match[0],
+                    type: highlight.type,
+                    priority: highlight.priority,
+                    tooltip: highlight.tooltip,
+                    highlightIndex: highlightIndex
+                });
+            }
         });
         
-        return highlightedText;
+        // Sort matches by start position
+        matches.sort((a, b) => a.start - b.start);
+        
+        // Remove overlapping matches, keeping higher priority ones
+        const filteredMatches = [];
+        
+        for (let i = 0; i < matches.length; i++) {
+            const currentMatch = matches[i];
+            let shouldAdd = true;
+            
+            // Check against already added matches
+            for (let j = 0; j < filteredMatches.length; j++) {
+                const existingMatch = filteredMatches[j];
+                
+                // Check if there's any overlap
+                const overlaps = (
+                    (currentMatch.start >= existingMatch.start && currentMatch.start < existingMatch.end) ||
+                    (currentMatch.end > existingMatch.start && currentMatch.end <= existingMatch.end) ||
+                    (currentMatch.start <= existingMatch.start && currentMatch.end >= existingMatch.end)
+                );
+                
+                if (overlaps) {
+                    // If current match has higher priority, remove the existing one
+                    if (currentMatch.priority > existingMatch.priority) {
+                        filteredMatches.splice(j, 1);
+                        j--; // Adjust index after removal
+                    } else {
+                        // Keep existing match, don't add current
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (shouldAdd) {
+                filteredMatches.push(currentMatch);
+            }
+        }
+        
+        // Sort filtered matches by start position (reverse order for replacement)
+        filteredMatches.sort((a, b) => b.start - a.start);
+        
+        // Apply highlights from end to beginning to maintain correct positions
+        let result = originalText;
+        
+        filteredMatches.forEach((match, index) => {
+            const offsetClass = `tooltip-offset-${index % 4}`;
+            const highlightHtml = `<span class="highlight highlight-${match.type}">${match.text}<span class="tooltip ${offsetClass}">${match.tooltip}</span></span>`;
+            
+            result = result.substring(0, match.start) + highlightHtml + result.substring(match.end);
+        });
+        
+        return result;
     };
 
     const performTextAnalysis = async (text, onSuccess) => {
@@ -337,8 +464,11 @@ const DetectivePage = () => {
             const formData = new FormData();
             formData.append('image', file);
             
-            const response = await fetch('/api/analyze/image', {
+            const response = await fetch(`${API_BASE_URL}/api/analysis/image/`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                },
                 body: formData
             });
             
@@ -348,12 +478,23 @@ const DetectivePage = () => {
                 throw new Error(data.error || 'Image analysis failed');
             }
             
+            // Extract analysis explanations from the correct location and split by \n\n
+            const analysisText = data.data.analysis_result.analysis.explanation || '';
+            const analysisPoints = analysisText.split('\n\n').filter(point => point.trim() !== '');
+            
             return {
                 isAI: data.data.analysis_result.prediction.is_ai_generated,
                 confidence: Math.round(data.data.analysis_result.prediction.confidence * 100),
                 submissionId: data.data.submission.id,
                 analysisId: data.data.analysis_result.analysis_id,
-                highlightedText: '' // Images don't have highlighted text
+                analysisPoints: analysisPoints,
+                detectionReasons: data.data.analysis_result.analysis.detection_reasons || [], // Add detection reasons
+                metadata: data.data.analysis_result.metadata,
+                imageUrl: data.data.submission.image_url,
+                dimensions: data.data.submission.dimensions,
+                fileSize: data.data.submission.file_size_mb,
+                filename: data.data.submission.name,
+                timestamp: data.timestamp
             };
         } catch (error) {
             console.error('Image analysis failed:', error);
@@ -399,6 +540,14 @@ const DetectivePage = () => {
                 alert('Please upload only PDF, DOCX, or TXT files for text analysis.');
                 return;
             }
+
+            // Set upload feedback
+            setUploadedFile({
+                name: file.name,
+                size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+                type: file.type
+            });
+            setIsFileUploaded(true);
 
             setIsAnalyzing(true);
 
@@ -504,6 +653,14 @@ const DetectivePage = () => {
             return;
         }
 
+        // Set upload feedback
+        setUploadedFile({
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2), // Size in MB
+            type: file.type
+        });
+        setIsFileUploaded(true);
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             setUploadedImage(e.target?.result);
@@ -525,6 +682,8 @@ const DetectivePage = () => {
 
     const handleThumbsUp = async () => {
         try {
+            setIsSubmittingThumbsUp(true);
+
             // Check if user is authenticated
             if (!isUserAuthenticated || !authToken) {
                 throw new Error('User not authenticated');
@@ -552,6 +711,8 @@ const DetectivePage = () => {
         } catch (error) {
             console.error('Failed to submit feedback:', error);
             alert('Failed to submit feedback. Please try again.');
+        } finally {
+            setIsSubmittingThumbsUp(false);
         }
     };
 
@@ -563,6 +724,8 @@ const DetectivePage = () => {
         if (!feedbackText.trim()) return;
         
         try {
+            setIsSubmittingFeedback(true);
+
             // Check if user is authenticated
             if (!isUserAuthenticated || !authToken) {
                 throw new Error('User not authenticated');
@@ -592,6 +755,8 @@ const DetectivePage = () => {
         } catch (error) {
             console.error('Failed to submit feedback:', error);
             alert('Failed to submit feedback. Please try again.');
+        } finally {
+            setIsSubmittingFeedback(false);
         }
     };
 
@@ -612,6 +777,7 @@ const DetectivePage = () => {
             }
             
             const data = await response.json();
+            console.log('Fetched submission details:', data); // Debug log
             
             if (data.success) {
                 const submission = data.data.submission;
@@ -635,46 +801,77 @@ const DetectivePage = () => {
     // Convert a submission payload into a history item with result.
     const convertSubmissionToHistoryItem = (submission) => {
         const analysis = submission.analysis_result;
+        
+        // Check if this is an image submission
+        const isImageSubmission = submission.image_url || submission.type === 'image';
+        
+        if (isImageSubmission) {
+            // Handle image submission format
+            return {
+                id: submission.id,
+                type: 'image',
+                title: truncateText(submission.name, 25),
+                fullTitle: submission.name,
+                date: new Date(submission.created_at).toLocaleString(),
+                content: 'Image analysis result',
+                analysisId: submission.analysis_id,
+                isLoaded: true,
+                result: {
+                    isAI: analysis.prediction?.is_ai_generated || analysis.detection_result === 'AI_GENERATED',
+                    confidence: Math.round((analysis.prediction?.confidence || analysis.confidence || 0) * 100),
+                    detectionReasons: analysis.analysis?.detection_reasons || analysis.detection_reasons || [],
+                    analysisId: analysis.analysis_id || analysis.id,
+                    isImage: true,
+                    imageUrl: submission.image_url,
+                    dimensions: submission.dimensions,
+                    fileSize: submission.file_size_mb,
+                    filename: submission.name,
+                    metadata: analysis.metadata || {}
+                }
+            };
+        } else {
+            // Handle text submission format (existing logic)
+            const highlightedText = generateHighlightedText(
+                submission.content,
+                analysis.analysis_details
+            );
 
-        const highlightedText = generateHighlightedText(
-            submission.content,
-            analysis.analysis_details
-        );
-
-        return {
-            id: submission.id,
-            type: 'text',
-            title: submission.name,
-            date: new Date(submission.created_at).toLocaleString(),
-            content: submission.content?.substring(0, 100) + '...',
-            isLoaded: true,
-            result: {
-                isAI: analysis.detection_result === 'AI_GENERATED',
-                confidence: Math.round(analysis.confidence * 100),
-                highlightedText,
-                detectionReasons: analysis.detection_reasons || [],
-                statistics: {
-                    totalWords: analysis.statistics?.total_words,
-                    sentences: analysis.statistics?.sentences,
-                    avgSentenceLength: analysis.statistics?.avg_sentence_length,
-                    aiKeywordsCount: analysis.statistics?.ai_keywords_count,
-                    transitionWordsCount: analysis.statistics?.transition_words_count,
-                    corporateJargonCount: analysis.statistics?.corporate_jargon_count,
-                    buzzwordsCount: analysis.statistics?.buzzwords_count,
-                    suspiciousPatternsCount: analysis.statistics?.suspicious_patterns_count,
-                    humanIndicatorsCount: analysis.statistics?.human_indicators_count,
-                },
-                analysisDetails: {
-                    foundKeywords: analysis.analysis_details?.found_keywords || [],
-                    foundPatterns: analysis.analysis_details?.found_patterns || [],
-                    foundTransitions: analysis.analysis_details?.found_transitions || [],
-                    foundJargon: analysis.analysis_details?.found_jargon || [],
-                    foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
-                    foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
-                },
-                analysisId: analysis.analysis_id,
-            }
-        };
+            return {
+                id: submission.id,
+                type: 'text',
+                title: truncateText(submission.name, 25),
+                fullTitle: submission.name,
+                date: new Date(submission.created_at).toLocaleString(),
+                content: submission.content?.substring(0, 100) + '...',
+                isLoaded: true,
+                result: {
+                    isAI: analysis.detection_result === 'AI_GENERATED',
+                    confidence: Math.round(analysis.confidence * 100),
+                    highlightedText,
+                    detectionReasons: analysis.detection_reasons || [],
+                    statistics: {
+                        totalWords: analysis.statistics?.total_words,
+                        sentences: analysis.statistics?.sentences,
+                        avgSentenceLength: analysis.statistics?.avg_sentence_length,
+                        aiKeywordsCount: analysis.statistics?.ai_keywords_count,
+                        transitionWordsCount: analysis.statistics?.transition_words_count,
+                        corporateJargonCount: analysis.statistics?.corporate_jargon_count,
+                        buzzwordsCount: analysis.statistics?.buzzwords_count,
+                        suspiciousPatternsCount: analysis.statistics?.suspicious_patterns_count,
+                        humanIndicatorsCount: analysis.statistics?.human_indicators_count,
+                    },
+                    analysisDetails: {
+                        foundKeywords: analysis.analysis_details?.found_keywords || [],
+                        foundPatterns: analysis.analysis_details?.found_patterns || [],
+                        foundTransitions: analysis.analysis_details?.found_transitions || [],
+                        foundJargon: analysis.analysis_details?.found_jargon || [],
+                        foundBuzzwords: analysis.analysis_details?.found_buzzwords || [],
+                        foundHumanIndicators: analysis.analysis_details?.found_human_indicators || [],
+                    },
+                    analysisId: analysis.analysis_id || analysis.id,
+                }
+            };
+        }
     };
 
     const viewHistoryItem = async (item) => {
@@ -696,18 +893,31 @@ const DetectivePage = () => {
 
     const deleteHistoryItem = async (id) => {
         try {
-            const response = await fetch(`/api/submissions/${id}`, {
-                method: 'DELETE'
+            updateHistoryItemState(id, { isDeleting: true });
+
+            const response = await fetch(`${API_BASE_URL}/api/submissions/delete/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
             });
+            console.log(response);
             
             if (response.ok) {
                 setHistoryItems(prev => prev.filter(item => item.id !== id));
-            } else {
-                throw new Error('Failed to delete history item');
+                // Clean up the state for this item
+                setHistoryItemStates(prev => {
+                    const newState = { ...prev };
+                    delete newState[id];
+                    return newState;
+                });
             }
         } catch (error) {
             console.error('Failed to delete history item:', error);
             alert('Failed to delete history item. Please try again.');
+        } finally {
+            updateHistoryItemState(id, { isDeleting: false });
         }
     };
 
@@ -715,12 +925,22 @@ const DetectivePage = () => {
         setAnalysisResult(null);
         setTextContent('');
         setUploadedImage(null);
+        setUploadedFile(null);
+        setIsFileUploaded(false);
         if (fileInputRef.current){
             fileInputRef.current.value = '';
         }
         if (imageInputRef.current){
             imageInputRef.current.value = '';
         }
+    };
+
+    // Helper function to update individual item state
+    const updateHistoryItemState = (itemId, updates) => {
+        setHistoryItemStates(prev => ({
+            ...prev,
+            [itemId]: { ...prev[itemId], ...updates }
+        }));
     };
 
     // Analysis Report Component
@@ -898,14 +1118,14 @@ const DetectivePage = () => {
     const navigationItems = [
         {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
-        
+        {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
     ];
 
     // PDF export function
     const exportReportAsPDF = async (analysisId) => {
         try {
-            setIsExporting(true);
+            setIsPDFExporting(true);
             
             if (!analysisId) {
                 throw new Error('No submission ID provided for export');
@@ -948,15 +1168,16 @@ const DetectivePage = () => {
             
         } catch (error) {
             console.error('Failed to export PDF:', error);
+            alert('Failed to export PDF. Please try again.');
         } finally {
-            setIsExporting(false);
+            setIsPDFExporting(false);
         }
     };
 
     // Export Report as Email
     const exportReportAsEmail = async (analysisId) => {
         try {
-            setIsExporting(true);
+            setIsEmailSending(true);
             
             if (!analysisId) {
                 throw new Error('No submission ID provided for export');
@@ -983,15 +1204,16 @@ const DetectivePage = () => {
             if (result.success) {
                 console.log('Email sent successfully:', result.message);
                 console.log('Recipient:', result.data.recipient);
-                alert("Sent successfully.")
+                alert("Email Sent successfully!")
             } else {
                 throw new Error(result.error || 'Failed to send email');
             }
             
         } catch (error) {
             console.error('Failed to send email:', error);
+            alert('Failed to send email. Please try again.');
         } finally {
-            setIsExporting(false);
+            setIsEmailSending(false);
         }
     };
 
@@ -1049,38 +1271,106 @@ const DetectivePage = () => {
                     {/*history section*/}
                     <div className="nav-section history-section">
                         <div className="nav-section-title">Recent Detections</div>
-                        {historyItems.map((item) => (
-                            <div key={item.id} className="history-item">
-                                <div className="history-content" onClick={() => viewHistoryItem(item)}>
-                                    {item.type === 'text' ?
-                                        <FileText className="icon-xs"/> :
-                                        <ImageIcon className="icon-xs"/>
-                                    }
-                                    <div>
-                                        <div className="history-text">{item.title}</div>
-                                        <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
-                                            {item.date}
+                        
+                        {/*search bar*/}
+                        <div className="history-search-container">
+                            <div className="history-search-input-wrapper">
+                                <Search className="icon-xs search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search detections..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="history-search-input"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={clearSearch}
+                                        className="clear-search-btn"
+                                    >
+                                        <X className="icon-xs" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* History Loading Indicator */}
+                        {isHistoryLoading && (
+                            <div className="history-loading">
+                                <div className="history-loading-spinner">
+                                    <Loader className="icon-sm animate-spin" />
+                                </div>
+                                <div className="history-loading-text">Loading detections...</div>
+                            </div>
+                        )}
+                        
+                        {/* History Items */}
+                        {!isHistoryLoading && filteredHistoryItems.map((item) => {
+                            const itemState = historyItemStates[item.id] || {};
+                            return (
+                                <div key={item.id} className="history-item">
+                                    <div className="history-content" onClick={() => viewHistoryItem(item)}>
+                                        {item.type === 'text' ?
+                                            <FileText className="icon-xs" /> :
+                                            <ImageIcon className="icon-xs" />
+                                        }
+                                        <div>
+                                            <div 
+                                                className="history-text"
+                                                title={item.fullTitle || item.title}
+                                            >
+                                                {item.title}
+                                            </div>
+                                            <div style={{fontSize: '0.75rem', color: '#6b7280'}}>
+                                                {item.date}
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="history-actions">
+                                        <button 
+                                            className="history-action"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                console.log(item);
+                                                if (item.analysisId) {
+                                                    updateHistoryItemState(item.id, { isExporting: true });
+                                                    exportReportAsPDF(item.analysisId)
+                                                        .finally(() => updateHistoryItemState(item.id, { isExporting: false }));
+                                                } else {
+                                                    alert('Analysis ID not available. Please view the item first.');
+                                                }
+                                            }}
+                                            disabled={itemState.isExporting || itemState.isDeleting}
+                                        >
+                                            {itemState.isExporting ? (
+                                                <Loader className="icon-xs animate-spin" />
+                                            ) : (
+                                                <Download className="icon-xs"/>
+                                            )}
+                                        </button>
+                                        <button
+                                            className="history-action"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm('Are you sure you want to delete this analysis?')) {
+                                                    deleteHistoryItem(item.id);
+                                                }
+                                            }}
+                                            disabled={itemState.isExporting || itemState.isDeleting}
+                                        >
+                                            {itemState.isDeleting ? (
+                                                <Loader className="icon-xs animate-spin" />
+                                            ) : (
+                                                <Trash2 className="icon-xs"/>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="history-actions">
-                                    <button className="history-action">
-                                        <Share className="icon-xs"/>
-                                    </button>
-                                    <button
-                                        className="history-action"
-                                        onClick={() => deleteHistoryItem(item.id)}
-                                    >
-                                        <Trash2 className="icon-xs"/>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </nav>
             </div>
-
-
 
             {/*header*/}
             <header className={`detective-header ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -1203,18 +1493,33 @@ const DetectivePage = () => {
                                                 </button>
                                             </>
                                         ) : (
-                                            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                                                <div className="upload-icon">
-                                                    <FileText className="icon-lg" />
-                                                </div>
-                                                <h3 className="upload-title">Upload Document</h3>
-                                                <p className="upload-description">
-                                                    Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
-                                                </p>
-                                                <button className="upload-button">
-                                                    <Upload className="icon-sm" />
-                                                    Choose Document
-                                                </button>
+                                            <div className="upload-area" onClick={!isFileUploaded ? () => fileInputRef.current?.click() : undefined}>
+                                                {!isFileUploaded ? (
+                                                    <>
+                                                        <div className="upload-icon">
+                                                            <FileText className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-title">Upload Document</h3>
+                                                        <p className="upload-description">
+                                                            Click here or drag and drop PDF, DOCX or TXT files (up to 25MB)
+                                                        </p>
+                                                        <button className="upload-button">
+                                                            <Upload className="icon-sm" />
+                                                            Choose Document
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <div className="upload-success">
+                                                        <div className="upload-success-icon">
+                                                            <CheckCircle className="icon-lg" />
+                                                        </div>
+                                                        <h3 className="upload-success-title">File Uploaded Successfully!</h3>
+                                                        <div className="upload-file-info">
+                                                            <p className="file-name">{uploadedFile?.name}</p>
+                                                            <p className="file-size">{uploadedFile?.size} MB</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
@@ -1229,18 +1534,38 @@ const DetectivePage = () => {
 
                                 {/* Image Upload Area */}
                                 {activeDetectionType === 'image' && (
-                                    <div className="upload-area" onClick={() => imageInputRef.current?.click()}>
-                                        <div className="upload-icon">
-                                            <ImageIcon className="icon-lg" />
-                                        </div>
-                                        <h3 className="upload-title">Upload Image</h3>
-                                        <p className="upload-description">
-                                            Click here or drag and drop PNG or JPEG images (up to 10MB)
-                                        </p>
-                                        <button className="upload-button">
-                                            <Upload className="icon-sm" />
-                                            Choose Image
-                                        </button>
+                                    <div className="upload-area" onClick={!isFileUploaded ? () => imageInputRef.current?.click() : undefined}>
+                                        {!isFileUploaded ? (
+                                            <>
+                                                <div className="upload-icon">
+                                                    <ImageIcon className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-title">Upload Image</h3>
+                                                <p className="upload-description">
+                                                    Click here or drag and drop PNG or JPEG images (up to 10MB)
+                                                </p>
+                                                <button className="upload-button">
+                                                    <Upload className="icon-sm" />
+                                                    Choose Image
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="upload-success">
+                                                <div className="upload-success-icon">
+                                                    <CheckCircle className="icon-lg" />
+                                                </div>
+                                                <h3 className="upload-success-title">Image Uploaded Successfully!</h3>
+                                                <div className="upload-file-info">
+                                                    <p className="file-name">{uploadedFile?.name}</p>
+                                                    <p className="file-size">{uploadedFile?.size} MB</p>
+                                                </div>
+                                                {uploadedImage && (
+                                                    <div className="uploaded-image-preview">
+                                                        <img src={uploadedImage} alt="Uploaded preview" className="preview-image" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <input
                                             ref={imageInputRef}
                                             type="file"
@@ -1281,22 +1606,104 @@ const DetectivePage = () => {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    
+                                                    <div className="results-actions">
+                                                        <button 
+                                                            className="action-btn export" 
+                                                            onClick={() => exportReportAsPDF(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isPDFExporting ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Exporting...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Download className="icon-sm" />
+                                                                    Export PDF
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        <button 
+                                                            className="action-btn" 
+                                                            onClick={() => exportReportAsEmail(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isEmailSending ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Sending...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Mail className="icon-sm" />
+                                                                    Email
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 
                                                 {uploadedImage && (
                                                     <img src={uploadedImage} alt="Uploaded" className="result-image" />
                                                 )}
                                                 
-                                                <div className="image-analysis">
-                                                    <p style={{ color: '#d1d5db', marginBottom: '1rem' }}>
-                                                        Analysis Complete: {analysisResult.filename}
-                                                    </p>
-                                                    <p style={{ color: '#9ca3af' }}>
-                                                        {analysisResult.isAI ? 
-                                                            'Our AI detection algorithms have identified patterns consistent with machine-generated imagery.' :
-                                                            'The image appears to be authentic with natural characteristics typical of human-created content.'
-                                                        }
-                                                    </p>
+                                                {/* Detection Factors for Images */}
+                                                <div className="report-section">
+                                                    <div className="section-header">
+                                                        <Brain className="icon-sm" />
+                                                        <h4 className="section-title">Detection Factors</h4>
+                                                    </div>
+                                                    <div className="factors-list">
+                                                        {analysisResult.detectionReasons.map((reason, index) => (
+                                                            <div key={index} className={`factor-item factor-${reason.type}`}>
+                                                                <div className="factor-header">
+                                                                    <div className={`factor-icon ${reason.type}`}>
+                                                                        {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
+                                                                        {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
+                                                                        {reason.type === 'info' && <Info className="icon-xs" />}
+                                                                        {reason.type === 'success' && <CheckCircle className="icon-xs" />}
+                                                                    </div>
+                                                                    <div className="factor-title">{reason.title}</div>
+                                                                    <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
+                                                                        {reason.impact} Impact
+                                                                    </div>
+                                                                </div>
+                                                                <div className="factor-description">{reason.description}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Feedback buttons */}
+                                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                                    <button 
+                                                        className="action-btn" 
+                                                        onClick={handleThumbsUp}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
+                                                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
+                                                    >
+                                                        {isSubmittingThumbsUp ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Submitting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <ThumbsUp className="icon-sm" />
+                                                                Accurate
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                    <button 
+                                                        className="action-btn" 
+                                                        onClick={handleThumbsDown}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
+                                                    >
+                                                        <ThumbsDown className="icon-sm" />
+                                                        Not Accurate
+                                                    </button>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1318,13 +1725,39 @@ const DetectivePage = () => {
                                                     </div>
                                                     
                                                     <div className="results-actions">
-                                                        <button className="action-btn export" onClick={() => exportReportAsPDF(analysisResult.analysisId)}>
-                                                            <Download className="icon-sm" />
-                                                            Export PDF
+                                                        <button 
+                                                            className="action-btn export" 
+                                                            onClick={() => exportReportAsPDF(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isPDFExporting ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Exporting...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Download className="icon-sm" />
+                                                                    Export PDF
+                                                                </>
+                                                            )}
                                                         </button>
-                                                        <button className="action-btn" onClick={() => exportReportAsEmail(analysisResult.analysisId)}>
-                                                            <Mail className="icon-sm" />
-                                                            Email
+                                                        <button 
+                                                            className="action-btn" 
+                                                            onClick={() => exportReportAsEmail(analysisResult.analysisId)}
+                                                            disabled={isPDFExporting || isEmailSending}
+                                                        >
+                                                            {isEmailSending ? (
+                                                                <>
+                                                                    <Loader className="icon-sm animate-spin" />
+                                                                    Sending...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Mail className="icon-sm" />
+                                                                    Email
+                                                                </>
+                                                            )}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1340,10 +1773,20 @@ const DetectivePage = () => {
                                                     <button 
                                                         className="action-btn" 
                                                         onClick={handleThumbsUp}
+                                                        disabled={isSubmittingThumbsUp || isSubmittingFeedback}
                                                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}
                                                     >
-                                                        <ThumbsUp className="icon-sm" />
-                                                        Accurate
+                                                        {isSubmittingThumbsUp ? (
+                                                            <>
+                                                                <Loader className="icon-sm animate-spin" />
+                                                                Submitting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <ThumbsUp className="icon-sm" />
+                                                                Accurate
+                                                            </>
+                                                        )}
                                                     </button>
                                                     <button className="action-btn" onClick={handleThumbsDown}>
                                                         <ThumbsDown className="icon-sm" />
@@ -1391,77 +1834,154 @@ const DetectivePage = () => {
                             </div>
                         </>
                     ) : (
-                        // History Detail View
-                        <div className="history-detail">
-                            <div className="history-detail-header">
-                                <h2 className="history-detail-title">{selectedHistoryItem?.title}</h2>
-                                <button className="back-button" onClick={() => setCurrentView('main')}>
-                                    <ArrowLeft className="icon-sm" />
-                                    Back to Main
-                                </button>
+            // History Detail View
+            <div className="history-detail">
+                <div className="history-detail-header">
+                    <h2 className="history-detail-title">{selectedHistoryItem?.fullTitle || selectedHistoryItem?.title}</h2>
+                    <button className="back-button" onClick={() => setCurrentView('main')}>
+                        <ArrowLeft className="icon-sm" />
+                        Back to Main
+                    </button>
+                </div>
+
+                {selectedHistoryItem && (
+                    <>
+                        {(selectedHistoryItem.isLoading || !selectedHistoryItem.result) ? (
+                            <div className="results-container" style={{ position: 'relative', minHeight: '240px' }}>
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexDirection: 'column',
+                                    background: 'rgba(255, 255, 255, 0.55)',
+                                    backdropFilter: 'blur(2px)',
+                                    zIndex: 10,
+                                    borderRadius: '0.75rem'
+                                }}>
+                                    <div className="loading-spinner"></div>
+                                    <div className="loading-text">Loading analysis...</div>
+                                </div>
                             </div>
-
-                            {selectedHistoryItem && (
-                                <>
-                                    {(selectedHistoryItem.isLoading || !selectedHistoryItem.result) ? (
-                                        <div className="results-container" style={{ position: 'relative', minHeight: '240px' }}>
-                                            <div style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                flexDirection: 'column',
-                                                background: 'rgba(255, 255, 255, 0.55)',
-                                                backdropFilter: 'blur(2px)',
-                                                zIndex: 10,
-                                                borderRadius: '0.75rem'
-                                            }}>
-                                                <div className="loading-spinner"></div>
-                                                <div className="loading-text">Loading analysis...</div>
+                        ) : (
+                            <div className="results-container">
+                                <div className="results-header">
+                                    <div className="detection-result">
+                                        <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                            {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
+                                        </div>
+                                        <div>
+                                            <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
+                                                {selectedHistoryItem.result.isAI ? 
+                                                    (selectedHistoryItem.result.isImage ? 'AI Generated' : 'AI Generated Content Detected') : 
+                                                    (selectedHistoryItem.result.isImage ? 'Likely Human Created' : 'Likely Human Written')
+                                                }
+                                            </div>
+                                            <div className="result-confidence">
+                                                Confidence: {selectedHistoryItem.result.confidence}%
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="results-container">
-                                            <div className="results-header">
-                                                <div className="detection-result">
-                                                    <div className={`result-icon ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                        {selectedHistoryItem.result.isAI ? <AlertCircle className="icon-md text-white" /> : <CheckCircle className="icon-md text-white" />}
-                                                    </div>
-                                                    <div>
-                                                        <div className={`result-status ${selectedHistoryItem.result.isAI ? 'ai-detected' : 'human-written'}`}>
-                                                            {selectedHistoryItem.result.isAI ? 'AI Generated Content Detected' : 'Likely Human Written'}
-                                                        </div>
-                                                        <div className="result-confidence">
-                                                            Confidence: {selectedHistoryItem.result.confidence}%
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="results-actions">
-                                                    <button className="action-btn export" onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}>
-                                                        <Download className="icon-sm" />
-                                                        Export PDF
-                                                    </button>
-                                                    <button className="action-btn" onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}>
-                                                        <Mail className="icon-sm" />
-                                                        Email
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/*show analysis report for history items if available */}
-                                            {selectedHistoryItem.result.detectionReasons && (
-                                                <div ref={reportRef}>
-                                                    <AnalysisReport result={selectedHistoryItem.result} />
-                                                </div>
+                                    </div>
+                                    
+                                    <div className="results-actions">
+                                        <button 
+                                            className="action-btn export" 
+                                            onClick={() => exportReportAsPDF(selectedHistoryItem.result.analysisId)}
+                                            disabled={isPDFExporting || isEmailSending}
+                                        >
+                                            {isPDFExporting ? (
+                                                <>
+                                                    <Loader className="icon-sm animate-spin" />
+                                                    Exporting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download className="icon-sm" />
+                                                    Export PDF
+                                                </>
                                             )}
+                                        </button>
+                                        <button 
+                                            className="action-btn" 
+                                            onClick={() => exportReportAsEmail(selectedHistoryItem.result.analysisId)}
+                                            disabled={isPDFExporting || isEmailSending}
+                                        >
+                                            {isEmailSending ? (
+                                                <>
+                                                    <Loader className="icon-sm animate-spin" />
+                                                    Sending...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Mail className="icon-sm" />
+                                                    Email
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
 
-                                            <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
+                                {/* Display image if it's an image submission */}
+                                {selectedHistoryItem.result.isImage && selectedHistoryItem.result.imageUrl && (
+                                    <div className="image-container">
+                                        <img 
+                                            src={selectedHistoryItem.result.imageUrl} 
+                                            alt="Analyzed image" 
+                                            className="result-image"
+                                        />
+                                    </div>
+                                )}
+
+                                {selectedHistoryItem.result.isImage ? (
+                                    // Image analysis results - show detection factors only
+                                    <>
+                                        {selectedHistoryItem.result.detectionReasons && selectedHistoryItem.result.detectionReasons.length > 0 && (
+                                            <div className="report-section">
+                                                <div className="section-header">
+                                                    <Brain className="icon-sm" />
+                                                    <h4 className="section-title">Detection Factors</h4>
+                                                </div>
+                                                <div className="factors-list">
+                                                    {selectedHistoryItem.result.detectionReasons.map((reason, index) => (
+                                                        <div key={index} className={`factor-item factor-${reason.type}`}>
+                                                            <div className="factor-header">
+                                                                <div className={`factor-icon ${reason.type}`}>
+                                                                    {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
+                                                                    {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
+                                                                    {reason.type === 'info' && <Info className="icon-xs" />}
+                                                                    {reason.type === 'success' && <CheckCircle className="icon-xs" />}
+                                                                </div>
+                                                                <div className="factor-title">{reason.title}</div>
+                                                                <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
+                                                                    {reason.impact} Impact
+                                                                </div>
+                                                            </div>
+                                                            <div className="factor-description">{reason.description}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    // Text analysis results - show full analysis report
+                                    <>
+                                        {/* Enhanced Analysis Report for text only */}
+                                        <div ref={reportRef}>
+                                            <AnalysisReport result={selectedHistoryItem.result} />
                                         </div>
-                                    )}
-                                </>
-                            )}
+
+                                        {/* Show highlighted text for text submissions */}
+                                        {selectedHistoryItem.result.highlightedText && (
+                                            <div className="analyzed-text" dangerouslySetInnerHTML={{ __html: selectedHistoryItem.result.highlightedText }} />
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </>
+                )}
                         </div>
                     )}
                 </div>
@@ -1484,11 +2004,26 @@ const DetectivePage = () => {
                             onChange={(e) => setFeedbackText(e.target.value)}
                         />
                         <div className="modal-actions">
-                            <button className="modal-btn cancel" onClick={() => setShowFeedback(false)}>
+                            <button 
+                                className="modal-btn cancel" 
+                                onClick={() => setShowFeedback(false)}
+                                disabled={isSubmittingFeedback}
+                            >
                                 Cancel
                             </button>
-                            <button className="modal-btn submit" onClick={submitFeedback}>
-                                Submit Feedback
+                            <button 
+                                className="modal-btn submit" 
+                                onClick={submitFeedback}
+                                disabled={isSubmittingFeedback || !feedbackText.trim()}
+                            >
+                                {isSubmittingFeedback ? (
+                                    <>
+                                        <Loader className="icon-sm animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Submit Feedback'
+                                )}
                             </button>
                         </div>
                     </div>

@@ -9,6 +9,9 @@ from app.views import admin_views
 urlpatterns = [
     # Text analysis
     path('analysis/text/', analysis_views.analyse_text, name="analyse_text"),
+    
+    # Image analysis
+    path('analysis/image/', analysis_views.analyse_image, name='analyse_image'),
 
     # User authentication
     path('users/register/', user_views.register_user, name='register_user'),
@@ -40,6 +43,8 @@ urlpatterns = [
     
     # Admin feedback management
     path('admin/feedback/', feedback_views.get_all_feedback_admin, name='get_all_feedback_admin'),
+    path('admin/feedback/<str:feedback_id>/reviewed/', feedback_views.mark_feedback_as_reviewed, name='mark_feedback_as_reviewed'),
+    path('admin/feedback/<str:feedback_id>/resolved/', feedback_views.mark_feedback_as_resolved, name='mark_feedback_as_resolved'),
 
     # Admin dashboard and statistics
     path('admin/statistics/', admin_views.get_system_statistics, name='get_system_statistics'),
@@ -55,6 +60,5 @@ urlpatterns = [
     path('submissions/', submission_history_views.get_user_submissions, name='get_user_submissions'),
     path('submissions/statistics/', submission_history_views.get_submission_statistics, name='get_submission_statistics'),
     path('submissions/<str:submission_id>/', submission_history_views.get_submission_detail, name='get_submission_detail'),
-    path('submissions/<str:submission_id>/update/', submission_history_views.update_submission, name='update_submission'),
     path('submissions/<str:submission_id>/delete/', submission_history_views.delete_submission, name='delete_submission')
 ]

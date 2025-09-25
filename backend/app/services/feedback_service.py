@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from app.models.feedback import Feedback
 from app.models.text_analysis_result import TextAnalysisResult
+from app.models.image_analysis_result import ImageAnalysisResult
 from app.serializers.feedback_serializers import (
     FeedbackSerializer,
     FeedbackAdminSerializer,
@@ -271,28 +272,118 @@ class FeedbackService:
     def _validate_analysis_access(analysis_id: str, user: User) -> Dict[str, Any]:
         """
         Helper method to validate user access to analysis and associated feedback.
+        Supports both text and image analysis results.
 
         :param analysis_id: ID of the analysis result
         :param user: User requesting access
         :return: Dictionary with success status and analysis object or error
         """
         try:
-            analysis = TextAnalysisResult.objects.get(id=analysis_id)
-
-            # Check if user has ownership over the analysis
-            if analysis.submission is not None and analysis.submission.user != user:
+            # Try text analysis first
+            try:
+                analysis = TextAnalysisResult.objects.get(id=analysis_id)
+                
+                # Check if user has ownership over the analysis
+                if analysis.submission is not None and analysis.submission.user != user:
+                    return {
+                        'success': False,
+                        'error': 'You can only access feedback for your own analyses'
+                    }
+                    
                 return {
-                    'success': False,
-                    'error': 'You can only access feedback for your own analyses'
+                    'success': True,
+                    'analysis': analysis
                 }
                 
-            return {
-                'success': True,
-                'analysis': analysis
-            }
+            except TextAnalysisResult.DoesNotExist:
+                pass  # Continue to try image analysis
+            
+            # Try image analysis
+            try:
+                analysis = ImageAnalysisResult.objects.get(id=analysis_id)
+                
+                # Check if user has ownership over the analysis
+                if analysis.submission is not None and analysis.submission.user != user:
+                    return {
+                        'success': False,
+                        'error': 'You can only access feedback for your own analyses'
+                    }
+                    
+                return {
+                    'success': True,
+                    'analysis': analysis
+                }
+                
+            except ImageAnalysisResult.DoesNotExist:
+                return {
+                    'success': False,
+                    'error': 'Analysis result not found'
+                }
         
-        except TextAnalysisResult.DoesNotExist:
+        except Exception as e:
             return {
                 'success': False,
-                'error': 'Analysis result not found'
+                'error': str(e)
+            }
+        
+    @staticmethod
+    def mark_feedback_as_reviewed(feedback_id: str, admin_user: User) -> Dict[str, Any]:
+        """
+        Mark feedback as reviewed by an admin user.
+        
+        :param feedback_id: ID of the feedback to mark as reviewed
+        :param admin_user: Admin user performing the action
+        :return: Success/error response
+        """
+        try:
+            feedback = Feedback.objects.get(id=feedback_id)
+            feedback.mark_as_reviewed()
+            
+            return {
+                'success': True,
+                'message': 'Feedback marked as reviewed successfully',
+                'data': FeedbackAdminSerializer(feedback).data
+            }
+            
+        except Feedback.DoesNotExist:
+            return {
+                'success': False,
+                'error': 'Feedback not found'
+            }
+        
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    @staticmethod
+    def mark_feedback_as_resolved(feedback_id: str, admin_user: User) -> Dict[str, Any]:
+        """
+        Mark feedback as resolved by an admin user.
+        
+        :param feedback_id: ID of the feedback to mark as resolved
+        :param admin_user: Admin user performing the action
+        :return: Success/error response
+        """
+        try:
+            feedback = Feedback.objects.get(id=feedback_id)
+            feedback.mark_as_resolved() 
+            
+            return {
+                'success': True,
+                'message': 'Feedback marked as resolved successfully',
+                'data': FeedbackAdminSerializer(feedback).data
+            }
+            
+        except Feedback.DoesNotExist:
+            return {
+                'success': False,
+                'error': 'Feedback not found'
+            }
+        
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
             }
