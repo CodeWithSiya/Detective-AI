@@ -57,6 +57,7 @@ const ManageUser = () => {
     const authToken = getAuthToken();
     const isUserAuthenticated = isAuthenticated();
     const currentUser = getCurrentUser();
+    const userId = currentUser?.id;
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -94,15 +95,18 @@ const ManageUser = () => {
     const [showDeactivateModal, setShowDeactivateModal] = useState(false);
     const [deactivateConfirmText, setDeactivateConfirmText] = useState('');
 
-    // Load user profile data
+    // Load user profile data only once.
+    const didSetProfileData = useRef(false);
+
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && !didSetProfileData.current) {
             setProfileData({
                 firstName: currentUser.first_name || '',
                 lastName: currentUser.last_name || '',
                 email: currentUser.email || '',
                 username: currentUser.username || ''
             });
+            didSetProfileData.current = true;
         }
     }, [currentUser]);
 
@@ -116,7 +120,7 @@ const ManageUser = () => {
         setIsSaving(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/user/profile/update/`, {
+            const response = await fetch(`${API_BASE_URL}/api/users/${userId}/update/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -125,7 +129,6 @@ const ManageUser = () => {
                 body: JSON.stringify({
                     first_name: profileData.firstName,
                     last_name: profileData.lastName,
-                    email: profileData.email,
                     username: profileData.username
                 }),
             });
@@ -134,7 +137,14 @@ const ManageUser = () => {
 
             if (data.success) {
                 alert('Profile updated successfully!');
-                // Optionally refresh user data in auth context
+                // Update localStorage userData so getCurrentUser() returns the latest info
+                const updatedUser = {
+                    ...currentUser,
+                    first_name: profileData.firstName,
+                    last_name: profileData.lastName,
+                    username: profileData.username
+                };
+                localStorage.setItem('userData', JSON.stringify(updatedUser));
             } else {
                 throw new Error(data.error || 'Failed to update profile');
             }
@@ -163,7 +173,7 @@ const ManageUser = () => {
         setIsSaving(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/user/password/change/`, {
+            const response = await fetch(`${API_BASE_URL}/api/users/${userId}/change-password/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -171,7 +181,8 @@ const ManageUser = () => {
                 },
                 body: JSON.stringify({
                     current_password: passwordData.currentPassword,
-                    new_password: passwordData.newPassword
+                    new_password: passwordData.newPassword,
+                    confirm_password: passwordData.confirmPassword
                 }),
             });
 
@@ -205,8 +216,8 @@ const ManageUser = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/user/deactivate/`, {
-                method: 'POST',
+            const response = await fetch(`${API_BASE_URL}/api/users/${userId}/delete/`, {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${authToken}`,
@@ -214,7 +225,8 @@ const ManageUser = () => {
             });
 
             const data = await response.json();
-
+            console.log(data);
+            
             if (data.success) {
                 alert('Account deactivated successfully. You will be logged out.');
                 logout(); // Clear auth data
@@ -235,7 +247,7 @@ const ManageUser = () => {
     const handleLogout = async () => {
         try {
             setIsLoading(true);            
-            await fetch(`${API_BASE_URL}/api/auth/logout/`, {
+            await fetch(`${API_BASE_URL}/api/users/logout/`, {
                 method: 'POST',
                 headers: {
                 'Authorization': `Token ${authToken}`,
@@ -371,7 +383,7 @@ const ManageUser = () => {
                                             <input
                                                 type="text"
                                                 className="form-input"
-                                                value={profileData.firstName}
+                                                value={profileData.firstName || ''}
                                                 onChange={(e) => setProfileData(prev => ({
                                                     ...prev,
                                                     firstName: e.target.value
@@ -385,7 +397,7 @@ const ManageUser = () => {
                                             <input
                                                 type="text"
                                                 className="form-input"
-                                                value={profileData.lastName}
+                                                value={profileData.lastName || ''}
                                                 onChange={(e) => setProfileData(prev => ({
                                                     ...prev,
                                                     lastName: e.target.value
@@ -399,7 +411,7 @@ const ManageUser = () => {
                                             <input
                                                 type="text"
                                                 className="form-input"
-                                                value={profileData.username}
+                                                value={profileData.username || ''}
                                                 onChange={(e) => setProfileData(prev => ({
                                                     ...prev,
                                                     username: e.target.value
@@ -413,12 +425,10 @@ const ManageUser = () => {
                                             <input
                                                 type="email"
                                                 className="form-input"
-                                                value={profileData.email}
-                                                onChange={(e) => setProfileData(prev => ({
-                                                    ...prev,
-                                                    email: e.target.value
-                                                }))}
-                                                placeholder="Enter your email address"
+                                                value={profileData.email || ''}
+                                                readOnly
+                                                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed', opacity: 0.6 }}
+                                                placeholder="Email address (read-only)"
                                             />
                                         </div>
                                     </div>

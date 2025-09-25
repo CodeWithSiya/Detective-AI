@@ -389,44 +389,13 @@ export async function updateUserProfile(userId, updateData) {
 }
  
 /**
- * Function that logs out user via API and clears stored data
+ * Function that clears stored data.
  */
 export async function logout() {
-    const token = localStorage.getItem('authToken');
-    
-    if (token) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/users/logout/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${token}`
-                }
-            });
-
-            const result = await response.json();
-            
-            // Clear local storage regardless of API response
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userData');
-            localStorage.removeItem('pendingVerification');
-            
-            return {
-                success: true,
-                message: result.message || 'Logged out successfully.'
-            };
-        } catch (error) {
-            console.error('Logout Error:', error);
-            // Clear local storage even if API call fails
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userData');
-            localStorage.removeItem('pendingVerification');
-            
-            return { success: true, message: 'Logged out successfully.' };
-        }
-    }
-    
-    return { success: true, message: 'Already logged out.' };
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('pendingVerification');
+    return { success: true, message: 'Logged out successfully.' };
 }
 
 /**
