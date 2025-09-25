@@ -537,7 +537,7 @@ def delete_user(request, user_id: str):
     """
     Delete user account.
 
-    DELETE /api/users/{user_id}/delete
+    DELETE /api/users/{user_id}/delete/
     """
     # Only admins or the user themselves can delete
     if not request.user.is_staff and str(request.user.id) != user_id:

@@ -12,10 +12,30 @@ class TextSubmissionListSerializer(serializers.ModelSerializer):
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose
     :version: 10/09/2025 
     """
+    analysis_id = serializers.SerializerMethodField()
     
     class Meta:
         model = TextSubmission
-        fields = ['id', 'name', 'created_at']
+        fields = ['id', 'name', 'created_at', 'analysis_id']
+
+    def get_analysis_id(self, obj):
+        """
+        Get the latest completed analysis ID for this submission.
+        """
+        try:
+            content_type = ContentType.objects.get_for_model(obj)
+            analysis = TextAnalysisResult.objects.filter(
+                content_type=content_type,
+                object_id=obj.id,
+                status=TextAnalysisResult.Status.COMPLETED
+            ).order_by('-created_at').first()
+
+            if analysis:
+                return str(analysis.id)
+            return None
+        
+        except Exception:
+            return None
 
 class TextSubmissionDetailSerializer(serializers.ModelSerializer):
     """
@@ -75,10 +95,28 @@ class ImageSubmissionListSerializer(serializers.ModelSerializer):
     """
     image_url = serializers.SerializerMethodField()
     dimensions = serializers.SerializerMethodField()
+    analysis_id = serializers.SerializerMethodField()
     
     class Meta:
         model = ImageSubmission
-        fields = ['id', 'name', 'created_at', 'image_url', 'file_size', 'dimensions']
+        fields = ['id', 'name', 'created_at', 'image_url', 'file_size', 'dimensions', 'analysis_id']
+
+    def get_analysis_id(self, obj):
+        """Get the latest completed analysis ID for this submission."""
+        try:
+            content_type = ContentType.objects.get_for_model(obj)
+            analysis = ImageAnalysisResult.objects.filter(
+                content_type=content_type,
+                object_id=obj.id,
+                status=ImageAnalysisResult.Status.COMPLETED
+            ).order_by('-created_at').first()
+
+            if analysis:
+                return str(analysis.id)
+            return None
+        
+        except Exception:
+            return None
     
     def get_image_url(self, obj):
         """Get the image URL."""
