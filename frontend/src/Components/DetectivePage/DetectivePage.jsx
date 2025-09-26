@@ -895,28 +895,33 @@ const DetectivePage = () => {
         try {
             updateHistoryItemState(id, { isDeleting: true });
 
-            const response = await fetch(`${API_BASE_URL}/api/submissions/delete/${id}/`, {
+            const response = await fetch(`${API_BASE_URL}/api/submissions/${id}/delete/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${authToken}`,
                     'Content-Type': 'application/json',
                 }
             });
-            console.log(response);
             
-            if (response.ok) {
-                setHistoryItems(prev => prev.filter(item => item.id !== id));
-                // Clean up the state for this item
-                setHistoryItemStates(prev => {
-                    const newState = { ...prev };
-                    delete newState[id];
-                    return newState;
-                });
+            if (!response.ok) {
+                throw new Error(`Failed to delete: ${response.status} ${response.statusText}`);
             }
+            
+            // Only update state if deletion was successful
+            setHistoryItems(prev => prev.filter(item => item.id !== id));
+            
+            // Clean up the state for this item
+            setHistoryItemStates(prev => {
+                const newState = { ...prev };
+                delete newState[id];
+                return newState;
+            });
+            
         } catch (error) {
             console.error('Failed to delete history item:', error);
             alert('Failed to delete history item. Please try again.');
-        } finally {
+            
+            // Only reset isDeleting if the item still exists
             updateHistoryItemState(id, { isDeleting: false });
         }
     };
