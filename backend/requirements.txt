@@ -3,6 +3,7 @@ Django==4.2.24
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 dotenv==0.9.9
+gunicorn==23.0.0
 pillow==11.3.0
 psycopg2==2.9.10
 reportlab==4.4.3
