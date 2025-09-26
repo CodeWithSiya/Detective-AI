@@ -5,13 +5,13 @@ import ForgotPassword from './components/UserAuthentication/ForgotPassword/Forgo
 import VerifyEmail from './components/UserAuthentication/VerifyPassword/VerifyEmail';
 import ChangePassword from './components/UserAuthentication/ChangePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import DetectivePage from './Components/DetectivePage/DetectivePage';
-import DemoLandingPage from './Components/DemoLandingPage/DemoLandingPage';
-import Team from './Components/Team/Team';
-import ScrollToTop from './Components/ScrollToTop/ScrollToTop';
-import Admin from './Components/Admin/Admin';
+import DetectivePage from './components/DetectivePage/DetectivePage';
+import DemoLandingPage from './components/DemoLandingPage/DemoLandingPage';
+import Team from './components/Team/Team';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import Admin from './components/Admin/Admin';
 import DetectiveBasic from './components/Basic-DetectivePage/DetectiveBasic';
-import ManageUser from './Components/UserManagement/ManageUser';
+import ManageUser from './components/UserManagement/ManageUser';
 
 function App() {
   return (
