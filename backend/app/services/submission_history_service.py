@@ -168,7 +168,7 @@ class SubmissionHistoryService:
             submission_name = None
             submission_type = None
             
-            # Try to find and delete text submission first
+            # Try to find and delete text submission
             try:
                 submission = TextSubmission.objects.get(id=submission_id, user=user)
                 submission_name = submission.name
@@ -200,11 +200,12 @@ class SubmissionHistoryService:
                     'success': False,
                     'error': 'Submission not found or you do not have permission to delete it'
                 }
-            
+
         except Exception as e:
+            import traceback
             return {
                 'success': False,
-                'error': str(e)
+                'error': str(traceback.format_exc())
             }
     
     @staticmethod

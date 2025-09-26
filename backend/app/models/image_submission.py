@@ -114,16 +114,8 @@ class ImageSubmission(Submission):
 
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         """
-        Delete the associated image when model is deleted.
+        Delete the ImageSubmission database entry.
         """
-        if self.image and hasattr(self.image, 'path'):
-            # Delete the image from storage
-            if os.path.isfile(self.image.path):
-                try:
-                    os.remove(self.image.path)
-                except OSError:
-                    pass  # File might already be deleted
-
         return super().delete(*args, **kwargs)
 
     @property
