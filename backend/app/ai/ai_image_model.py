@@ -90,7 +90,7 @@ class AiImageModel(AiModel):
         """
         try:
             # Download model from HuggingFace Hub.
-            model_path = hf_hub_download(repo_id=self.model_name, filename="pytorch_model.pth")
+            model_path = hf_hub_download(repo_id=self.model_name, filename="pytorch_model.pth", token=os.getenv('HF_TOKEN'))
             
             # Create preprocessing transforms.
             self.tokenizer = transforms.Compose([
