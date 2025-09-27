@@ -49,8 +49,7 @@ def analyse_text(request):
     
     try:
         # Create model and analyser instances.
-        model = AiTextModel()
-        analyser = AiTextAnalyser(model)
+        analyser = AiTextAnalyser()
 
         # For registered users, create a submission.
         submission = None

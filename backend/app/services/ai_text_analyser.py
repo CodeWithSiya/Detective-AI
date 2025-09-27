@@ -1,6 +1,7 @@
 from abc import ABC
 from .ai_analyser import AiAnalyser
 from app.ai.ai_text_model import AiTextModel
+from app.ai.ai_short_text_model import AiShortTextModel
 from app.services.claude_service import ClaudeService
 from app.models.text_analysis_result import TextAnalysisResult
 from app.models.text_submission import TextSubmission
@@ -18,18 +19,24 @@ class AiTextAnalyser(AiAnalyser):
     :version: 22/08/2025 
     """ 
 
-    def __init__(self, ai_model: AiTextModel, use_claude: bool = True):
+    def __init__(self, ai_model: Optional[AiTextModel] = None, use_claude: bool = True):
         """
-        Create an instance of the AI Text Analyser.
+        Create an instance of the AI Text Analyser with dual model support.
 
-        :param ai_model: The base AI text detection model
+        :param ai_model: The base AI text detection model (optional for backward compatibility)
         :param use_claude: Whether to use Claude or not.
         """
-        super().__init__(ai_model)
-        self.ai_model: AiTextModel = ai_model 
+        # Initialize both models - ai_model parameter is now optional
+        self.long_text_model = ai_model if ai_model is not None else AiTextModel()
+        self.short_text_model = AiShortTextModel()
+        
+        # Pass the long_text_model to parent for backward compatibility
+        super().__init__(self.long_text_model)
+        
         self.use_claude = use_claude
+        self.short_text_threshold = 50  # Character threshold for model selection
 
-        # Initialise Claude service if API key is available.
+        # Initialize Claude service
         self.claude_service = None
         if use_claude:
             try:
@@ -40,7 +47,7 @@ class AiTextAnalyser(AiAnalyser):
 
     def analyse(self, input_data: Any, user=None, submission=None) -> Dict[str, Any]:
         """
-        Perform analysis using the AI model to detect AI generated content.
+        Perform analysis using the appropriate AI model based on text length.
         
         :param input_data: Text content to analyse
         :param user: User instance (None for users without an account)
@@ -52,15 +59,18 @@ class AiTextAnalyser(AiAnalyser):
         analysis_result = None
 
         try: 
-            # Ensure detection model is loaded.
-            if not self.ai_model.is_loaded():
-                self.ai_model.load()
-
             # Preprocess input.
             processed_text = self.preprocess(input_data)
 
-            # Get base model prediction.
-            base_prediction = self.ai_model.predict(processed_text)
+            # Select appropriate model based on text length.
+            selected_model, model_type = self._select_model(processed_text)
+
+            # Ensure selected model is loaded.
+            if not selected_model.is_loaded():
+                selected_model.load()
+
+            # Get base model prediction from selected model
+            base_prediction = selected_model.predict(processed_text)
 
             # Enhanced analysis with Claude if available.
             enhanced_analysis = None
@@ -77,6 +87,11 @@ class AiTextAnalyser(AiAnalyser):
 
             # Add statistics to result.
             final_result['statistics'] = self.calculate_statistics(processed_text, enhanced_analysis)
+
+            # Add model selection metadata
+            final_result['metadata']['model_used'] = model_type
+            final_result['metadata']['text_length'] = len(processed_text.strip())
+            final_result['metadata']['threshold'] = self.short_text_threshold
 
             # Calculate and add processing time to results.
             end_time = time.time()
@@ -110,6 +125,19 @@ class AiTextAnalyser(AiAnalyser):
 
             # Re-raise the exception so the view can handle it.
             raise
+    
+    def _select_model(self, text: str):
+        """
+        Select appropriate model based on text length.
+        
+        :param text: Input text
+        :return: Selected model instance and model type
+        """
+        text_length = len(text.strip())
+        if text_length <= self.short_text_threshold:
+            return self.short_text_model, "short_text"
+        else:
+            return self.long_text_model, "long_text"
     
     def _save_analysis_result(self, result: Dict[str, Any], user, submission, text: str, processing_time_ms: float):
         """
