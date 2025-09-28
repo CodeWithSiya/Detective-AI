@@ -110,40 +110,44 @@ const AdminPage = () => {
         fetchDashboard();
     }, [isUserAuthenticated, authToken, API_BASE_URL]);
 
+    // Fetch users data
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (!isUserAuthenticated || !authToken || !statistics) {
+                return; // Wait for dashboard to load first
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users/`, {
+                    headers: {
+                        'Authorization': `Token ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch users: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.users) {
+                    setUsers(result.data.users);
+                    console.log('Users data loaded:', result.data.users);
+                }
+
+            } catch (error) {
+                console.error('Failed to fetch users data:', error);
+            }
+        };
+
+        fetchUsers();
+    }, [isUserAuthenticated, authToken, statistics, API_BASE_URL]);
+
     // Mock data for development (remove when API is ready)
     useEffect(() => {
-        if (statistics && users.length === 0) {
+        if (statistics) {
             // Mock data
-            setUsers([
-                {
-                    id: 1,
-                    name: 'Siyabonga Madondo',
-                    email: 'MDNSIY014@myuct.ac.za',
-                    joinDate: '2024-01-15',
-                    totalAnalyses: 45,
-                    accurateDetections: 42,
-                    feedbackCount: 3
-                },
-                {
-                    id: 2,
-                    name: 'Sarah Johnson',
-                    email: 'sarah.johnson@gmail.com',
-                    joinDate: '2024-01-10',
-                    totalAnalyses: 78,
-                    accurateDetections: 71,
-                    feedbackCount: 7
-                },
-                {
-                    id: 3,
-                    name: 'Mike Chen',
-                    email: 'mike.chen@gmail.com',
-                    joinDate: '2024-01-05',
-                    totalAnalyses: 23,
-                    accurateDetections: 20,
-                    feedbackCount: 3
-                }
-            ]);
-
             setFeedback([
                 {
                     id: 1,
@@ -189,7 +193,7 @@ const AdminPage = () => {
             console.log('Mock data loaded for admin dashboard');
         }
         
-    }, [statistics, users.length]);
+    }, [statistics]);
 
     // Handlers
     const toggleSidebar = () => {
@@ -515,7 +519,7 @@ const AdminPage = () => {
                                                 <span className="stat-label">Analyses</span>
                                             </div>
                                             <div className="user-stat">
-                                                <span className="stat-value">{Math.round((user.accurateDetections / user.totalAnalyses) * 100)}%</span>
+                                                <span className="stat-value">{user.totalAnalyses ? Math.round((user.accurateDetections / user.totalAnalyses) * 100) : 0}%</span>
                                                 <span className="stat-label">Accuracy</span>
                                             </div>
                                             <div className="user-stat">
@@ -569,7 +573,7 @@ const AdminPage = () => {
                                                 <CheckCircle className="icon-sm" />
                                             </div>
                                             <div>
-                                                <div className="detail-stat-value">{Math.round((selectedUser.accurateDetections / selectedUser.totalAnalyses) * 100)}%</div>
+                                                <div className="detail-stat-value">{selectedUser.totalAnalyses ? Math.round((selectedUser.accurateDetections / selectedUser.totalAnalyses) * 100) : 0}%</div>
                                                 <div className="detail-stat-label">Accuracy Rate</div>
                                             </div>
                                         </div>

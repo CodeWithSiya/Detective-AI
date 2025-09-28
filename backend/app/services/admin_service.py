@@ -323,3 +323,54 @@ class AdminService:
                 'success': False,
                 'error': str(e)
             }
+        
+    @staticmethod
+    def get_users_list() -> Dict[str, Any]:
+        """
+        Get list of all users with their statistics for admin dashboard.
+        
+        :return: Dictionary containing users list with statistics
+        """
+        try:
+            users_data = []
+            
+            # Get all users with related data
+            users = User.objects.all().order_by('-date_joined')
+            
+            for user in users:
+                # Count total analyses for this user
+                total_analyses = TextAnalysisResult.objects.filter(
+                    content_type__model='textsubmission',
+                    object_id__in=TextSubmission.objects.filter(user=user).values_list('id', flat=True)
+                ).count()
+                
+                # Count accurate detections (completed analyses)
+                accurate_detections = TextAnalysisResult.objects.filter(
+                    content_type__model='textsubmission',
+                    object_id__in=TextSubmission.objects.filter(user=user).values_list('id', flat=True),
+                    status=AnalysisResult.Status.COMPLETED
+                ).count()
+                
+                # Count feedback submitted by this user
+                feedback_count = Feedback.objects.filter(user=user).count()
+                
+                users_data.append({
+                    'id': user.id,
+                    'name': user.full_name or user.username,
+                    'email': user.email,
+                    'joinDate': user.date_joined.strftime('%Y-%m-%d'),
+                    'totalAnalyses': total_analyses,
+                    'accurateDetections': accurate_detections,
+                    'feedbackCount': feedback_count
+                })
+            
+            return {
+                'success': True,
+                'users': users_data
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }

@@ -181,3 +181,36 @@ def get_admin_dashboard_data(request):
             error=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def get_users_list(request):
+    """
+    Get list of all users with their statistics for admin dashboard.
+    
+    GET /api/admin/users/
+    """
+    try:
+        result = AdminService.get_users_list()
+        
+        if result['success']:
+            return create_json_response(
+                success=True,
+                message='Users retrieved successfully',
+                data={
+                    'users': result['users']
+                }
+            )
+        else:
+            return create_json_response(
+                success=False,
+                error=result['error'],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    except Exception as e:
+        return create_json_response(
+            success=False,
+            error=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

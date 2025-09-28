@@ -51,6 +51,7 @@ urlpatterns = [
     path('admin/activity/', admin_views.get_recent_activity, name='get_recent_activity'),
     path('admin/performance/', admin_views.get_performance_metrics, name='get_performance_metrics'),
     path('admin/dashboard/', admin_views.get_admin_dashboard_data, name='get_admin_dashboard_data'),
+    path('admin/users/', admin_views.get_users_list, name='admin_users_list'),
 
     # Analysis report download and email management
     path('reports/analysis/<str:analysis_id>/download/', report_views.download_report, name='download_report'),
