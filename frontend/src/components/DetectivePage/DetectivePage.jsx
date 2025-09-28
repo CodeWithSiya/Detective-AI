@@ -1121,7 +1121,7 @@ const DetectivePage = () => {
     ];
 
     const navigationItems = [
-        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
+        {id: 'detective', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
         {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}
