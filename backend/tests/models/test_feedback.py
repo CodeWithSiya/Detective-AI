@@ -48,6 +48,14 @@ class TestFeedbackModel:
         assert choices_dict[Feedback.FeedbackRating.THUMBS_UP] == "Thumbs Up"
         assert choices_dict[Feedback.FeedbackRating.THUMBS_DOWN] == "Thumbs Down"
 
+    def test_feedback_status_choices(self):
+        """
+        Test that status choices are correct.
+        """
+        assert Feedback.FeedbackStatus.PENDING == "PENDING"
+        assert Feedback.FeedbackStatus.REVIEWED == "REVIEWED"
+        assert Feedback.FeedbackStatus.RESOLVED == "RESOLVED"
+
     def test_str_representation(self):
         """
         Test the string representation of Feedback.
@@ -95,12 +103,12 @@ class TestFeedbackModel:
         feedback = Mock(spec=Feedback)
         feedback.content_type = Mock()
         feedback.object_id = Mock()
-        feedback.submission = Mock()
+        feedback.analysis_result = Mock()  # Changed from 'submission' to 'analysis_result'
         
         # Test that the generic foreign key fields exist.
         assert hasattr(feedback, 'content_type')
         assert hasattr(feedback, 'object_id')
-        assert hasattr(feedback, 'submission')
+        assert hasattr(feedback, 'analysis_result')  # Changed from 'submission'
 
     def test_model_meta_configuration(self):
         """
@@ -109,10 +117,10 @@ class TestFeedbackModel:
         # Mock the meta object
         mock_meta = Mock()
         mock_meta.db_table = 'feedback'
-        mock_meta.indexes = [Mock(), Mock(), Mock()]  # 3 indexes
+        mock_meta.indexes = [Mock(), Mock(), Mock(), Mock()]  # 4 indexes now
         
         mock_constraint = Mock()
-        mock_constraint.name = "unique_feedback_per_user_submission"
+        mock_constraint.name = "unique_feedback_per_user_analysis"  # Updated constraint name
         mock_meta.constraints = [mock_constraint]
         
         with patch.object(Feedback, '_meta', mock_meta):
@@ -122,11 +130,11 @@ class TestFeedbackModel:
             assert meta.db_table == 'feedback'
             
             # Test that indexes are defined.
-            assert len(meta.indexes) == 3
+            assert len(meta.indexes) == 4  # Updated to 4 indexes
             
             # Test that unique constraint exists.
             constraint_names = [constraint.name for constraint in meta.constraints]
-            assert "unique_feedback_per_user_submission" in constraint_names
+            assert "unique_feedback_per_user_analysis" in constraint_names  # Updated constraint name
 
     @patch('app.models.Feedback.objects')
     def test_create_feedback(self, mock_objects, mock_user, mock_content_type):
@@ -139,6 +147,7 @@ class TestFeedbackModel:
         mock_feedback.user = mock_user
         mock_feedback.rating = Feedback.FeedbackRating.THUMBS_UP
         mock_feedback.comment = "Great job!"
+        mock_feedback.status = Feedback.FeedbackStatus.PENDING  # Added status field
         mock_feedback.created_at = datetime.now(timezone.utc)
         mock_feedback.updated_at = datetime.now(timezone.utc)
         
@@ -159,8 +168,60 @@ class TestFeedbackModel:
         assert feedback.user == mock_user
         assert feedback.rating == Feedback.FeedbackRating.THUMBS_UP
         assert feedback.comment == "Great job!"
+        assert feedback.status == Feedback.FeedbackStatus.PENDING
         assert feedback.created_at is not None
         assert feedback.updated_at is not None
+
+    def test_status_properties(self, mock_user, mock_content_type):
+        """
+        Test status property methods.
+        """
+        feedback = Mock(spec=Feedback)
+        
+        # Test pending status
+        feedback.status = Feedback.FeedbackStatus.PENDING
+        feedback.is_pending = True
+        feedback.is_reviewed = False
+        feedback.is_resolved = False
+        
+        assert feedback.is_pending == True
+        assert feedback.is_reviewed == False
+        assert feedback.is_resolved == False
+
+    def test_mark_as_reviewed(self, mock_user, mock_content_type):
+        """
+        Test marking feedback as reviewed.
+        """
+        feedback = Mock(spec=Feedback)
+        feedback.status = Feedback.FeedbackStatus.PENDING
+        
+        def mock_mark_as_reviewed():
+            feedback.status = Feedback.FeedbackStatus.REVIEWED
+            
+        feedback.mark_as_reviewed = mock_mark_as_reviewed
+        feedback.save = Mock()
+        
+        feedback.mark_as_reviewed()
+        assert feedback.status == Feedback.FeedbackStatus.REVIEWED
+
+    def test_mark_as_resolved(self, mock_user, mock_content_type):
+        """
+        Test marking feedback as resolved.
+        """
+        feedback = Mock(spec=Feedback)
+        feedback.status = Feedback.FeedbackStatus.PENDING
+        feedback.resolved_at = None
+        
+        def mock_mark_as_resolved():
+            feedback.status = Feedback.FeedbackStatus.RESOLVED
+            feedback.resolved_at = datetime.now(timezone.utc)
+            
+        feedback.mark_as_resolved = mock_mark_as_resolved
+        feedback.save = Mock()
+        
+        feedback.mark_as_resolved()
+        assert feedback.status == Feedback.FeedbackStatus.RESOLVED
+        assert feedback.resolved_at is not None
 
     @patch('app.models.Feedback.objects')
     def test_unique_constraint_enforcement(self, mock_objects, mock_user, mock_content_type):
@@ -314,6 +375,7 @@ class TestFeedbackModel:
         mock_feedback.comment = "Test comment"
         mock_feedback.content_type = mock_content_type
         mock_feedback.object_id = uuid.uuid4()
+        mock_feedback.status = Feedback.FeedbackStatus.PENDING  # Added status field
         
         # Test that we can create the mock and access its attributes
         feedback = mock_feedback
@@ -323,3 +385,4 @@ class TestFeedbackModel:
         assert feedback.rating == Feedback.FeedbackRating.THUMBS_UP
         assert feedback.comment == "Test comment"
         assert feedback.content_type == mock_content_type
+        assert feedback.status == Feedback.FeedbackStatus.PENDING
