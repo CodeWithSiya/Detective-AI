@@ -122,32 +122,24 @@ const Login = () => {
                     <input type="email" placeholder="e.g. me@example.com" ref={emailRef} required />
                 </div>
 
-                <div className="form-group" style={{ position: "relative" }}>
+                <div className="form-group">
                     <label>Password<span className="required">*</span></label>
-                    <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    ref={passwordRef}
-                    required
-                    style={{ paddingRight: "2.5rem" }}
-                    />
-                    <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    style={{
-                        position: "absolute",
-                        right: "0.75rem",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 0
-                    }}
-                    tabIndex={-1}
-                    >
-                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                    </button>
+                    <div className="password-input-wrapper">
+                        <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        ref={passwordRef}
+                        required
+                        />
+                        <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="toggle-password"
+                        tabIndex={-1}
+                        >
+                        {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="form-extra">

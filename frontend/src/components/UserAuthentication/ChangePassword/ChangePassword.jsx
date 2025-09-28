@@ -11,7 +11,7 @@ import "./ChangePassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
 // Import for utility functions for email retrieval and password changing
-import { getEmail } from '../ForgotPassword/ForgotPassword';
+import { getEmail } from '../forgotPassword/ForgotPassword';
 import { resetPassword } from '../AuthHandler';
 import {Eye, EyeOff} from 'lucide-react';
 /**
@@ -168,23 +168,24 @@ const ChangePassword = () => {
                         </div>
                     )}
 
-                    <div className="form-group" style={{ position: "relative" }}>
+                    <div className="form-group">
                         <label>New Password<span className="required">*</span></label>
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            onChange={handlePasswordChange}
-                            ref={passwordRef}
-                            required
-                            style={{ paddingRight: "2.5rem" }}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            className="toggle-password"
-                            tabIndex={-1}
-                        >
-                            {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                        </button>
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                onChange={handlePasswordChange}
+                                ref={passwordRef}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="toggle-password"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                            </button>
+                        </div>
 
                         <div className="password-strength-bar">
                             <div
@@ -209,23 +210,24 @@ const ChangePassword = () => {
                         </p>
                     </div>
 
-                    <div className="form-group" style={{ position: "relative" }}>
+                    <div className="form-group">
                         <label>Confirm Password<span className="required">*</span></label>
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            ref={confirmPasswordRef}
-                            required
-                            style={{ paddingRight: "2.5rem" }}
-                            onChange={handleConfirmPasswordChange}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword((prev) => !prev)}
-                            className="toggle-password"
-                            tabIndex={-1}
-                        >
-                            {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                        </button>
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                ref={confirmPasswordRef}
+                                required
+                                onChange={handleConfirmPasswordChange}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                className="toggle-password"
+                                tabIndex={-1}
+                            >
+                                {showConfirmPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
+                            </button>
+                        </div>
                         {!passwordMatch && (
                             <p style={{ color: '#ef4444', fontWeight: 600, marginTop: '0.5rem' }}>
                                 Passwords do not match!!

@@ -2,7 +2,7 @@
 import mammoth from "mammoth";
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import './DetectivePage.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {
@@ -44,7 +44,7 @@ import {
     Settings
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
+import { getAuthToken, isAuthenticated, getCurrentUser } from "../userAuthentication/AuthHandler";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { sub } from "framer-motion/client";
@@ -1121,7 +1121,7 @@ const DetectivePage = () => {
     ];
 
     const navigationItems = [
-        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
+        {id: 'detective', label: 'Detector', icon: <Search className="icon-sm"/>, active: true},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>},
         {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>}

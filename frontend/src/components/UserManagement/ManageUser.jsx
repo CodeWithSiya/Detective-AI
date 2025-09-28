@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ManageUser.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import {
     Search,
     Eye,
@@ -46,7 +46,7 @@ import {
     Edit3
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { getAuthToken, isAuthenticated, getCurrentUser, logout } from "../UserAuthentication/AuthHandler";
+import { getAuthToken, isAuthenticated, getCurrentUser, logout } from "../userAuthentication/AuthHandler";
 
 const ManageUser = () => {
     // API Configuration

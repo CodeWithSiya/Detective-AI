@@ -1,25 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
-import Logo from '../Assets/Logo.png';
-import DetectiveBg from '../Assets/vecteezy.jpg';
-import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch } from 'lucide-react';
+import Logo from '../../assets/images/Logo.png';
+import DetectiveBg from '../../assets/images/vecteezy.jpg';
+import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch, Download, Loader2 } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";
 
 
 const DemoLandingPage = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     /*const [currentDemo, setCurrentDemo] = useState(0);*/
 
     useEffect(() => {
         setIsVisible(true);
     }, []);
 
+    // Function to handle user manual download
+    const handleDownloadManual = async () => {
+        setIsDownloading(true);
+        try {
+            // Create a link element to trigger download
+            const link = document.createElement('a');
+            link.href = '/DetectiveAI_User_Manual.pdf';
+            link.download = 'DetectiveAI_User_Manual.pdf';
+            link.target = '_blank';
+            
+            // Append to body, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Add a small delay to show loading state
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+            console.error('Error downloading manual:', error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const features = [
         {
             icon: <Eye className="icon-lg" />,
             title: "Advanced Detection",
-            description: "State-of-art AI models identify generated content with 85% accuracy",
+            description: "AI models identify generated content with ~85% accuracy",
             gradient: "gradient-blue-cyan"
         },
         {
@@ -30,8 +55,8 @@ const DemoLandingPage = () => {
         },
         {
             icon: <Zap className="icon-lg" />,
-            title: "Lightning Fast",
-            description: "Get detection results in under 10 seconds for text and 30 seconds for images",
+            title: "Reasonably Fast",
+            description: "Get detection results in under 15 seconds for text and 20 seconds for images",
             gradient: "gradient-yellow-orange"
         }
     ];
@@ -48,28 +73,30 @@ const DemoLandingPage = () => {
             title: "Analysis History",
             description: "Track all your previous detections with organized sidebar history",
             type: "video",
-            content: "/path-to-history-sidebar-video.mp4"
+            content: "/history.mp4",
+            thumbnail: "/history-img.png"
         },
         {
             icon: <Target className="icon-md" />,
             title: "Keyword Highlighting",
             description: "AI-generated content highlighted with intelligent keyword detection",
             type: "video", 
-            content: "/path-to-keyword-highlighting-video.mp4"
+            content: "/highlight-text-vid.mp4",
+            thumbnail: "/highlighted-text.png"
         },
         {
             icon: <FileSearch className="icon-md" />,
             title: "Detailed Analysis",
             description: "Comprehensive breakdown of detection results and explanations",
             type: "image",
-            content: "/path-to-detailed-analysis-image.jpg"
+            content: "/detection-factors.png"
         },
         {
             icon: <BarChart3 className="icon-md" />,
             title: "Confidence Score",
             description: "Visual confidence indicators showing detection accuracy levels",
             type: "image",
-            content: "/path-to-confidence-score-image.jpg"
+            content: "/confidence-analysis.png"
         }
     ];
 
@@ -162,9 +189,22 @@ const DemoLandingPage = () => {
                                     <ChevronRight className="icon-sm" />
                                 </button>
                             </RouterLink>
-                            <button className="btn-secondary">
-                                <Play className="icon-sm" />
-                                <span>Watch Demo</span>
+                            <button 
+                                className="btn-secondary" 
+                                onClick={handleDownloadManual}
+                                disabled={isDownloading}
+                            >
+                                {isDownloading ? (
+                                    <>
+                                        <Loader2 className="icon-sm animate-spin" />
+                                        <span>Downloading...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="icon-sm" />
+                                        <span>User Manual</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                         {/* Performance Stats */}
@@ -194,7 +234,7 @@ const DemoLandingPage = () => {
                                 loop
                                 playsInline
                             >
-                                <source src="/text-vid.mp4" type="video/mp4" />
+                                <source src="/text-notai.mp4" type="video/mp4" />
                                 Your browser does not support the video tag.
                             </video>
                             <div className="video-overlay"></div>
@@ -209,7 +249,7 @@ const DemoLandingPage = () => {
                                 loop
                                 playsInline
                             >
-                                <source src="/image-vid.mp4" type="video/mp4" />
+                                <source src="/image-upload-ai.mp4" type="video/mp4" />
                                 Your browser does not support the video tag.
                             </video>
                             <div className="video-overlay"></div>
@@ -257,7 +297,35 @@ const DemoLandingPage = () => {
 
                     <div className="showcase-grid">
                         {showcaseFeatures.map((feature, i) => (
-                            <div key={i} className="showcase-card">
+                            <div 
+                                key={i} 
+                                className="showcase-card"
+                                onMouseEnter={(e) => {
+                                    if (feature.type === 'video') {
+                                        const card = e.currentTarget;
+                                        const thumbnail = card.querySelector('.showcase-thumbnail');
+                                        const video = card.querySelector('.showcase-video');
+                                        if (thumbnail && video) {
+                                            thumbnail.style.display = 'none';
+                                            video.style.display = 'block';
+                                            video.play();
+                                        }
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (feature.type === 'video') {
+                                        const card = e.currentTarget;
+                                        const thumbnail = card.querySelector('.showcase-thumbnail');
+                                        const video = card.querySelector('.showcase-video');
+                                        if (thumbnail && video) {
+                                            video.pause();
+                                            video.currentTime = 0;
+                                            video.style.display = 'none';
+                                            thumbnail.style.display = 'block';
+                                        }
+                                    }
+                                }}
+                            >
                                 <div className="showcase-header">
                                     <div className="showcase-icon">
                                         {feature.icon}
@@ -271,20 +339,30 @@ const DemoLandingPage = () => {
                                 
                                 <div className="showcase-content">
                                     {feature.type === 'video' ? (
-                                        <video 
-                                            className="showcase-video"
-                                            muted 
-                                            loop
-                                            playsInline
-                                            onMouseEnter={(e) => e.target.play()}
-                                            onMouseLeave={(e) => {
-                                                e.target.pause();
-                                                e.target.currentTime = 0;
-                                            }}
-                                        >
-                                            <source src={feature.content} type="video/mp4" />
-                                            Your browser does not support the video tag.
-                                        </video>
+                                        <div className="video-container-showcase">
+                                            {/* Thumbnail image - shown by default */}
+                                            <img 
+                                                className="showcase-thumbnail"
+                                                src={feature.thumbnail}
+                                                alt={`${feature.title} preview`}
+                                                onError={(e) => {
+                                                    // If thumbnail fails to load, hide it and show video
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'block';
+                                                }}
+                                            />
+                                            {/* Video - hidden by default, shows on hover */}
+                                            <video 
+                                                className="showcase-video"
+                                                muted 
+                                                loop
+                                                playsInline
+                                                style={{ display: 'none' }}
+                                            >
+                                                <source src={feature.content} type="video/mp4" />
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        </div>
                                     ) : feature.type === 'image' ? (
                                         <img 
                                             className="showcase-image"
@@ -315,42 +393,6 @@ const DemoLandingPage = () => {
                 </div>
             </section>
 
-            {/*demo preview section*/}
-            <section className="demo-preview">
-                <div className="demo-preview-inner">
-                    <div className="features-header">
-                        <h2 className="section-heading">
-                            See Detective AI in Action
-                        </h2>
-                        <p className="section-subtext">
-                            Experience the power of our detection technology
-                        </p>
-                    </div>
-
-                    <div className="demo-grid">
-                        {demoContent.map((demo, i) => (
-                            <div key={i} className="demo-card">
-                                <div className="demo-card-header">
-                                    <div className="demo-icon">
-                                        {demo.type === 'text' ? <FileText className="icon-md" /> : <ImageIcon className="icon-md"/>}
-                                    </div>
-                                    <div>
-                                        <h3 className="demo-title">{demo.title}</h3>
-                                        <p className="demo-subtitle">{demo.description}</p>
-                                    </div>
-                                </div>
-                                <div className="demo-preview-box">
-                                    <p>{demo.preview}</p>
-                                </div>
-                                <button className="btn-demo">
-                                    <Play className="icon-sm"/>
-                                    <span>Try This Demo</span>
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
             {/*cta section*/}
             <section className="cta">

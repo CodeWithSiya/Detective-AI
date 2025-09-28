@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import {
     Users,
     Activity,
@@ -29,7 +29,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
-import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler';
+import { getAuthToken, isAuthenticated } from '../userAuthentication/AuthHandler';
 
 const AdminPage = () => {
     // API Configuration.

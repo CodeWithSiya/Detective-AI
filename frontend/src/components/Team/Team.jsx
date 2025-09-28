@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './Team.css';
-import siyaImg from '../Assets/siya.jpg';
-import lindoImg from '../Assets/lindo.jpg';
-import ethanImg from '../Assets/ethan.jpg';
-import Logo from '../Assets/Logo.png';
+import siyaImg from '../../assets/images/siya.jpg';
+import lindoImg from '../../assets/images/lindo.jpg';
+import ethanImg from '../../assets/images/ethan.jpg';
+import Logo from '../../assets/images/Logo.png';
 import { Link as RouterLink } from "react-router-dom";
 import { ArrowLeft, Mail, Github, Linkedin } from 'lucide-react';
 import { Menu, ChevronRight, Users, Play, Search, Home, Settings } from 'lucide-react';
@@ -12,7 +12,7 @@ const Team = ({ onBackToDetective }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const navigationItems = [
-        {id: 'detector', label: 'Detector', icon: <Search className="icon-sm"/>, to: '/detective'},
+        {id: 'detective', label: 'Detector', icon: <Search className="icon-sm"/>, to: '/detective'},
         {id: 'team', label: 'Team', icon: <Users className="icon-sm"/>, to: '/team', active: true},
         {id: 'manage-user', label: 'Manage Account', icon: <Settings className="icon-sm"/>, to: '/manage-user'},
         {id: '', label: 'Landing Page', icon: <Home className="icon-sm"/>, to: '/'},
