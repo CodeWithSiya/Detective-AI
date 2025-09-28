@@ -200,11 +200,11 @@ class TestAdminService:
             activity = activities[0]
             assert 'type' in activity
             assert 'id' in activity
-            assert 'title' in activity
-            assert 'description' in activity
+            assert 'action' in activity
             assert 'user' in activity
             assert 'timestamp' in activity
-            assert 'meta' in activity
+            assert 'status' in activity
+            assert 'analysisType' in activity
 
     @patch('app.services.admin_service.TextSubmission.objects')
     def test_get_recent_activity_exception_handling(self, mock_submission_objects):
