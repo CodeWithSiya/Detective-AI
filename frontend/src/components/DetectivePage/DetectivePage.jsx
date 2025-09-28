@@ -53,7 +53,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
 
 const DetectivePage = () => {
     // API Configuration.
-    const API_BASE_URL = 'https://detective-ai.up.railway.app';
+    const API_BASE_URL = 'http://localhost:8000';
     const navigate = useNavigate();
 
     // Get auth token and user data.
@@ -212,14 +212,14 @@ const DetectivePage = () => {
         
         // Define priority levels (higher number = higher priority)
         const PRIORITY_LEVELS = {
-            suspicious: 7,    // Highest priority - AI patterns
-            keyword: 6,       // AI keywords
-            critical: 5,      // Critical indicators
-            warning: 4,       // Warning level
-            jargon: 3,        // Corporate jargon
-            buzzword: 2,      // Buzzwords
-            transition: 1,    // Lowest priority - transition words
-            human: 0         // Human indicators (different styling)
+            suspicious: 8,    // Highest priority - AI patterns
+            keyword: 7,       // AI keywords
+            critical: 6,      // Critical indicators
+            warning: 5,       // Warning level
+            jargon: 4,        // Corporate jargon
+            buzzword: 3,      // Buzzwords
+            transition: 2,    // Lowest priority - transition words
+            human: 1         // Human indicators - lowest priority
         };
         
         // Collect all found items with their types and priorities
