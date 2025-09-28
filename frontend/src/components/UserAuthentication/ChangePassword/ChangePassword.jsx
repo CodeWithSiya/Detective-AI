@@ -10,8 +10,6 @@ import React, { useRef, useState } from 'react';
 import "./ChangePassword.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate } from 'react-router-dom';
-// Import for utility functions for email retrieval and password changing
-import { getEmail } from '../forgotPassword/ForgotPassword';
 import { resetPassword } from '../AuthHandler';
 import {Eye, EyeOff} from 'lucide-react';
 /**
