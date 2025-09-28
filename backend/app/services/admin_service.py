@@ -165,76 +165,92 @@ class AdminService:
         try:
             activities = []
 
-            # Recent submissions.
+            # Recent submissions - Map to 'analysis' type for frontend
             recent_submissions = TextSubmission.objects.select_related('user').order_by('-created_at')[:limit]
             for submission in recent_submissions:
                 activities.append({
-                    'type': 'submission',
                     'id': str(submission.id),
-                    'title': f'New submission: {submission.name}',
-                    'description': f'User {submission.user.username} submitted "{submission.name}"',
-                    'user': submission.user.username,
-                    'user_email': submission.user.email,
+                    'type': 'analysis',  # Frontend expects 'analysis' for FileText icon
+                    'user': submission.user.full_name or submission.user.username,
+                    'action': 'Text analysis completed',  # Simplified action text
                     'timestamp': submission.created_at,
-                    'meta': {
-                        'submission_name': submission.name,
-                        'character_count': getattr(submission, 'character_count', None)
-                    }
+                    'status': 'success',
+                    'analysisType': 'text'
                 })
 
-            # Recent analyses.
-            recent_analyses = TextAnalysisResult.objects.select_related('submission__user').order_by('-created_at')[:limit]
+            # Recent analyses - Keep as 'analysis' type
+            recent_analyses = TextAnalysisResult.objects.select_related('content_type').order_by('-created_at')[:limit]
             for analysis in recent_analyses:
-                if analysis.submission and hasattr(analysis.submission, 'user') and analysis.submission.user:
-                    activities.append({
-                        'type': 'analysis',
-                        'id': str(analysis.id),
-                        'title': f'Analysis {analysis.status.lower()}: {analysis.detection_result or "In progress"}',
-                        'description': f'Analysis for "{analysis.submission.name}" by {analysis.submission.user.username}',
-                        'user': analysis.submission.user.username,
-                        'user_email': analysis.submission.user.email,
-                        'timestamp': analysis.created_at,
-                        'meta': {
-                            'status': analysis.status,
-                            'detection_result': analysis.detection_result,
-                            'confidence': analysis.confidence,
-                            'processing_time_ms': analysis.processing_time_ms
+                try:
+                    # Get the submission through the generic foreign key
+                    submission = analysis.content_object
+                    if submission and hasattr(submission, 'user'):
+                        # Handle enum values for status
+                        status_value = analysis.status
+                        if hasattr(status_value, 'value'):
+                            status_value = status_value.value
+                        
+                        # Map status to frontend format
+                        status_mapping = {
+                            'COMPLETED': 'success',
+                            'FAILED': 'error',
+                            'PROCESSING': 'pending',
+                            'PENDING': 'pending'
                         }
-                    })
+                        
+                        activities.append({
+                            'id': str(analysis.id),
+                            'type': 'analysis',  # Frontend expects 'analysis' for FileText icon
+                            'user': submission.user.full_name or submission.user.username,
+                            'action': 'Text analysis completed',  # Simplified action text
+                            'timestamp': analysis.created_at,
+                            'status': status_mapping.get(status_value, 'pending'),
+                            'analysisType': 'text'
+                        })
+                except (AttributeError, Exception):
+                    # Skip this analysis if we can't get submission data
+                    continue
 
-            # Recent feedback.
+            # Recent feedback - Map to 'feedback' type
             recent_feedback = Feedback.objects.select_related('user').order_by('-created_at')[:limit]
             for feedback in recent_feedback:
+                # Handle enum values for rating
+                rating_value = feedback.rating
+                if hasattr(rating_value, 'value'):
+                    rating_value = rating_value.value
+                
+                # Determine analysisType based on the related analysis
+                analysis_type = 'text'  # Default
+                try:
+                    analysis = feedback.analysis_result
+                    if analysis and hasattr(analysis, '__class__'):
+                        model_name = analysis.__class__.__name__.lower()
+                        if 'image' in model_name:
+                            analysis_type = 'image'
+                except:
+                    pass
+                
                 activities.append({
-                    'type': 'feedback',
                     'id': str(feedback.id),
-                    'title': f'Feedback: {feedback.rating}',
-                    'description': f'User {feedback.user.username} gave {feedback.rating.lower().replace("_", " ")} feedback',
-                    'user': feedback.user.username,
-                    'user_email': feedback.user.email,
+                    'type': 'feedback',  # Frontend expects 'feedback' for MessageSquare icon
+                    'user': feedback.user.full_name or feedback.user.username,
+                    'action': 'Feedback submitted',  # Simplified action text
                     'timestamp': feedback.created_at,
-                    'meta': {
-                        'rating': feedback.rating,
-                        'comment': feedback.comment[:100] + '...' if len(feedback.comment) > 100 else feedback.comment
-                    }
+                    'status': 'pending',  # Feedback typically starts as pending
+                    'analysisType': analysis_type
                 })
 
-            # Recent user registrations.
+            # Recent user registrations - Map to 'user' type
             recent_users = User.objects.order_by('-date_joined')[:limit]
             for user in recent_users:
                 activities.append({
-                    'type': 'user_registration',
                     'id': str(user.id),
-                    'title': f'New user registered: {user.username}',
-                    'description': f'{user.full_name} ({user.email}) joined the platform',
-                    'user': user.username,
-                    'user_email': user.email,
+                    'type': 'user',  # Frontend expects 'user' for Users icon
+                    'user': user.full_name or user.username,
+                    'action': 'User registered',  # Simplified action text
                     'timestamp': user.date_joined,
-                    'meta': {
-                        'is_verified': user.is_email_verified,
-                        'is_active': user.is_active,
-                        'is_admin': user.is_staff
-                    }
+                    'status': 'success',
+                    'analysisType': 'user'
                 })
 
             # Sort all activities by timestamp (most recent first).

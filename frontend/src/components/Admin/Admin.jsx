@@ -33,7 +33,7 @@ import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler
 
 const AdminPage = () => {
     // API Configuration.
-    const API_BASE_URL = 'https://detective-ai.up.railway.app';
+    const API_BASE_URL = 'http://localhost:8000';
 
     // State management
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -59,7 +59,7 @@ const AdminPage = () => {
 
     // Fetch statistics data on component mount
     useEffect(() => {
-        const fetchStatistics = async () => {
+        const fetchDashboard = async () => {
             if (!isUserAuthenticated || !authToken) {
                 setLoading(false);
                 setError('Authentication required');
@@ -70,7 +70,7 @@ const AdminPage = () => {
             setError(null);
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/statistics/`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/`, {
                     headers: {
                         'Authorization': `Token ${authToken}`,
                         'Content-Type': 'application/json'
@@ -83,7 +83,7 @@ const AdminPage = () => {
                     } else if (response.status === 403) {
                         throw new Error('Forbidden. Admin access required.');
                     } else if (response.status === 404) {
-                        throw new Error('Admin statistics endpoint not found.');
+                        throw new Error('Admin dashboard endpoint not found.');
                     } else {
                         throw new Error(`Server error: ${response.status}`);
                     }
@@ -92,21 +92,22 @@ const AdminPage = () => {
                 const result = await response.json();
                 
                 if (result.success && result.data) {
-                    setStatistics(result.data);
-                    console.log('Admin statistics loaded:', result.data); // Fixed: use result.data
+                    setStatistics(result.data.statistics);
+                    setRecentActivity(result.data.recent_activity);
+                    console.log('Admin dashboard data loaded:', result.data);
                 } else {
-                    throw new Error(result.error || 'Failed to fetch statistics');
+                    throw new Error(result.error || 'Failed to fetch dashboard data');
                 }
 
             } catch (error) {
-                console.error('Failed to fetch admin statistics:', error);
+                console.error('Failed to fetch admin dashboard data:', error);
                 setError(error.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchStatistics();
+        fetchDashboard();
     }, [isUserAuthenticated, authToken, API_BASE_URL]);
 
     // Mock data for development (remove when API is ready)
@@ -182,36 +183,6 @@ const AdminPage = () => {
                     analysisType: 'image',
                     originalPrediction: 'AI Generated',
                     confidence: 78
-                }
-            ]);
-
-            setRecentActivity([
-                {
-                    id: 1,
-                    type: 'analysis',
-                    user: 'Siyabonga Madondo',
-                    action: 'Text analysis completed',
-                    timestamp: '2024-01-20T10:30:00Z',
-                    status: 'success',
-                    analysisType: 'text'
-                },
-                {
-                    id: 2,
-                    type: 'feedback',
-                    user: 'Sarah Johnson',
-                    action: 'Feedback submitted',
-                    timestamp: '2024-01-20T10:25:00Z',
-                    status: 'pending',
-                    analysisType: 'image'
-                },
-                {
-                    id: 3,
-                    type: 'user',
-                    user: 'Mike Chen',
-                    action: 'User registered',
-                    timestamp: '2024-01-20T10:20:00Z',
-                    status: 'success',
-                    analysisType: null
                 }
             ]);
 
