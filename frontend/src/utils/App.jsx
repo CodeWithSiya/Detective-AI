@@ -1,9 +1,9 @@
 import './App.css'
 import Login from '../components/UserAuthentication/Login/Login';
 import Signup from '../components/UserAuthentication/Signup/Signup';
-import ForgotPassword from '../components/UserAuthentication/forgotPassword/ForgotPassword';
-import VerifyEmail from '../components/UserAuthentication/verifyPassword/VerifyEmail';
-import ChangePassword from '../components/UserAuthentication/changePassword/ChangePassword'
+import ForgotPassword from '../components/UserAuthentication/ForgotPassword/ForgotPassword';
+import VerifyEmail from '../components/UserAuthentication/VerifyPassword/VerifyEmail';
+import ChangePassword from '../components/UserAuthentication/ChangePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DetectivePage from '../components/DetectivePage/DetectivePage';
 import DemoLandingPage from '../components/DemoLandingPage/DemoLandingPage';
