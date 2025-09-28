@@ -1,6 +1,6 @@
 # Detective AI
 
-A web-based application designed to detect AI-generated content in both text and images using advanced machine learning models. Detective AI provides confidence scores and detailed explanations to help users distinguish between human-created and artificially generated content.
+A web-based application designed to detect AI-generated content in both text and images using machine learning models. Detective AI provides confidence scores and detailed explanations to help users distinguish between human-created and artificially generated content.
 
 ## Features
 
@@ -44,7 +44,7 @@ A web-based application designed to detect AI-generated content in both text and
 ## Quick Start
 
 ### Option 1: Use the Web Application
-Simply visit https://detective-ai-virid.vercel.app and start analyzing content immediately.
+Simply visit https://detective-ai-virid.vercel.app and start analysing content immediately.
 
 ### Option 2: Local Development Setup
 
@@ -68,7 +68,7 @@ Simply visit https://detective-ai-virid.vercel.app and start analyzing content i
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
-
+   
 3. **Environment configuration**
    Create `.env` file in backend directory:
    ```bash
@@ -115,7 +115,7 @@ Simply visit https://detective-ai-virid.vercel.app and start analyzing content i
 ### For Guest Users
 - Visit the landing page
 - Click "Enter Detective Mode" for basic analysis
-- Analyze text content with limited features
+- Analyse text content with limited features
 
 ### For Registered Users
 - Create an account and verify your email
@@ -132,15 +132,6 @@ Simply visit https://detective-ai-virid.vercel.app and start analyzing content i
 4. Review confidence scores and detailed explanations
 5. Export results (registered users)
 
-## API Endpoints
-
-The Django backend provides RESTful API endpoints:
-
-- `POST /api/analysis/text/` - Analyze text content
-- `POST /api/analysis/image/` - Analyze image content
-- `GET /api/submissions/` - Get user submission history
-- `POST /api/feedback/` - Submit analysis feedback
-
 ## System Requirements
 
 **For Users:**
@@ -155,105 +146,9 @@ The Django backend provides RESTful API endpoints:
 - 4GB+ RAM recommended
 - 4GB+ free storage space
 
-## Contributing
-
-1. Fork the repository
-2. Create a branch (`git checkout -b new-branch`)
-3. Make your changes
-4. Run tests and ensure code quality
-5. Commit your changes (`git commit -m 'Add new feature'`)
-6. Push to the branch (`git push origin new-branch`)
-7. Open a Pull Request
-
-## Project Structure
-
-```
-Detective-AI/
-├── backend/                    # Django backend
-│   ├── config/                # Django project configuration
-│   │   ├── __init__.py
-│   │   ├── settings.py        # Django settings & environment variables
-│   │   ├── urls.py           # Main URL configuration
-│   │   ├── wsgi.py           # WSGI configuration
-│   │   └── asgi.py           # ASGI configuration
-│   ├── app/                   # Main Django application
-│   │   ├── models/           # Database models
-│   │   │   ├── user.py
-│   │   │   ├── text_submission.py
-│   │   │   ├── image_submission.py
-│   │   │   ├── text_analysis_result.py
-│   │   │   ├── image_analysis_result.py
-│   │   │   └── feedback.py
-│   │   ├── views/            # API endpoints & views
-│   │   │   ├── analysis_views.py
-│   │   │   ├── user_views.py
-│   │   │   ├── admin_views.py
-│   │   │   ├── feedback_views.py
-│   │   │   ├── report_views.py
-│   │   │   └── submission_history_views.py
-│   │   ├── services/         # Business logic services
-│   │   ├── serializers/      # DRF serializers
-│   │   ├── ai/              # AI models & detection logic
-│   │   │   ├── ai_text_model.py
-│   │   │   ├── ai_image_model.py
-│   │   │   └── ai_model.py
-│   │   ├── migrations/       # Database migrations
-│   │   ├── management/       # Django management commands
-│   │   ├── templates/        # Email templates
-│   │   └── urls.py          # App URL configuration
-│   ├── tests/               # Backend tests
-│   │   ├── models/
-│   │   ├── views/
-│   │   └── conftest.py
-│   ├── wheels/              # Python wheel files for dependencies
-│   ├── manage.py            # Django management script
-│   ├── requirements.txt     # Python dependencies
-│   └── pytest.ini         # Pytest configuration
-├── frontend/               # React frontend
-│   ├── src/               # React source files
-│   │   ├── components/    # React components
-│   │   │   ├── UserAuthentication/  # Auth components
-│   │   │   │   ├── Login/
-│   │   │   │   ├── Signup/
-│   │   │   │   ├── ForgotPassword/
-│   │   │   │   └── ChangePassword/
-│   │   │   ├── DetectivePage/      # Main analysis interface
-│   │   │   ├── Basic-DetectivePage/ # Guest analysis interface
-│   │   │   ├── Admin/              # Admin dashboard
-│   │   │   ├── UserManagement/     # User management
-│   │   │   ├── DemoLandingPage/    # Landing page
-│   │   │   ├── Team/               # Team page
-│   │   │   ├── Assets/             # Image assets
-│   │   │   ├── ui/                 # UI components
-│   │   │   └── ScrollToTop/        # Utility components
-│   │   ├── assets/        # Static assets
-│   │   ├── App.jsx        # Main App component
-│   │   ├── App.css        # Global styles
-│   │   ├── main.jsx       # React entry point
-│   │   └── index.css      # Global CSS
-│   ├── public/            # Static assets
-│   │   ├── Logo.png
-│   │   ├── confidence-analysis.png
-│   │   ├── detection-factors.png
-│   │   └── *.mp4         # Demo videos
-│   ├── test/              # Frontend tests
-│   │   ├── __mocks__/
-│   │   └── msw/
-│   ├── .notebook/         # Development notebooks
-│   ├── package.json       # Node.js dependencies
-│   ├── requirements.txt   # Frontend requirements (custom)
-│   ├── vite.config.js     # Vite configuration
-│   ├── babel.config.cjs   # Babel configuration
-│   ├── eslint.config.js   # ESLint configuration
-│   ├── jsconfig.json      # JavaScript configuration
-│   └── index.html         # HTML entry point
-└── README.md              # Project documentation
-```
-
 ## Documentation
 
 - **User Manual**: Available in `/frontend/public/DetectiveAI_User_Manual.pdf`
-- **API Endpoints**: Django REST API available at `https://detective-ai.up.railway.app/api/`
 - **Demo Videos**: Interactive guides available in `/frontend/public/` (*.mp4 files)
 - **Frontend Documentation**: Component documentation in `/frontend/src/components/`
 - **Backend API**: RESTful endpoints documented in `/backend/app/views/`
