@@ -44,7 +44,7 @@ import { isAuthenticated } from '../UserAuthentication/AuthHandler';
 
 const DetectiveBasic = () => {
     // API Configuration.
-    const API_BASE_URL = 'http://localhost:8000';
+    const API_BASE_URL = 'https://detective-ai.up.railway.app';
     const navigate = useNavigate();
 
     // Get authentication data.
