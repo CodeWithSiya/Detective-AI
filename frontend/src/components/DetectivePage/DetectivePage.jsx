@@ -44,7 +44,7 @@ import {
     Settings
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { getAuthToken, isAuthenticated, getCurrentUser } from "../userAuthentication/AuthHandler";
+import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { sub } from "framer-motion/client";

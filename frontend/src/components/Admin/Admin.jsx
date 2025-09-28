@@ -33,7 +33,7 @@ import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler
 
 const AdminPage = () => {
     // API Configuration.
-    const API_BASE_URL = 'http://localhost:8000';
+    const API_BASE_URL = 'https://detective-ai.up.railway.app';
 
     // State management
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -157,7 +157,6 @@ const AdminPage = () => {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log(response)
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch feedback: ${response.status}`);

@@ -40,7 +40,7 @@ import {
     Home
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { isAuthenticated } from '../userAuthentication/AuthHandler';
+import { isAuthenticated } from '../UserAuthentication/AuthHandler';
 
 const DetectiveBasic = () => {
     // API Configuration.
