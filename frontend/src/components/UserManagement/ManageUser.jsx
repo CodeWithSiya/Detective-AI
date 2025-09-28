@@ -46,7 +46,7 @@ import {
     Edit3
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { getAuthToken, isAuthenticated, getCurrentUser, logout } from "../UserAuthentication/AuthHandler";
+import { getAuthToken, isAuthenticated, getCurrentUser, logout } from "../userAuthentication/AuthHandler";
 
 const ManageUser = () => {
     // API Configuration

@@ -29,7 +29,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
-import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler';
+import { getAuthToken, isAuthenticated } from '../userAuthentication/AuthHandler';
 
 const AdminPage = () => {
     // API Configuration.

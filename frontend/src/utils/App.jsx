@@ -1,17 +1,17 @@
 import './App.css'
-import Login from './components/UserAuthentication/Login/Login'
-import Signup from './components/UserAuthentication/Signup/Signup';
-import ForgotPassword from './components/UserAuthentication/ForgotPassword/ForgotPassword';
-import VerifyEmail from './components/UserAuthentication/VerifyPassword/VerifyEmail';
-import ChangePassword from './components/UserAuthentication/ChangePassword/ChangePassword'
+import Login from '../components/userAuthentication/login/Login'
+import Signup from '../components/userAuthentication/signup/Signup';
+import ForgotPassword from '../components/userAuthentication/forgotPassword/ForgotPassword';
+import VerifyEmail from '../components/userAuthentication/verifyPassword/VerifyEmail';
+import ChangePassword from '../components/userAuthentication/changePassword/ChangePassword'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import DetectivePage from './components/DetectivePage/DetectivePage';
-import DemoLandingPage from './components/DemoLandingPage/DemoLandingPage';
-import Team from './components/Team/Team';
-import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import Admin from './components/Admin/Admin';
-import DetectiveBasic from './components/Basic-DetectivePage/DetectiveBasic';
-import ManageUser from './components/UserManagement/ManageUser';
+import DetectivePage from '../components/detectivePage/DetectivePage';
+import DemoLandingPage from '../components/demoLandingPage/DemoLandingPage';
+import Team from '../components/team/Team';
+import ScrollToTop from '../utils/scrollToTop/ScrollToTop';
+import Admin from '../components/admin/Admin';
+import DetectiveBasic from '../components/basicDetectivePage/DetectiveBasic';
+import ManageUser from '../components/userManagement/ManageUser';
 
 function App() {
   return (
