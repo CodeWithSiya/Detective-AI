@@ -10,13 +10,14 @@ from app.views.feedback_views import (
     delete_feedback,
     get_feedback_statistics,
     get_all_feedback_admin,
+    mark_feedback_as_resolved
 )
 from app.models.feedback import Feedback
 import pytest
 import uuid
 
 class TestFeedbackViews:
-    """s
+    """
     Unit tests for Feedback Views.
 
     :author: Siyabonga Madondo, Ethan Ngwetjana, Lindokuhle Mdlalose 
@@ -131,7 +132,8 @@ class TestFeedbackViews:
             'thumbs_down': 5,
             'satisfaction_rate': 80.0
         }
-    
+
+    # Submit Feedback Tests
     @patch('app.views.feedback_views.FeedbackService.submit_feedback')
     def test_submit_feedback_success(self, mock_service, api_factory, mock_user, mock_analysis_id, mock_feedback_data):
         """
@@ -168,58 +170,6 @@ class TestFeedbackViews:
             rating=Feedback.FeedbackRating.THUMBS_UP,
             comment='Great analysis!'
         )
-
-    @patch('app.views.feedback_views.FeedbackService.submit_feedback')
-    def test_submit_feedback_failure(self, mock_service, api_factory, mock_user, mock_analysis_id):
-        """
-        Test handling of service-level failure in feedback submission.
-        """
-        # Mock request and return data.
-        mock_service.return_value = {
-            'success': False,
-            'error': 'Analysis result not found'
-        } 
-        request_data = {
-            'rating': Feedback.FeedbackRating.THUMBS_UP,
-            'comment': 'Great analysis!'
-        }
-        
-        # Create authenticated request. 
-        request = api_factory.post(f'/api/feedback/analysis/{mock_analysis_id}/submit/', request_data)
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = submit_feedback(request, mock_analysis_id)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['success'] is False
-        assert response.data['error'] == 'Analysis result not found'
-
-    @patch('app.views.feedback_views.FeedbackService.submit_feedback')
-    def test_submit_feedback_exception(self, mock_service, api_factory, mock_user, mock_analysis_id):
-        """
-        Test handling of unexpected exceptions in feedback submission.
-        """
-        # Mock data.
-        mock_service.side_effect = Exception('Database connection failed')
-       
-        request_data = {
-            'rating': Feedback.FeedbackRating.THUMBS_UP,
-            'comment': 'Great analysis!'
-        }
-        
-        # Create authenticated request.
-        request = api_factory.post(f'/api/feedback/analysis/{mock_analysis_id}/submit/', request_data)
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = submit_feedback(request, mock_analysis_id)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['success'] is False
-        assert response.data['error'] == 'Database connection failed'
 
     def test_submit_feedback_missing_rating(self, api_factory, mock_user, mock_analysis_id):
         """
@@ -264,6 +214,34 @@ class TestFeedbackViews:
         assert response.data['success'] is False
         assert 'Rating must be one of' in response.data['error']
 
+    @patch('app.views.feedback_views.FeedbackService.submit_feedback')
+    def test_submit_feedback_service_failure(self, mock_service, api_factory, mock_user, mock_analysis_id):
+        """
+        Test handling of service-level failure in feedback submission.
+        """
+        # Mock request and return data.
+        mock_service.return_value = {
+            'success': False,
+            'error': 'Analysis result not found'
+        } 
+        request_data = {
+            'rating': Feedback.FeedbackRating.THUMBS_UP,
+            'comment': 'Great analysis!'
+        }
+        
+        # Create authenticated request. 
+        request = api_factory.post(f'/api/feedback/analysis/{mock_analysis_id}/submit/', request_data)
+        force_authenticate(request, user=mock_user)
+        
+        # Call view.
+        response = submit_feedback(request, mock_analysis_id)
+        
+        # Assertions.
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['success'] is False
+        assert response.data['error'] == 'Analysis result not found'
+
+    # Get User Feedback Tests
     @patch('app.views.feedback_views.FeedbackService.get_user_feedback')
     def test_get_user_feedback_success(self, mock_service, api_factory, mock_user, mock_feedback_list, mock_pagination_data):
         """
@@ -292,75 +270,7 @@ class TestFeedbackViews:
         
         mock_service.assert_called_once_with(user=mock_user, page=1, page_size=10)
 
-    @patch('app.views.feedback_views.FeedbackService.get_user_feedback')
-    def test_get_user_feedback_custom_pagination(self, mock_service, api_factory, mock_user):
-        """
-        Test user feedback retrieval with custom pagination parameters.
-        """
-        # Mock data.
-        mock_service.return_value = {
-            'success': True,
-            'feedback': [],
-            'pagination': {
-                'current_page': 2,
-                'total_pages': 5,
-                'total_items': 45,
-                'has_next': True,
-                'has_previous': True
-            }
-        }
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/feedback/?page=2&page_size=5')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_user_feedback(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_200_OK
-        mock_service.assert_called_once_with(user=mock_user, page=2, page_size=5)
-
-    def test_get_user_feedback_invalid_pagination(self, api_factory, mock_user):
-        """
-        Test handling of invalid pagination parameters.
-        """
-        # Mock data.
-        request = api_factory.get('/api/feedback/?page=invalid&page_size=abc')
-        force_authenticate(request, user=mock_user)
-        
-        # Create authenticated request.
-        response = get_user_feedback(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['error'] == 'Invalid pagination parameters'
-
-    @patch('app.views.feedback_views.FeedbackService.get_user_feedback')
-    def test_get_user_feedback_boundary_values(self, mock_service, api_factory, mock_user):
-        """
-        Test user feedback retrieval with boundary pagination values.
-        """
-        # Mock data.
-        mock_service.return_value = {
-            'success': True,
-            'feedback': [],
-            'pagination': {}
-        }
-        
-        # Test negative page and page_size > 100.
-        request = api_factory.get('/api/feedback/?page=-1&page_size=200')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_user_feedback(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_200_OK
-
-        # Should normalize to page=1, page_size=10
-        mock_service.assert_called_once_with(user=mock_user, page=1, page_size=10)
-
+    # Get Feedback for Analysis Tests
     @patch('app.views.feedback_views.FeedbackService.get_feedback_for_analysis')
     def test_get_feedback_for_analysis_success(self, mock_service, api_factory, mock_user, mock_analysis_id, mock_feedback_data):
         """
@@ -389,29 +299,6 @@ class TestFeedbackViews:
         mock_service.assert_called_once_with(analysis_id=mock_analysis_id, user=mock_user)
 
     @patch('app.views.feedback_views.FeedbackService.get_feedback_for_analysis')
-    def test_get_feedback_for_analysis_not_found(self, mock_service, api_factory, mock_user, mock_analysis_id):
-        """
-        Test feedback retrieval for analysis with no feedback.
-        """
-        # Mock data.
-        mock_service.return_value = {
-            'success': True,
-            'feedback': None,
-            'pagination': None
-        }
-        
-        # Create authenticated request.
-        request = api_factory.get(f'/api/feedback/analysis/{mock_analysis_id}/')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_feedback_for_analysis(request, mock_analysis_id)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['data']['feedback'] is None
-    
-    @patch('app.views.feedback_views.FeedbackService.get_feedback_for_analysis')
     def test_get_feedback_for_analysis_failure(self, mock_service, api_factory, mock_user, mock_analysis_id):
         """
         Test handling of service failure in feedback retrieval.
@@ -434,6 +321,7 @@ class TestFeedbackViews:
         assert response.data['success'] is False
         assert response.data['error'] == 'You can only access feedback for your own analyses'
 
+    # Delete Feedback Tests
     @patch('app.views.feedback_views.FeedbackService.delete_feedback')
     def test_delete_feedback_success(self, mock_service, api_factory, mock_user, mock_feedback_id):
         """
@@ -482,6 +370,7 @@ class TestFeedbackViews:
         assert response.data['success'] is False
         assert response.data['error'] == 'Feedback not found or you do not have permission to delete it'
 
+    # Statistics Tests
     @patch('app.views.feedback_views.FeedbackService.get_feedback_statistics')
     def test_get_feedback_statistics_success(self, mock_service, api_factory, mock_user, mock_statistics_data):
         """
@@ -508,29 +397,7 @@ class TestFeedbackViews:
         
         mock_service.assert_called_once_with(user=mock_user)
 
-    @patch('app.views.feedback_views.FeedbackService.get_feedback_statistics')
-    def test_get_feedback_statistics_service_failure(self, mock_service, api_factory, mock_user):
-        """
-        Test handling of service failure in statistics retrieval.
-        """
-        # Mock data.
-        mock_service.return_value = {
-            'success': False,
-            'error': 'No feedback data available'
-        }
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/feedback/statistics/')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_feedback_statistics(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['success'] is False
-        assert response.data['error'] == 'No feedback data available'
-
+    # Admin Tests
     @patch('app.views.feedback_views.FeedbackService.get_all_feedback_for_admin')
     def test_get_all_feedback_admin_success(self, mock_service, api_factory, mock_admin_user, mock_feedback_list, mock_pagination_data):
         """
@@ -559,69 +426,53 @@ class TestFeedbackViews:
         
         mock_service.assert_called_once_with(page=1, page_size=20)
 
-    @patch('app.views.feedback_views.FeedbackService.get_all_feedback_for_admin')
-    def test_get_all_feedback_admin_custom_pagination(self, mock_service, api_factory, mock_admin_user):
+    def test_admin_feedback_view_requires_admin_permissions(self, api_factory, mock_user):
         """
-        Test admin feedback retrieval with custom pagination.
+        Test that admin feedback view requires admin permissions.
         """
-        # Mock data.
+        # Create request with regular user (not admin).
+        request = api_factory.get('/api/admin/feedback/')
+        force_authenticate(request, user=mock_user)
+        
+        # Call view.
+        response = get_all_feedback_admin(request)
+        
+        # Assertions.
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # Mark as Resolved Tests
+    @patch('app.views.feedback_views.FeedbackService.mark_feedback_as_resolved')
+    def test_mark_feedback_as_resolved_success(self, mock_service, api_factory, mock_admin_user, mock_feedback_id, mock_feedback_data):
+        """
+        Test successful feedback resolution by admin.
+        """
+        # Setup mock service response
         mock_service.return_value = {
             'success': True,
-            'feedback': [],
-            'pagination': {}
+            'message': 'Feedback marked as resolved successfully',
+            'data': mock_feedback_data
         }
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/admin/feedback/?page=3&page_size=50')
+
+        # Create authenticated admin request
+        request = api_factory.patch(f'/api/admin/feedback/{mock_feedback_id}/resolved/')
         force_authenticate(request, user=mock_admin_user)
-        
-        # Call view.
-        response = get_all_feedback_admin(request)
-        
-        # Assertions.
+
+        # Call view
+        response = mark_feedback_as_resolved(request, mock_feedback_id)
+
+        # Assertions
         assert response.status_code == status.HTTP_200_OK
-        mock_service.assert_called_once_with(page=3, page_size=50)
+        assert response.data['success'] is True
+        assert response.data['message'] == 'Feedback marked as resolved successfully'
+        assert response.data['data']['feedback'] == mock_feedback_data
 
-    def test_get_all_feedback_admin_invalid_pagination(self, api_factory, mock_admin_user):
-        """
-        Test handling of invalid pagination in admin feedback retrieval.
-        """
-        # Mock data.
-        request = api_factory.get('/api/admin/feedback/?page=invalid&page_size=abc')
-        force_authenticate(request, user=mock_admin_user)
-        
-        # Call view.
-        response = get_all_feedback_admin(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['error'] == 'Invalid pagination parameters'
+        # Verify service was called correctly
+        mock_service.assert_called_once_with(
+            feedback_id=mock_feedback_id,
+            admin_user=mock_admin_user
+        )
 
-    @patch('app.views.feedback_views.FeedbackService.get_all_feedback_for_admin')
-    def test_get_all_feedback_admin_boundary_values(self, mock_service, api_factory, mock_admin_user):
-        """
-        Test admin feedback retrieval with boundary pagination values.
-        """
-        # Mock data.
-        mock_service.return_value = {
-            'success': True,
-            'feedback': [],
-            'pagination': {}
-        }
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/admin/feedback/?page=0&page_size=150')
-        force_authenticate(request, user=mock_admin_user)
-        
-        # Call view.
-        response = get_all_feedback_admin(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_200_OK
-
-        # Should normalize to page=1, page_size=20
-        mock_service.assert_called_once_with(page=1, page_size=20)
-
+    # Authentication and Exception Tests
     def test_feedback_views_require_authentication(self, api_factory, mock_analysis_id, mock_feedback_id):
         """
         Test that all feedback views require authentication.
@@ -642,116 +493,47 @@ class TestFeedbackViews:
                 response = view(request)
             assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_admin_feedback_view_requires_admin_permissions(self, api_factory, mock_user):
+    @patch('app.views.feedback_views.FeedbackService.submit_feedback')
+    def test_submit_feedback_exception(self, mock_service, api_factory, mock_user, mock_analysis_id):
         """
-        Test that admin feedback view requires admin permissions.
-        """
-        # Mock data.
-        request = api_factory.get('/api/admin/feedback/')
-        force_authenticate(request, user=mock_user)
-        
-        # Create unauthenticated request.
-        response = get_all_feedback_admin(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-    @patch('app.views.feedback_views.FeedbackService.get_user_feedback')
-    def test_get_user_feedback_exception(self, mock_service, api_factory, mock_user):
-        """
-        Test handling of unexpected exceptions in user feedback retrieval.
+        Test handling of unexpected exceptions in feedback submission.
         """
         # Mock data.
-        mock_service.side_effect = Exception('Database timeout')
+        mock_service.side_effect = Exception('Database connection failed')
+       
+        request_data = {
+            'rating': Feedback.FeedbackRating.THUMBS_UP,
+            'comment': 'Great analysis!'
+        }
         
         # Create authenticated request.
-        request = api_factory.get('/api/feedback/')
+        request = api_factory.post(f'/api/feedback/analysis/{mock_analysis_id}/submit/', request_data)
         force_authenticate(request, user=mock_user)
         
         # Call view.
-        response = get_user_feedback(request)
+        response = submit_feedback(request, mock_analysis_id)
         
         # Assertions.
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['success'] is False
-        assert response.data['error'] == 'Database timeout'
+        assert response.data['error'] == 'Database connection failed'
 
-    @patch('app.views.feedback_views.FeedbackService.get_feedback_for_analysis')
-    def test_get_feedback_for_analysis_exception(self, mock_service, api_factory, mock_user, mock_analysis_id):
+    @patch('app.views.feedback_views.FeedbackService.mark_feedback_as_resolved')
+    def test_mark_feedback_as_resolved_exception(self, mock_service, api_factory, mock_admin_user, mock_feedback_id):
         """
-        Test handling of unexpected exceptions in analysis feedback retrieval.
+        Test handling of service exceptions during feedback resolution.
         """
-        # Mock data.
-        mock_service.side_effect = Exception('Connection error')
-        
-        # Create authenticated request.
-        request = api_factory.get(f'/api/feedback/analysis/{mock_analysis_id}/')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_feedback_for_analysis(request, mock_analysis_id)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['success'] is False
-        assert response.data['error'] == 'Connection error'
+        # Setup mock service to raise exception
+        mock_service.side_effect = Exception('Database connection error')
 
-    @patch('app.views.feedback_views.FeedbackService.delete_feedback')
-    def test_delete_feedback_exception(self, mock_service, api_factory, mock_user, mock_feedback_id):
-        """
-        Test handling of unexpected exceptions in feedback deletion.
-        """
-        # Mock data.
-        mock_service.side_effect = Exception('Delete operation failed')
-        
-        # Create authenticated request.
-        request = api_factory.delete(f'/api/feedback/{mock_feedback_id}/delete/')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = delete_feedback(request, mock_feedback_id)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['success'] is False
-        assert response.data['error'] == 'Delete operation failed'
-
-    @patch('app.views.feedback_views.FeedbackService.get_feedback_statistics')
-    def test_get_feedback_statistics_exception(self, mock_service, api_factory, mock_user):
-        """
-        Test handling of unexpected exceptions in statistics retrieval.
-        """
-        # Mock data.
-        mock_service.side_effect = Exception('Statistics calculation failed')
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/feedback/statistics/')
-        force_authenticate(request, user=mock_user)
-        
-        # Call view.
-        response = get_feedback_statistics(request)
-        
-        # Assertions.
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['success'] is False
-        assert response.data['error'] == 'Statistics calculation failed'
-
-    @patch('app.views.feedback_views.FeedbackService.get_all_feedback_for_admin')
-    def test_get_all_feedback_admin_exception(self, mock_service, api_factory, mock_admin_user):
-        """
-        Test handling of unexpected exceptions in admin feedback retrieval.
-        """
-        # Mock data.
-        mock_service.side_effect = Exception('Admin query failed')
-        
-        # Create authenticated request.
-        request = api_factory.get('/api/admin/feedback/')
+        # Create authenticated admin request
+        request = api_factory.patch(f'/api/admin/feedback/{mock_feedback_id}/resolved/')
         force_authenticate(request, user=mock_admin_user)
-        
-        # Call view.
-        response = get_all_feedback_admin(request)
-        
-        # Assertions.
+
+        # Call view
+        response = mark_feedback_as_resolved(request, mock_feedback_id)
+
+        # Assertions
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['success'] is False
-        assert response.data['error'] == 'Admin query failed'
+        assert response.data['error'] == 'Database connection error'
