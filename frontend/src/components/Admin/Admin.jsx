@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import {
     Users,
     Activity,

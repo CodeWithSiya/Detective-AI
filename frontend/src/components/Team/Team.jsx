@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './Team.css';
-import siyaImg from '../Assets/siya.jpg';
-import lindoImg from '../Assets/lindo.jpg';
-import ethanImg from '../Assets/ethan.jpg';
-import Logo from '../Assets/Logo.png';
+import siyaImg from '../../assets/images/siya.jpg';
+import lindoImg from '../../assets/images/lindo.jpg';
+import ethanImg from '../../assets/images/ethan.jpg';
+import Logo from '../../assets/images/Logo.png';
 import { Link as RouterLink } from "react-router-dom";
 import { ArrowLeft, Mail, Github, Linkedin } from 'lucide-react';
 import { Menu, ChevronRight, Users, Play, Search, Home, Settings } from 'lucide-react';

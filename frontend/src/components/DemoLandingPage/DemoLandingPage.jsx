@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
-import Logo from '../Assets/Logo.png';
-import DetectiveBg from '../Assets/vecteezy.jpg';
+import Logo from '../../assets/images/Logo.png';
+import DetectiveBg from '../../assets/images/vecteezy.jpg';
 import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch, Download, Loader2 } from 'lucide-react';
 import { title } from 'framer-motion/client';
 import { Link as RouterLink } from "react-router-dom";

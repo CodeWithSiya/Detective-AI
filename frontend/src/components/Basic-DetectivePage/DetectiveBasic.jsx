@@ -1,6 +1,6 @@
 import React, {useState, useEffect } from 'react';
 import './DetectiveBasic.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import {
     Search,
     Eye,

@@ -2,7 +2,7 @@
 import mammoth from "mammoth";
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import './DetectivePage.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";  //pdf.js worker import for parsing pdfs
 import {

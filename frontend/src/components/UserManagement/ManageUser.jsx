@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ManageUser.css';
-import Logo from "../Assets/Logo.png";
+import Logo from "../../assets/images/Logo.png";
 import {
     Search,
     Eye,
