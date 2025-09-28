@@ -116,6 +116,11 @@ class Feedback(models.Model):
     def is_pending(self) -> bool:
         """Check if feedback is pending."""
         return self.status == self.FeedbackStatus.PENDING
+    
+    @property
+    def analysis_result(self):
+        """Get the related analysis result through the generic foreign key."""
+        return self.content_object
 
     def __str__(self) -> str:
         """

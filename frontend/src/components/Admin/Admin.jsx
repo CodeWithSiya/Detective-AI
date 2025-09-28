@@ -144,59 +144,45 @@ const AdminPage = () => {
         fetchUsers();
     }, [isUserAuthenticated, authToken, statistics, API_BASE_URL]);
 
-    // Mock data for development (remove when API is ready)
     useEffect(() => {
-        if (statistics) {
-            // Mock data
-            setFeedback([
-                {
-                    id: 1,
-                    userId: 1,
-                    userName: 'Siyabonga Madondo',
-                    submissionId: 'sub_123',
-                    analysisId: 'ana_456',
-                    feedbackText: 'The detection seems incorrect. This text was written by me, not AI.',
-                    submittedAt: '2024-01-20T10:30:00Z',
-                    status: 'pending',
-                    analysisType: 'text',
-                    originalPrediction: 'AI Generated',
-                    confidence: 85
-                },
-                {
-                    id: 2,
-                    userId: 2,
-                    userName: 'Sarah Johnson',
-                    submissionId: 'sub_124',
-                    analysisId: 'ana_457',
-                    feedbackText: 'Great accuracy! The system correctly identified this as AI-generated content.',
-                    submittedAt: '2024-01-19T15:45:00Z',
-                    status: 'resolved',
-                    analysisType: 'text',
-                    originalPrediction: 'AI Generated',
-                    confidence: 92
-                },
-                {
-                    id: 3,
-                    userId: 1,
-                    userName: 'Siyabonga Madondo',
-                    submissionId: 'sub_125',
-                    analysisId: 'ana_458',
-                    feedbackText: 'The image detection failed. This was clearly a real photograph.',
-                    submittedAt: '2024-01-18T09:15:00Z',
-                    status: 'reviewed',
-                    analysisType: 'image',
-                    originalPrediction: 'AI Generated',
-                    confidence: 78
-                }
-            ]);
-
-            console.log('Mock data loaded for admin dashboard');
+    const fetchFeedback = async () => {
+        if (!isUserAuthenticated || !authToken || !statistics) {
+            return; // Wait for dashboard to load first
         }
-        
-    }, [statistics]);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/feedback/`, {
+                headers: {
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log(response)
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch feedback: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(result)
+            
+            if (result.success && result.data && result.data.feedback) {
+                setFeedback(result.data.feedback);
+                console.log('Feedback data loaded:', result.data.feedback);
+            } else {
+                throw new Error(result.error || 'Failed to fetch feedback data');
+            }
+
+        } catch (error) {
+            console.error('Failed to fetch feedback data:', error);
+        }
+    };
+
+        fetchFeedback();
+    }, [isUserAuthenticated, authToken, statistics, API_BASE_URL]);
 
     // Handlers
-    const toggleSidebar = () => {
+    const toggleSidebar = () => { 
         setSidebarOpen(!sidebarOpen);
     };
 
@@ -212,15 +198,17 @@ const AdminPage = () => {
 
     const deleteFeedback = async (feedbackId) => {
         try {
-            const response = await fetch(`/api/admin/feedback/${feedbackId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}/delete/`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    'Authorization': `Token ${authToken}`,
+                    'Content-Type': 'application/json'
                 }
             });
             
             if (response.ok) {
                 setFeedback(prev => prev.filter(item => item.id !== feedbackId));
+                console.log(`Feedback ${feedbackId} deleted successfully`);
             } else {
                 throw new Error('Failed to delete feedback');
             }

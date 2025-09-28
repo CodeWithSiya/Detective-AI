@@ -241,39 +241,58 @@ def get_all_feedback_admin(request):
     """
     Get all feedback for admin users.
     
-    GET /api/admin/feedback/?page=1&page_size=20
+    GET /api/admin/feedback/ (returns all feedback)
+    GET /api/admin/feedback/?page=1&page_size=20 (returns paginated results)
     """
     try:
-
-        page = int(request.GET.get('page', 1))
-        page_size = int(request.GET.get('page_size', 20))
+        # Check if pagination parameters are provided
+        page_param = request.GET.get('page')
+        page_size_param = request.GET.get('page_size')
         
-        if page < 1:
-            page = 1
-        if page_size < 1 or page_size > 100:
-            page_size = 20
-    
+        page = None
+        page_size = None
+        
+        if page_param or page_size_param:
+            page = int(page_param) if page_param else 1
+            page_size = int(page_size_param) if page_size_param else 20
+            
+            if page < 1:
+                page = 1
+            if page_size < 1 or page_size > 100:
+                page_size = 20
+
         result = FeedbackService.get_all_feedback_for_admin(
             page=page,
             page_size=page_size
         )
-    
+
         if result['success']:
+            response_data = {
+                'feedback': result.get('feedback')
+            }
+            
+            # Add pagination info if it exists
+            if 'pagination' in result:
+                response_data['pagination'] = result['pagination']
+            
             return create_json_response(
                 success=True,
-                message='All feedback retrieved successfully',
-                data={
-                    'feedback': result.get('feedback'),
-                    'pagination': result.get('pagination')
-                }
+                message='Feedback retrieved successfully',
+                data=response_data
             )
-        else:
+        else:            
             return create_json_response(
                 success=False,
                 error=result.get('error'),
                 status_code=status.HTTP_400_BAD_REQUEST
-            )    
-    except ValueError:
+            )
+            
+    except ValueError as e:
+        import traceback
+        print(f"Exception in get_all_feedback_admin: {e}")
+        print(f"Exception type: {type(e)}")
+        traceback.print_exc()
+
         return create_json_response(
             success=False,
             error='Invalid pagination parameters',
@@ -281,6 +300,11 @@ def get_all_feedback_admin(request):
         )
             
     except Exception as e:
+        import traceback
+        print(f"Exception in get_all_feedback_admin: {e}")
+        print(f"Exception type: {type(e)}")
+        traceback.print_exc()
+
         return create_json_response(
             success=False,
             error=str(e),

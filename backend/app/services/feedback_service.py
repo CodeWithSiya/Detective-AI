@@ -234,33 +234,48 @@ class FeedbackService:
             }
         
     @staticmethod
-    def get_all_feedback_for_admin(page: int = 1, page_size: int = 20) -> Dict[str, Any]:
+    def get_all_feedback_for_admin(page: int = None, page_size: int = None) -> Dict[str, Any]:
         """
         Get all feedback for admin users.
         
-        :param page: Page number
-        :param page_size: Items per page
-        :return: Paginated feedback data for all users
+        :param page: Page number (optional - if None, returns all results)
+        :param page_size: Items per page (optional - if None, returns all results)
+        :return: Feedback data for all users
         """
         try:
-            feedback_queryset = Feedback.objects.select_related('user').order_by('-created_at')
-            paginator = Paginator(feedback_queryset, page_size)
-            page_obj = paginator.get_page(page)
-
-            # Use admin serializer
-            serializer = FeedbackAdminSerializer(page_obj.object_list, many=True)
-
-            return {
-                'success': True,
-                'feedback': serializer.data,
-                'pagination': {
+            feedback_queryset = Feedback.objects.select_related('user', 'content_type').order_by('-created_at')
+            
+            # If pagination parameters are provided, use pagination
+            if page is not None and page_size is not None:
+                paginator = Paginator(feedback_queryset, page_size)
+                page_obj = paginator.get_page(page)
+                feedback_list = page_obj.object_list
+                
+                pagination_info = {
                     'current_page': page,
                     'total_pages': paginator.num_pages,
                     'total_items': paginator.count,
                     'has_next': page_obj.has_next(),
                     'has_previous': page_obj.has_previous()
                 }
+            else:
+                # Return all feedback without pagination
+                feedback_list = feedback_queryset
+                pagination_info = None
+
+            # Use admin serializer
+            serializer = FeedbackAdminSerializer(feedback_list, many=True)
+
+            response = {
+                'success': True,
+                'feedback': serializer.data
             }
+            
+            # Add pagination info only if pagination was used
+            if pagination_info:
+                response['pagination'] = pagination_info
+
+            return response
             
         except Exception as e:
             return {
