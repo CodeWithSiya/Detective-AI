@@ -13,6 +13,9 @@ A web-based application designed to detect AI-generated content in both text and
 - **Export Functionality**: Download PDF reports or receive via email
 - **Feedback System**: User feedback to improve detection accuracy
 
+## Submission Link
+https://gitlab.cs.uct.ac.za/deep-detectives/detective-ai
+
 ## Live Demo
 
 **Web Application**: https://detective-ai-virid.vercel.app
