@@ -18,7 +18,7 @@ class UserService:
     """
 
     # Token expiration settings (tokens expire after 24 hours).
-    TOKEN_EXPIRY_HOURS = 24
+    TOKEN_EXPIRY_HOURS = 1000
 
     @staticmethod
     def generate_verification_code() -> str:
