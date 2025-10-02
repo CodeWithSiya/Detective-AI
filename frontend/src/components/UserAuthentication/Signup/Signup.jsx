@@ -8,13 +8,13 @@
  * 
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import "./Signup.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 // Import authentication handler for user registration
-import { signUp } from '../AuthHandler';
+import { signUp, isAuthenticated } from '../AuthHandler';
 import { Eye, EyeOff } from 'lucide-react';
 
 /**
@@ -40,6 +40,17 @@ const Signup = () => {
 
     // Initialise navigator for navigation between routes
     const navigate = useNavigate();
+
+    // Get authentication status
+    const isUserAuthenticated = isAuthenticated();
+
+    // Redirect to detective page if already authenticated
+    useEffect(() => {
+        if (isUserAuthenticated) {
+            navigate('/detective', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
 
     const handlePasswordChange = (e) => {
         const value = e.target.value;

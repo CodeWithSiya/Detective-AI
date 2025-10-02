@@ -7,12 +7,12 @@
  * version: 10/09/2025
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import "./Login.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {Eye, EyeOff} from 'lucide-react';
-import { login } from '../AuthHandler';
+import { login, isAuthenticated } from '../AuthHandler';
 
 /**
  * Function that renders the main login page.
@@ -29,6 +29,17 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+
+    // Get authentication status
+    const isUserAuthenticated = isAuthenticated();
+
+    // Redirect to detective page if already authenticated.
+    useEffect(() => {
+        if (isUserAuthenticated) {
+            navigate('/detective', { replace: true });
+            return;
+        }
+    }, [isUserAuthenticated, navigate]);
 
     /**
      * Gets called when submit button is clicked.
