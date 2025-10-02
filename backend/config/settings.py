@@ -182,7 +182,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f'Detective AI <{os.getenv("EMAIL_HOST_USER")}>'
 
 # Frontend URL for email links
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://detective-ai-virid.vercel.app')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 # Integration settings.
 CORS_ALLOW_CREDENTIALS = True

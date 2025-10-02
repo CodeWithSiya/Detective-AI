@@ -597,7 +597,7 @@ def forgot_password(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
 
         # Create reset URL.
-        reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
+        reset_url = f"{settings.FRONTEND_URL}/change-password?uid={uid}&token={token}"
 
         # Send password reset email.
         email_service = EmailService()
