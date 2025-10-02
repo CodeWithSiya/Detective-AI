@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import './DemoLandingPage.css';
 import Logo from '../../assets/images/Logo.png';
 import DetectiveBg from '../../assets/images/vecteezy.jpg';
-import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Play, FileText, Image as ImageIcon, BarChart3, Target, History, FileSearch, Download, Loader2 } from 'lucide-react';
-import { title } from 'framer-motion/client';
+import { ChevronRight, Search, Eye, Shield, Zap, Award, Clock, Users, Image as BarChart3, Target, History, FileSearch, Download, Loader2 } from 'lucide-react';
 import { Link as RouterLink } from "react-router-dom";
 
 
 const DemoLandingPage = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    /*const [currentDemo, setCurrentDemo] = useState(0);*/
 
     useEffect(() => {
         setIsVisible(true);
@@ -50,7 +48,7 @@ const DemoLandingPage = () => {
         {
             icon: <Shield className="icon-lg" />,
             title: "Secure Analysis",
-            description: "Your content is analyzed securely with encrypted processing and storage",
+            description: "Your content is analysed securely with encrypted processing and storage",
             gradient: "gradient-purple-pink"
         },
         {
@@ -64,7 +62,7 @@ const DemoLandingPage = () => {
     const stats = [
         { number: "85%+", label: "Accuracy Rate", icon: <Award className="icon-md"/>},
         { number: "<15%", label: "False Positive", icon: <Shield className="icon-md" /> },
-        { number: "10s", label: "Analysis Time", icon: <Clock className="icon-md" /> },
+        { number: "20s", label: "Analysis Time", icon: <Clock className="icon-md" /> },
     ];
 
     const showcaseFeatures = [
@@ -163,6 +161,8 @@ const DemoLandingPage = () => {
                             opacity: 0.07,
                             zIndex: 0,
                             pointerEvents: 'none',
+                            maskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 100%)',
+                            WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 100%)',
                         }}
                     />
                     <div style={{position: 'relative', zIndex: 1}}>
@@ -220,39 +220,73 @@ const DemoLandingPage = () => {
                     </div>
                 </div>
             </section>
-
+            
             {/* Video Showcase Section */}
             <section className="video-showcase">
                 <div className="video-showcase-inner">
                     <div className="video-stack">
-                        {/* Top Video - Fully Visible */}
+                        {/* Top Video - Text Detection */}
                         <div className="video-container top">
-                            <video 
-                                className="demo-video"
-                                autoPlay 
-                                muted 
-                                loop
-                                playsInline
-                            >
-                                <source src="/text-notai.mp4" type="video/mp4" />
-                                Your browser does not support the video tag.
-                            </video>
-                            <div className="video-overlay"></div>
+                            <div className="macbook-container">
+                                {/* Top bar */}
+                                <div className="macbook-topbar">
+                                    <div className="macbook-buttons">
+                                        <span className="macbook-btn macbook-btn-red"></span>
+                                        <span className="macbook-btn macbook-btn-yellow"></span>
+                                        <span className="macbook-btn macbook-btn-green"></span>
+                                    </div>
+                                    <div className="macbook-title">Text Detection - Detective AI</div>
+                                </div>
+                                
+                                {/* Screen */}
+                                <div className="macbook-screen">
+                                    <video 
+                                        className="demo-video"
+                                        autoPlay 
+                                        muted 
+                                        loop
+                                        playsInline
+                                    >
+                                        <source src="/text-notai.mp4" type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                
+                                {/* Bottom curve */}
+                                <div className="macbook-bottom"></div>
+                            </div>
                         </div>
                         
-                        {/* Bottom Video - Partially Hidden */}
+                        {/* Bottom Video - Image Detection */}
                         <div className="video-container bottom">
-                            <video 
-                                className="demo-video"
-                                autoPlay 
-                                muted 
-                                loop
-                                playsInline
-                            >
-                                <source src="/image-upload-ai.mp4" type="video/mp4" />
-                                Your browser does not support the video tag.
-                            </video>
-                            <div className="video-overlay"></div>
+                            <div className="macbook-container">
+                                {/* Top bar */}
+                                <div className="macbook-topbar">
+                                    <div className="macbook-buttons">
+                                        <span className="macbook-btn macbook-btn-red"></span>
+                                        <span className="macbook-btn macbook-btn-yellow"></span>
+                                        <span className="macbook-btn macbook-btn-green"></span>
+                                    </div>
+                                    <div className="macbook-title">Image Detection - Detective AI</div>
+                                </div>
+                                
+                                {/* Screen */}
+                                <div className="macbook-screen">
+                                    <video 
+                                        className="demo-video"
+                                        autoPlay 
+                                        muted 
+                                        loop
+                                        playsInline
+                                    >
+                                        <source src="/image-upload-ai.mp4" type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                
+                                {/* Bottom curve */}
+                                <div className="macbook-bottom"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
