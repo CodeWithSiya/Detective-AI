@@ -165,18 +165,30 @@ const DetectiveBasic = () => {
         }
     };
 
-        const generateHighlightedText = (originalText, analysisDetails) => {
+    const generateHighlightedText = (originalText, analysisDetails) => {
         if (!analysisDetails) return originalText;
         
-        let highlightedText = originalText;
+        // Define priority levels (higher number = higher priority)
+        const PRIORITY_LEVELS = {
+            suspicious: 7,    // Highest priority - AI patterns
+            keyword: 6,       // AI keywords
+            critical: 5,      // Critical indicators
+            warning: 4,       // Warning level
+            human: 4,         // Human indicators should be visible
+            jargon: 3,        // Corporate jargon
+            buzzword: 2,      // Buzzwords
+            transition: 1     // Lowest priority - transition words
+        };
+        
+        // Collect all found items with their types and priorities
         const highlights = [];
         
-        // Collect all found items with their types
         if (analysisDetails.found_keywords?.length > 0) {
             analysisDetails.found_keywords.forEach(keyword => {
                 highlights.push({
                     text: keyword,
                     type: 'keyword',
+                    priority: PRIORITY_LEVELS.keyword,
                     tooltip: 'AI-typical keyword detected'
                 });
             });
@@ -187,6 +199,7 @@ const DetectiveBasic = () => {
                 highlights.push({
                     text: pattern,
                     type: 'suspicious',
+                    priority: PRIORITY_LEVELS.suspicious,
                     tooltip: 'Suspicious AI pattern detected'
                 });
             });
@@ -197,6 +210,7 @@ const DetectiveBasic = () => {
                 highlights.push({
                     text: transition,
                     type: 'transition',
+                    priority: PRIORITY_LEVELS.transition,
                     tooltip: 'Overused transition word'
                 });
             });
@@ -207,6 +221,7 @@ const DetectiveBasic = () => {
                 highlights.push({
                     text: jargon,
                     type: 'jargon',
+                    priority: PRIORITY_LEVELS.jargon,
                     tooltip: 'Corporate jargon flagged by detectors'
                 });
             });
@@ -217,6 +232,7 @@ const DetectiveBasic = () => {
                 highlights.push({
                     text: buzzword,
                     type: 'buzzword',
+                    priority: PRIORITY_LEVELS.buzzword,
                     tooltip: 'Buzzword frequently used by AI'
                 });
             });
@@ -227,28 +243,90 @@ const DetectiveBasic = () => {
                 highlights.push({
                     text: indicator,
                     type: 'human',
+                    priority: PRIORITY_LEVELS.human,
                     tooltip: 'Human writing indicator'
                 });
             });
         }
         
-        // Apply highlights to text with staggered tooltip positioning
-        highlights.forEach((highlight, index) => {
-            // Escape special regex characters but preserve the original text case
+        // Find all matches for all highlights in the original text
+        const matches = [];
+        
+        highlights.forEach((highlight, highlightIndex) => {
             const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Use global flag and case-insensitive, but capture the actual matched text
             const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
+            let match;
             
-            // Calculate tooltip offset class to prevent overlap
-            const offsetClass = `tooltip-offset-${index % 4}`;
-            
-            highlightedText = highlightedText.replace(regex, (match) => {
-                return `<span class="highlight highlight-${highlight.type}">${match}<span class="tooltip ${offsetClass}">${highlight.tooltip}</span></span>`;
-            });
+            while ((match = regex.exec(originalText)) !== null) {
+                matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    text: match[0],
+                    type: highlight.type,
+                    priority: highlight.priority,
+                    tooltip: highlight.tooltip,
+                    highlightIndex: highlightIndex
+                });
+            }
         });
         
-        return highlightedText;
+        // Sort matches by start position
+        matches.sort((a, b) => a.start - b.start);
+        
+        // Remove overlapping matches, keeping higher priority ones
+        const filteredMatches = [];
+        
+        for (let i = 0; i < matches.length; i++) {
+            const currentMatch = matches[i];
+            let shouldAdd = true;
+            
+            // Check against already added matches
+            for (let j = 0; j < filteredMatches.length; j++) {
+                const existingMatch = filteredMatches[j];
+                
+                // Check if there's any overlap
+                const overlaps = (
+                    (currentMatch.start >= existingMatch.start && currentMatch.start < existingMatch.end) ||
+                    (currentMatch.end > existingMatch.start && currentMatch.end <= existingMatch.end) ||
+                    (currentMatch.start <= existingMatch.start && currentMatch.end >= existingMatch.end)
+                );
+                
+                if (overlaps) {
+                    // If current match has higher priority, remove the existing one
+                    if (currentMatch.priority > existingMatch.priority) {
+                        filteredMatches.splice(j, 1);
+                        j--; // Adjust index after removal
+                    // If priorities are equal, keep both if they're different types
+                    } else if (currentMatch.priority === existingMatch.priority && currentMatch.type !== existingMatch.type) {
+                        // Allow equal priority highlights of different types
+                        continue;
+                    } else {
+                        // Keep existing match, don't add current
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (shouldAdd) {
+                filteredMatches.push(currentMatch);
+            }
+        }
+        
+        // Sort filtered matches by start position (reverse order for replacement)
+        filteredMatches.sort((a, b) => b.start - a.start);
+        
+        // Apply highlights from end to beginning to maintain correct positions
+        let result = originalText;
+        
+        filteredMatches.forEach((match, index) => {
+            const offsetClass = `tooltip-offset-${index % 4}`;
+            const highlightHtml = `<span class="highlight highlight-${match.type}">${match.text}<span class="tooltip ${offsetClass}">${match.tooltip}</span></span>`;
+            
+            result = result.substring(0, match.start) + highlightHtml + result.substring(match.end);
+        });
+        
+        return result;
     };
 
     //---------------------------
@@ -318,13 +396,14 @@ const DetectiveBasic = () => {
                     <h4 className="section-title">Key Detection Factors</h4>
                 </div>
                 <div className="factors-list">
-                    {result.detectionReasons?.slice(0, 3).map((reason, index) => (
+                    {result.detectionReasons?.slice(0, 1).map((reason, index) => (
                         <div key={index} className={`factor-item factor-${reason.type}`}>
                             <div className="factor-header">
                                 <div className={`factor-icon ${reason.type}`}>
                                     {reason.type === 'critical' && <AlertTriangle className="icon-xs" />}
                                     {reason.type === 'warning' && <AlertCircle className="icon-xs" />}
                                     {reason.type === 'info' && <Info className="icon-xs" />}
+                                    {reason.type === 'success' && <CheckCircle className="icon-xs" />}
                                 </div>
                                 <div className="factor-title">{reason.title}</div>
                                 <div className={`factor-impact impact-${reason.impact.toLowerCase()}`}>
@@ -338,7 +417,7 @@ const DetectiveBasic = () => {
                         <div className="upgrade-notice">
                           <div className="upgrade-text">
                             <Shield className="icon-sm" />
-                            Sign in to see {result.detectionReasons.length - 3} more detection factors and advanced analysis
+                            Sign in to see {result.detectionReasons.length - 1} more detection factors and advanced analysis
                           </div>
                         </div>
                     )}
