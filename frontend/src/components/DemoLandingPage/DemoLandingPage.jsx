@@ -226,7 +226,17 @@ const DemoLandingPage = () => {
                 <div className="video-showcase-inner">
                     <div className="video-stack">
                         {/* Top Video - Text Detection */}
-                        <div className="video-container top">
+                        <div 
+                            className="video-container top"
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.zIndex = '10';
+                                e.currentTarget.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.zIndex = '1';
+                                e.currentTarget.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            }}
+                        >
                             <div className="macbook-container">
                                 {/* Top bar */}
                                 <div className="macbook-topbar">
@@ -258,7 +268,17 @@ const DemoLandingPage = () => {
                         </div>
                         
                         {/* Bottom Video - Image Detection */}
-                        <div className="video-container bottom">
+                        <div 
+                            className="video-container bottom"
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.zIndex = '10';
+                                e.currentTarget.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.zIndex = '2';
+                                e.currentTarget.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            }}
+                        >
                             <div className="macbook-container">
                                 {/* Top bar */}
                                 <div className="macbook-topbar">
