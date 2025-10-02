@@ -6,19 +6,19 @@
  * version: 10/09/2025
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import "./ChangePassword.css";
 import { Typewriter } from 'react-simple-typewriter';
-import { useNavigate } from 'react-router-dom';
-import { resetPassword } from '../AuthHandler';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {Eye, EyeOff} from 'lucide-react';
-/**
- * Function that renders the form for changing password functionality
- * @returns {JSX.Element} ChangePassword Component
- */
+import axios from 'axios';
 
 const ChangePassword = () => {
-    //store references from fields directly
+    // Get uid and token from URL query params
+    const [searchParams] = useSearchParams();
+    const uid = searchParams.get('uid');
+    const token = searchParams.get('token');
+    
     const passwordRef = useRef();
     const confirmPasswordRef = useRef();
 
@@ -30,14 +30,19 @@ const ChangePassword = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    //Initialise navigator for navigation between routes
     const navigate = useNavigate();
+
+    // Check if uid and token exist when component loads
+    useEffect(() => {
+        if (!uid || !token) {
+            setErrorMessage('Invalid or missing reset token. Please request a new password reset link.');
+        }
+    }, [uid, token]);
 
     const handlePasswordChange = (e) => {
         const value = e.target.value;
         passwordRef.current.value = value;
 
-        // Simple password strength check
         let strength = 0;
         if (value.length >= 6) strength += 25;
         if (/[A-Z]/.test(value)) strength += 25;
@@ -47,7 +52,6 @@ const ChangePassword = () => {
         setPasswordStrength(strength);
     };
 
-    // Live check for password match
     const handleConfirmPasswordChange = (e) => {
         const confirmValue = e.target.value;
         const passwordValue = passwordRef.current.value;
@@ -56,22 +60,22 @@ const ChangePassword = () => {
         );
     };
 
-    /**
-     * Function that gets called when submit button is pressed
-     * @param {Event} e - the form submission event
-     */
     const handleSubmit = async (e) => {
-        //prevents default behaviour from an event occuring
         e.preventDefault();
 
-        // Clear previous messages
         setErrorMessage('');
         setSuccessMessage('');
         setIsLoading(true);
 
-        //extract values form the password input fields
         const password = passwordRef.current.value;
         const confirmPassword = confirmPasswordRef.current.value;
+
+        // Validate uid and token exist
+        if (!uid || !token) {
+            setErrorMessage("Invalid or missing reset token. Please request a new password reset link.");
+            setIsLoading(false);
+            return;
+        }
 
         // Validate passwords match
         if (password !== confirmPassword) {
@@ -88,37 +92,47 @@ const ChangePassword = () => {
         }
 
         try {
-            // Get the reset token from localStorage (set during email verification)
-            const resetToken = localStorage.getItem('resetToken');
-            
-            if (!resetToken) {
-                setErrorMessage("Invalid session. Please restart the password reset process.");
-                setIsLoading(false);
-                return;
-            }
+            // Send uid, token, and new password to backend
+            const response = await axios.post('http://localhost:8000/api/users/reset-password/', {
+                uid: uid,
+                token: token,
+                new_password: password,
+                confirm_password: confirmPassword
+            });
 
-            // API call to reset password
-            const result = await resetPassword(resetToken, password);
-
-            if (result.success) {
-                setSuccessMessage(result.message);
-                // Clean up stored data
-                localStorage.removeItem('resetToken');
+            if (response.data.success) {
+                setSuccessMessage(response.data.message || 'Password reset successful! Redirecting to login...');
                 
                 // Navigate to login page after showing success message
                 setTimeout(() => {
                     navigate("/login");
                 }, 2000);
             } else {
-                setErrorMessage(result.message);
+                setErrorMessage(response.data.error || 'Failed to reset password. The link may have expired.');
             }
         } catch (error) {
             console.error('Password reset error:', error);
-            setErrorMessage('An unexpected error occurred. Please try again.');
+            const errorMsg = error.response?.data?.error || 'An unexpected error occurred. Please try again or request a new reset link.';
+            setErrorMessage(errorMsg);
         } finally {
             setIsLoading(false);
         }
     };
+
+    // Show error if no uid or token
+    if (!uid || !token) {
+        return (
+            <div className="change-password-container">
+                <div className="error-box">
+                    <h2>Invalid Reset Link</h2>
+                    <p>The password reset link is invalid or has expired.</p>
+                    <button onClick={() => navigate('/forgot-password')}>
+                        Request New Link
+                    </button>
+                </div>
+            </div>
+        );
+    }
     
     return (
         <div className="change-container">
