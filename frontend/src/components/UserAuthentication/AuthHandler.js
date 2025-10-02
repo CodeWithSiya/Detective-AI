@@ -8,7 +8,7 @@
  */
 
 // Base API Configuration.
-const API_BASE_URL = 'https://detective-ai.up.railway.app/api'; 
+const API_BASE_URL = 'http://127.0.0.1:8000/api'; 
 
 /**
  * Function that signs up (registers) a new user via API with verification.
