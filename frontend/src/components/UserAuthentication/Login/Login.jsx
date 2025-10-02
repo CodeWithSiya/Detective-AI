@@ -12,7 +12,7 @@ import "./Login.css";
 import { Typewriter } from 'react-simple-typewriter';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {Eye, EyeOff} from 'lucide-react';
-import { login, isAuthenticated } from '../AuthHandler';
+import { isAuthenticated, getCurrentUser, login } from '../AuthHandler';
 
 /**
  * Function that renders the main login page.
@@ -32,14 +32,19 @@ const Login = () => {
 
     // Get authentication status
     const isUserAuthenticated = isAuthenticated();
+    const currentUser = getCurrentUser();
 
     // Redirect to detective page if already authenticated.
     useEffect(() => {
-        if (isUserAuthenticated) {
-            navigate('/detective', { replace: true });
+        if (isUserAuthenticated && currentUser) {
+            if (currentUser.is_staff) {
+                navigate('/admin', { replace: true });
+            } else {
+                navigate('/detective', { replace: true });
+            }
             return;
         }
-    }, [isUserAuthenticated, navigate]);
+    }, [isUserAuthenticated, currentUser, navigate]);
 
     /**
      * Gets called when submit button is clicked.
