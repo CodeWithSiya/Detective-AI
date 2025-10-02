@@ -847,7 +847,7 @@ const DetectivePage = () => {
                 content: submission.content?.substring(0, 100) + '...',
                 isLoaded: true,
                 result: {
-                    isAI: analysis.detection_result === 'AI_GENERATED',
+                    isAI: analysis.is_ai_generated === 'AI_GENERATED',
                     confidence: Math.round(analysis.confidence * 100),
                     highlightedText,
                     detectionReasons: analysis.detection_reasons || [],
