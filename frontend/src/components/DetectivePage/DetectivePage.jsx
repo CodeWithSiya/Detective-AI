@@ -277,7 +277,6 @@ const DetectivePage = () => {
             });
         }
         
-        // CHANGED: Process human indicators first to ensure they're included
         if (analysisDetails.found_human_indicators?.length > 0) {
             analysisDetails.found_human_indicators.forEach(indicator => {
                 highlights.push({
