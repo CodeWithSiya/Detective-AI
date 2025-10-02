@@ -45,15 +45,12 @@ import {
 } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getAuthToken, isAuthenticated, getCurrentUser } from "../UserAuthentication/AuthHandler";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { sub } from "framer-motion/client";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;   //assign pdf.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const DetectivePage = () => {
     // API Configuration.
-    const API_BASE_URL = 'https://detective-ai.up.railway.app';
+    const API_BASE_URL = 'http://127.0.0.1:8000';
     const navigate = useNavigate();
 
     // Get auth token and user data.

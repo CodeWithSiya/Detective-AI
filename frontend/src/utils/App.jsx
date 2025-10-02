@@ -10,7 +10,7 @@ import DemoLandingPage from '../components/DemoLandingPage/DemoLandingPage';
 import Team from '../components/Team/Team';
 import ScrollToTop from './scrollToTop/ScrollToTop';
 import Admin from '../components/Admin/Admin';
-import DetectiveBasic from '../components/basicDetectivePage/DetectiveBasic';
+import DetectiveBasic from '../components/BasicDetectivePage/DetectiveBasic';
 import ManageUser from '../components/UserManagement/ManageUser';
 
 function App() {

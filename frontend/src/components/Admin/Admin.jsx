@@ -33,7 +33,7 @@ import { getAuthToken, isAuthenticated } from '../UserAuthentication/AuthHandler
 
 const AdminPage = () => {
     // API Configuration.
-    const API_BASE_URL = 'https://detective-ai.up.railway.app';
+    const API_BASE_URL = 'http://127.0.0.1:8000';
 
     // State management
     const [sidebarOpen, setSidebarOpen] = useState(false);
