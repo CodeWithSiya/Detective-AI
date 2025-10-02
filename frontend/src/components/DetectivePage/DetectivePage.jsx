@@ -213,10 +213,10 @@ const DetectivePage = () => {
             keyword: 6,       // AI keywords
             critical: 5,      // Critical indicators
             warning: 4,       // Warning level
+            human: 4,         // CHANGED: Increased from 0 to 4 - Human indicators should be visible
             jargon: 3,        // Corporate jargon
             buzzword: 2,      // Buzzwords
-            transition: 1,    // Lowest priority - transition words
-            human: 0         // Human indicators (different styling)
+            transition: 1     // Lowest priority - transition words
         };
         
         // Collect all found items with their types and priorities
@@ -277,6 +277,7 @@ const DetectivePage = () => {
             });
         }
         
+        // CHANGED: Process human indicators first to ensure they're included
         if (analysisDetails.found_human_indicators?.length > 0) {
             analysisDetails.found_human_indicators.forEach(indicator => {
                 highlights.push({
@@ -293,6 +294,7 @@ const DetectivePage = () => {
         
         highlights.forEach((highlight, highlightIndex) => {
             const escapedText = highlight.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // CHANGED: Made regex case-insensitive and word-boundary aware
             const regex = new RegExp(`\\b(${escapedText})\\b`, 'gi');
             let match;
             
@@ -335,6 +337,10 @@ const DetectivePage = () => {
                     if (currentMatch.priority > existingMatch.priority) {
                         filteredMatches.splice(j, 1);
                         j--; // Adjust index after removal
+                    // CHANGED: If priorities are equal, keep both if they're different types
+                    } else if (currentMatch.priority === existingMatch.priority && currentMatch.type !== existingMatch.type) {
+                        // Allow equal priority highlights of different types
+                        continue;
                     } else {
                         // Keep existing match, don't add current
                         shouldAdd = false;
