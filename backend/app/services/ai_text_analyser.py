@@ -34,7 +34,7 @@ class AiTextAnalyser(AiAnalyser):
         super().__init__(self.long_text_model)
         
         self.use_claude = use_claude
-        self.short_text_threshold = 50  # Character threshold for model selection
+        self.short_text_threshold = 100  # Character threshold for model selection
 
         # Initialize Claude service
         self.claude_service = None
