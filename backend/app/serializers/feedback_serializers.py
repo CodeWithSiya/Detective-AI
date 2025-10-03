@@ -47,7 +47,7 @@ class FeedbackAdminSerializer(serializers.ModelSerializer):
     """
     Serializer for admin feedback views with user information.
     """
-    userId = serializers.IntegerField(source='user.id', read_only=True)
+    userId = serializers.UUIDField(source='user.id', read_only=True)
     userName = serializers.SerializerMethodField()
     submissionId = serializers.SerializerMethodField()
     analysisId = serializers.UUIDField(source='object_id', read_only=True)
