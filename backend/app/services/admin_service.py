@@ -1,7 +1,8 @@
-from django.db.models import Count, Avg, Q
+# type: ignore
+from django.db.models import Avg
 from django.utils import timezone
-from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from datetime import timedelta
+from typing import Dict, Any, Optional
 from app.models.user import User
 from app.models.text_submission import TextSubmission
 from app.models.text_analysis_result import TextAnalysisResult
@@ -155,42 +156,42 @@ class AdminService:
             }
 
     @staticmethod
-    def get_recent_activity(limit: int = 20) -> Dict[str, Any]:
+    def get_recent_activity(limit: Optional[int] = None) -> Dict[str, Any]:
         """
         Get recent activity across the system for admin dashboard.
         
-        :param limit: Number of recent activities to return
+        :param limit: Number of recent activities to return (optional - if None, returns all activities)
         :return: Dictionary containing recent activities
         """
         try:
             activities = []
 
+            # Determine query limit - use a high number if no limit specified
+            query_limit = limit if limit is not None else 1000  # Fetch more activities if no limit
+
             # Recent submissions - Map to 'analysis' type for frontend
-            recent_submissions = TextSubmission.objects.select_related('user').order_by('-created_at')[:limit]
+            recent_submissions = TextSubmission.objects.select_related('user').order_by('-created_at')[:query_limit]
             for submission in recent_submissions:
                 activities.append({
                     'id': str(submission.id),
-                    'type': 'analysis',  # Frontend expects 'analysis' for FileText icon
+                    'type': 'analysis',
                     'user': submission.user.full_name or submission.user.username,
-                    'action': 'Text analysis completed',  # Simplified action text
+                    'action': 'Text analysis completed',
                     'timestamp': submission.created_at,
                     'status': 'success',
                     'analysisType': 'text'
                 })
 
-            # Recent analyses - Keep as 'analysis' type
-            recent_analyses = TextAnalysisResult.objects.select_related('content_type').order_by('-created_at')[:limit]
+            # Recent analyses
+            recent_analyses = TextAnalysisResult.objects.select_related('content_type').order_by('-created_at')[:query_limit]
             for analysis in recent_analyses:
                 try:
-                    # Get the submission through the generic foreign key
                     submission = analysis.content_object
                     if submission and hasattr(submission, 'user'):
-                        # Handle enum values for status
                         status_value = analysis.status
                         if hasattr(status_value, 'value'):
                             status_value = status_value.value
                         
-                        # Map status to frontend format
                         status_mapping = {
                             'COMPLETED': 'success',
                             'FAILED': 'error',
@@ -200,27 +201,24 @@ class AdminService:
                         
                         activities.append({
                             'id': str(analysis.id),
-                            'type': 'analysis',  # Frontend expects 'analysis' for FileText icon
+                            'type': 'analysis',
                             'user': submission.user.full_name or submission.user.username,
-                            'action': 'Text analysis completed',  # Simplified action text
+                            'action': 'Text analysis completed',
                             'timestamp': analysis.created_at,
                             'status': status_mapping.get(status_value, 'pending'),
                             'analysisType': 'text'
                         })
                 except (AttributeError, Exception):
-                    # Skip this analysis if we can't get submission data
                     continue
 
-            # Recent feedback - Map to 'feedback' type
-            recent_feedback = Feedback.objects.select_related('user').order_by('-created_at')[:limit]
+            # Recent feedback
+            recent_feedback = Feedback.objects.select_related('user').order_by('-created_at')[:query_limit]
             for feedback in recent_feedback:
-                # Handle enum values for rating
                 rating_value = feedback.rating
                 if hasattr(rating_value, 'value'):
                     rating_value = rating_value.value
                 
-                # Determine analysisType based on the related analysis
-                analysis_type = 'text'  # Default
+                analysis_type = 'text'
                 try:
                     analysis = feedback.analysis_result
                     if analysis and hasattr(analysis, '__class__'):
@@ -232,34 +230,36 @@ class AdminService:
                 
                 activities.append({
                     'id': str(feedback.id),
-                    'type': 'feedback',  # Frontend expects 'feedback' for MessageSquare icon
+                    'type': 'feedback',
                     'user': feedback.user.full_name or feedback.user.username,
-                    'action': 'Feedback submitted',  # Simplified action text
+                    'action': 'Feedback submitted',
                     'timestamp': feedback.created_at,
-                    'status': 'pending',  # Feedback typically starts as pending
+                    'status': 'pending',
                     'analysisType': analysis_type
                 })
 
-            # Recent user registrations - Map to 'user' type
-            recent_users = User.objects.order_by('-date_joined')[:limit]
+            # Recent user registrations
+            recent_users = User.objects.order_by('-date_joined')[:query_limit]
             for user in recent_users:
                 activities.append({
                     'id': str(user.id),
-                    'type': 'user',  # Frontend expects 'user' for Users icon
+                    'type': 'user',
                     'user': user.full_name or user.username,
-                    'action': 'User registered',  # Simplified action text
+                    'action': 'User registered',
                     'timestamp': user.date_joined,
                     'status': 'success',
                     'analysisType': 'user'
                 })
 
-            # Sort all activities by timestamp (most recent first).
+            # Sort all activities by timestamp (most recent first)
             activities.sort(key=lambda x: x['timestamp'], reverse=True)
             
-            # Return only the most recent activities up to the limit
+            # Return limited or all activities based on limit parameter
+            final_activities = activities[:limit] if limit is not None else activities
+            
             return {
                 'success': True,
-                'activities': activities[:limit]
+                'activities': final_activities
             }
             
         except Exception as e:
@@ -353,6 +353,14 @@ class AdminService:
                 
                 # Count feedback submitted by this user
                 feedback_count = Feedback.objects.filter(user=user).count()
+
+                # Calculate satisfaction rate (percentage of thumbs up)
+                thumbs_up = Feedback.objects.filter(
+                    user=user,
+                    rating=Feedback.FeedbackRating.THUMBS_UP
+                ).count()
+                
+                satisfaction_rate = round((thumbs_up / feedback_count * 100)) if feedback_count > 0 else 0
                 
                 users_data.append({
                     'id': user.id,
@@ -361,7 +369,8 @@ class AdminService:
                     'joinDate': user.date_joined.strftime('%Y-%m-%d'),
                     'totalAnalyses': total_analyses,
                     'accurateDetections': accurate_detections,
-                    'feedbackCount': feedback_count
+                    'feedbackCount': feedback_count,
+                    'satisfactionRate': satisfaction_rate
                 })
             
             return {

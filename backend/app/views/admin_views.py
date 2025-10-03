@@ -56,25 +56,35 @@ def get_recent_activity(request):
     """
     Get recent activity across the system.
     
-    GET /api/admin/activity/?limit=20
+    GET /api/admin/activity/ (returns all activities)
+    GET /api/admin/activity/?limit=20 (returns limited results)
     """
     try:
-        limit = int(request.GET.get('limit', 20))
+        # Parse limit parameter - keep as None if not provided
+        limit_param = request.GET.get('limit')
         
-        # Validate limit
-        if limit < 1 or limit > 100:
-            limit = 20
+        if limit_param is not None:
+            limit = int(limit_param)
+            
+            # Validate limit
+            if limit < 1 or limit > 100:
+                limit = 20
+        else:
+            # No limit - return all activities
+            limit = None
             
         result = AdminService.get_recent_activity(limit=limit)
         
         if result['success']:
+            response_data = {
+                'activities': result['activities'],
+                'total_returned': len(result['activities'])
+            }
+            
             return create_json_response(
                 success=True,
                 message='Recent activity retrieved successfully',
-                data={
-                    'activities': result['activities'],
-                    'total_returned': len(result['activities'])
-                }
+                data=response_data
             )
         else:
             return create_json_response(
@@ -150,7 +160,7 @@ def get_admin_dashboard_data(request):
     try:
         # Get both statistics and recent activity.
         stats_result = AdminService.get_system_statistics()
-        activity_result = AdminService.get_recent_activity(limit=10)
+        activity_result = AdminService.get_recent_activity()
         
         if stats_result['success'] and activity_result['success']:
             return create_json_response(

@@ -57,6 +57,12 @@ const AdminPage = () => {
     const authToken = getAuthToken();
     const isUserAuthenticated = isAuthenticated();
 
+    // Deletion state
+    const [deletingFeedbackIds, setDeletingFeedbackIds] = useState(new Set());
+    
+    // Resolving feedback state
+    const [resolvingFeedback, setResolvingFeedback] = useState(false);
+
     // Fetch statistics data on component mount
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -190,13 +196,50 @@ const AdminPage = () => {
         setCurrentView('user-detail');
     };
 
-    const handleFeedbackSelect = (feedbackItem) => {
-        setSelectedFeedback(feedbackItem);
+    const handleFeedbackSelect = async (feedbackItem) => {
+        // Automatically mark as reviewed when admin views the feedback
+        if (feedbackItem.status === 'pending') {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/feedback/${feedbackItem.id}/reviewed/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Token ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Update the feedback status in state
+                    const updatedFeedback = { ...feedbackItem, status: 'reviewed' };
+                    setFeedback(prev => prev.map(item => 
+                        item.id === feedbackItem.id 
+                            ? updatedFeedback
+                            : item
+                    ));
+                    setSelectedFeedback(updatedFeedback);
+                    console.log(`Feedback ${feedbackItem.id} marked as reviewed`);
+                } else {
+                    // If the API call fails, still set the feedback but keep original status
+                    setSelectedFeedback(feedbackItem);
+                }
+            } catch (error) {
+                console.error('Failed to mark feedback as reviewed:', error);
+                // If there's an error, still set the feedback but keep original status
+                setSelectedFeedback(feedbackItem);
+            }
+        } else {
+            // If not pending, just set the feedback as-is
+            setSelectedFeedback(feedbackItem);
+        }
+        
         setCurrentView('feedback-detail');
     };
 
     const deleteFeedback = async (feedbackId) => {
         try {
+            // Add this feedback ID to the deleting set
+            setDeletingFeedbackIds(prev => new Set(prev).add(feedbackId));
+            
             const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}/delete/`, {
                 method: 'DELETE',
                 headers: {
@@ -205,15 +248,32 @@ const AdminPage = () => {
                 }
             });
             
+            console.log(response)
             if (response.ok) {
                 setFeedback(prev => prev.filter(item => item.id !== feedbackId));
                 console.log(`Feedback ${feedbackId} deleted successfully`);
+                
+                // If we're in detail view, go back to feedback list
+                if (currentView === 'feedback-detail') {
+                    setCurrentView('feedback');
+                    setSelectedFeedback(null);
+                }
+                
+                // Show success message
+                alert('Feedback deleted successfully');
             } else {
                 throw new Error('Failed to delete feedback');
             }
         } catch (error) {
             console.error('Failed to delete feedback:', error);
             alert('Failed to delete feedback. Please try again.');
+        } finally {
+            // Remove this feedback ID from the deleting set
+            setDeletingFeedbackIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(feedbackId);
+                return newSet;
+            });
         }
     };
 
@@ -376,21 +436,21 @@ const AdminPage = () => {
                                 <StatCard
                                     title="Total Users"
                                     value={statistics.users.total.toLocaleString()}
-                                    change={{ type: 'positive', value: '+12.5%' }}
+                                    // change={{ type: 'positive', value: '+12.5%' }}
                                     icon={<Users className="icon-sm" />}
                                     color="blue"
                                 />
                                 <StatCard
                                     title="Analyses Today"
                                     value={statistics.analyses.today.toLocaleString()}
-                                    change={{ type: 'positive', value: '+15.3%' }}
+                                    // change={{ type: 'positive', value: '+15.3%' }}
                                     icon={<Target className="icon-sm" />}
                                     color="purple"
                                 />
                                 <StatCard
                                     title="Analysis Success Rate"
                                     value={`${statistics.analyses.success_rate}%`}
-                                    change={{ type: 'positive', value: '+2.1%' }}
+                                    // change={{ type: 'positive', value: '+2.1%' }}
                                     icon={<Brain className="icon-sm" />}
                                     color="orange"
                                 />
@@ -502,16 +562,16 @@ const AdminPage = () => {
                                         </div>
                                         <div className="user-stats">
                                             <div className="user-stat">
-                                                <span className="stat-value">{user.totalAnalyses}</span>
-                                                <span className="stat-label">Analyses</span>
+                                                <span className="stat-value">{user.totalAnalyses ?? 0}</span>
+                                                <span className="stat-label">Total Analyses</span>
                                             </div>
                                             <div className="user-stat">
-                                                <span className="stat-value">{user.totalAnalyses ? Math.round((user.accurateDetections / user.totalAnalyses) * 100) : 0}%</span>
-                                                <span className="stat-label">Accuracy</span>
+                                                <span className="stat-value">{user.satisfactionRate ?? 0}%</span>
+                                                <span className="stat-label">Satisfaction Rate</span>
                                             </div>
                                             <div className="user-stat">
-                                                <span className="stat-value">{user.feedbackCount}</span>
-                                                <span className="stat-label">Feedback</span>
+                                                <span className="stat-value">{user.feedbackCount ?? 0}</span>
+                                                <span className="stat-label">Feedback Submitted</span>
                                             </div>
                                         </div>
                                         <div className="user-meta">
@@ -560,8 +620,8 @@ const AdminPage = () => {
                                                 <CheckCircle className="icon-sm" />
                                             </div>
                                             <div>
-                                                <div className="detail-stat-value">{selectedUser.totalAnalyses ? Math.round((selectedUser.accurateDetections / selectedUser.totalAnalyses) * 100) : 0}%</div>
-                                                <div className="detail-stat-label">Accuracy Rate</div>
+                                                <div className="detail-stat-value">{selectedUser.satisfactionRate ?? 0}%</div>
+                                                <div className="detail-stat-label">Satisfaction Rate</div>
                                             </div>
                                         </div>
                                         <div className="detail-stat">
@@ -594,7 +654,7 @@ const AdminPage = () => {
                                                 <div className="feedback-header">
                                                     <div className="feedback-type">
                                                         {item.analysisType === 'text' ? <FileText className="icon-sm" /> : <ImageIcon className="icon-sm" />}
-                                                        <span>{item.analysisType} Analysis</span>
+                                                        <span>{item.analysisType.charAt(0).toUpperCase() + item.analysisType.slice(1)} Analysis</span>
                                                     </div>
                                                     <div className={`feedback-status status-${item.status}`}>
                                                         {item.status}
@@ -657,7 +717,7 @@ const AdminPage = () => {
                                         <div className="feedback-card-content">
                                             <div className="feedback-type-info">
                                                 {item.analysisType === 'text' ? <FileText className="icon-sm" /> : <ImageIcon className="icon-sm" />}
-                                                <span>{item.analysisType} Analysis</span>
+                                                <span>{item.analysisType.charAt(0).toUpperCase() + item.analysisType.slice(1)} Analysis</span>
                                                 <span className="confidence-badge">{item.confidence}% confidence</span>
                                             </div>
                                             <p className="feedback-text">{item.feedbackText}</p>
@@ -672,9 +732,22 @@ const AdminPage = () => {
                                             </button>
                                             <button 
                                                 className="action-btn delete"
-                                                onClick={() => deleteFeedback(item.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (window.confirm('Are you sure you want to delete this feedback?')) {
+                                                        deleteFeedback(item.id);
+                                                    }
+                                                }}
+                                                disabled={deletingFeedbackIds.has(item.id)}
                                             >
-                                                <Trash2 className="icon-xs" />
+                                                {deletingFeedbackIds.has(item.id) ? (
+                                                    <>
+                                                        <RefreshCw className="icon-xs animate-spin" />
+                                                        Deleting...
+                                                    </>
+                                                ) : (
+                                                    <Trash2 className="icon-xs" />
+                                                )}
                                             </button>
                                         </div>
                                         <div className="feedback-card-meta">
@@ -716,7 +789,7 @@ const AdminPage = () => {
                                     <div className="analysis-info">
                                         <div className="analysis-type">
                                             {selectedFeedback.analysisType === 'text' ? <FileText className="icon-sm" /> : <ImageIcon className="icon-sm" />}
-                                            <span>{selectedFeedback.analysisType} Analysis</span>
+                                            <span>{selectedFeedback.analysisType.charAt(0).toUpperCase() + selectedFeedback.analysisType.slice(1)} Analysis</span>
                                         </div>
                                         <div className="original-prediction">
                                             <span>Original Prediction: </span>
@@ -742,17 +815,56 @@ const AdminPage = () => {
                                     </div>
 
                                     <div className="feedback-actions">
-                                        <button className="action-btn primary">
-                                            <CheckCircle className="icon-sm" />
-                                            Mark as Resolved
-                                        </button>
-                                        <button className="action-btn secondary">
-                                            <RefreshCw className="icon-sm" />
-                                            Re-analyze
-                                        </button>
-                                        <button className="action-btn delete" onClick={() => deleteFeedback(selectedFeedback.id)}>
-                                            <Trash2 className="icon-sm" />
-                                            Delete
+                                        <button 
+                                            className="action-btn primary"
+                                            onClick={async () => {
+                                                try {
+                                                    setResolvingFeedback(true);
+                                                    const response = await fetch(`${API_BASE_URL}/api/admin/feedback/${selectedFeedback.id}/resolved/`, {
+                                                        method: 'PATCH',
+                                                        headers: {
+                                                            'Authorization': `Token ${authToken}`,
+                                                            'Content-Type': 'application/json'
+                                                        }
+                                                    });
+
+                                                    if (response.ok) {
+                                                        // Update the feedback status in state
+                                                        setFeedback(prev => prev.map(item => 
+                                                            item.id === selectedFeedback.id 
+                                                                ? { ...item, status: 'resolved' }
+                                                                : item
+                                                        ));
+                                                        setSelectedFeedback(prev => ({ ...prev, status: 'resolved' }));
+                                                        alert('Feedback marked as resolved successfully');
+                                                    } else {
+                                                        throw new Error('Failed to mark as resolved');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Failed to mark feedback as resolved:', error);
+                                                    alert('Failed to mark feedback as resolved. Please try again.');
+                                                } finally {
+                                                    setResolvingFeedback(false);
+                                                }
+                                            }}
+                                            disabled={selectedFeedback.status === 'resolved' || resolvingFeedback}
+                                        >
+                                            {resolvingFeedback ? (
+                                                <>
+                                                    <RefreshCw className="icon-sm animate-spin" />
+                                                    Resolving...
+                                                </>
+                                            ) : selectedFeedback.status === 'resolved' ? (
+                                                <>
+                                                    <CheckCircle className="icon-sm" />
+                                                    Resolved
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle className="icon-sm" />
+                                                    Mark as Resolved
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -764,12 +876,13 @@ const AdminPage = () => {
                         <div className="activity-view">
                             <div className="view-header">
                                 <h2 className="view-title">System Activity</h2>
-                                <div className="view-actions">
-                                    <button className="action-btn">
-                                        <RefreshCw className="icon-sm" />
-                                        Refresh
-                                    </button>
-                                </div>
+                                <button 
+                                    className="action-btn"
+                                    onClick={() => setCurrentView('dashboard')}
+                                >
+                                    <ArrowLeft className="icon-sm" />
+                                    Back to Dashboard
+                                </button>
                             </div>
 
                             <div className="activity-timeline">
