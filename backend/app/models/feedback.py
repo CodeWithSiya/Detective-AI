@@ -68,7 +68,7 @@ class Feedback(models.Model):
     # Generic relation to any submission type.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
-    analysis_result = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     # Defining metadata for the feedback table.
     class Meta:

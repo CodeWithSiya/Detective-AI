@@ -245,17 +245,23 @@ def get_all_feedback_admin(request):
     GET /api/admin/feedback/?page=1&page_size=20 (returns paginated results)
     """
     try:
-        # Parse pagination parameters with defaults
+        # Parse pagination parameters - keep as None if not provided
         page_param = request.GET.get('page')
         page_size_param = request.GET.get('page_size')
         
-        page = int(page_param) if page_param else 1
-        page_size = int(page_size_param) if page_size_param else 20
-        
-        if page < 1:
-            page = 1
-        if page_size < 1 or page_size > 100:
-            page_size = 20
+        # Only set pagination if BOTH parameters are provided
+        if page_param is not None and page_size_param is not None:
+            page = int(page_param)
+            page_size = int(page_size_param)
+            
+            if page < 1:
+                page = 1
+            if page_size < 1 or page_size > 100:
+                page_size = 20
+        else:
+            # No pagination - return all results
+            page = None
+            page_size = None
 
         result = FeedbackService.get_all_feedback_for_admin(
             page=page,
@@ -284,11 +290,6 @@ def get_all_feedback_admin(request):
             )
             
     except ValueError as e:
-        import traceback
-        print(f"Exception in get_all_feedback_admin: {e}")
-        print(f"Exception type: {type(e)}")
-        traceback.print_exc()
-
         return create_json_response(
             success=False,
             error='Invalid pagination parameters',
@@ -296,11 +297,6 @@ def get_all_feedback_admin(request):
         )
             
     except Exception as e:
-        import traceback
-        print(f"Exception in get_all_feedback_admin: {e}")
-        print(f"Exception type: {type(e)}")
-        traceback.print_exc()
-
         return create_json_response(
             success=False,
             error=str(e),

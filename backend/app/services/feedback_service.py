@@ -9,7 +9,7 @@ from app.serializers.feedback_serializers import (
     FeedbackAdminSerializer,
     FeedbackUpdateSerializer
 )
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class FeedbackService:
     """
@@ -175,7 +175,12 @@ class FeedbackService:
         :return: Success/error response
         """
         try:
-            feedback = Feedback.objects.get(id=feedback_id, user=user)
+            # Admins can delete any feedback, registered users only their own
+            if user.is_staff or user.is_superuser:
+                feedback = Feedback.objects.get(id=feedback_id)
+            else:
+                feedback = Feedback.objects.get(id=feedback_id, user=user)
+
             feedback.delete()
             
             return {
@@ -234,16 +239,18 @@ class FeedbackService:
             }
         
     @staticmethod
-    def get_all_feedback_for_admin(page: int = None, page_size: int = None) -> Dict[str, Any]:
+    def get_all_feedback_for_admin(page: Optional[int] = None, page_size: Optional[int] = None) -> Dict[str, Any]:
         """
-        Get all feedback for admin users.
+        Get all feedback for admin users (excluding thumbs up feedback).
         
         :param page: Page number (optional - if None, returns all results)
         :param page_size: Items per page (optional - if None, returns all results)
         :return: Feedback data for all users
         """
         try:
-            feedback_queryset = Feedback.objects.select_related('user', 'content_type').order_by('-created_at')
+            feedback_queryset = Feedback.objects.filter(
+                rating=Feedback.FeedbackRating.THUMBS_DOWN
+            ).select_related('user', 'content_type').order_by('-created_at')
             
             # If pagination parameters are provided, use pagination
             if page is not None and page_size is not None:
