@@ -199,13 +199,6 @@ def analyse_image(request):
         )
         
     except Exception as e:
-        # Get the full stack trace
-        import traceback
-        tb_str = traceback.format_exc()
-        print("=== FULL ERROR TRACEBACK ===")
-        print(tb_str)
-        print("============================")
-
         return create_json_response(
             success=False,
             error=f"Image analysis failed: {str(e)}",

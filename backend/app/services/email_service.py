@@ -10,9 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# TODO: Link the Start Your First Email Service to the main page of the website.
-# TODO: Link Password Reset to the Actual Password Reset Page.
-
 class EmailService:
     """
     Service for sending emails on Detective AI.
